@@ -34,16 +34,17 @@
 <div class="drawer bg-base-100" class:lg:drawer-open={drawerOpened}>
   <input id="drawer" type="checkbox" class="drawer-toggle" bind:checked={drawerOpened} />
   <div class="drawer-content">
-    <div class="d-none">
-      <div
-        class="bg-gradient-to-b from-base-100 border-none bg-base-100 border-accent border-b-2"
-      ></div>
-    </div>
     <div
       class="ml-auto text-base-content fixed transition-colors duration-300 top-0 right-0 z-30 flex h-16 w-full justify-center"
-      class:bg-base-100,border-accent,border-b-2={scrollY > 0}
-      class:bg-gradient-to-b,from-base-100,border-none={scrollY === 0}
-      class:max-w-[calc(100%-20rem)],ml-auto={drawerOpened}
+      class:bg-base-100={scrollY > 0}
+      class:border-accent={scrollY > 0}
+      class:border-b-2={scrollY > 0}
+      class:shadow-sm={scrollY > 0}
+      class:bg-gradient-to-b={scrollY === 0}
+      class:from-base-100={scrollY === 0}
+      class:border-none={scrollY === 0}
+      class:max-w-[calc(100%-20rem)]={drawerOpened}
+      class:ml-auto={drawerOpened}
     >
       <nav class="navbar max-w-screen-2xl w-full mx-auto px-6">
         <div class="navbar-start">
@@ -62,18 +63,19 @@
             data-svelte-typeahead=""
             role="combobox"
             aria-haspopup="listbox"
-            class="dropdown"
+            class="dropdown transition-[flex] duration-200"
             aria-controls="inline-search-listbox"
             aria-expanded="true"
             id="inline-search-container"
+            class:grow={inlineSearchFocused}
+            class:shrink={!inlineSearchFocused}
           >
             <form data-svelte-search="">
               <label
-                class="input input-bordered input-sm flex items-center gap-2 w-full transition-[margin] ease-in-out duration-200 input-accent md:mr-28"
+                class="input input-bordered input-sm flex items-center gap-2 w-full transition-colors duration-200 ease-in-out md:mr-28"
                 id="inline-search-label"
                 for="inline-search"
-                class:mr-0={!inlineSearchFocused}
-                class:input-accent,md:mr-28={inlineSearchFocused}
+                class:input-accent={inlineSearchFocused}
               >
                 <input
                   name="search"
@@ -90,14 +92,11 @@
                   on:blur={onInlineSearchBlur}
                 />
                 <div
-                  class="items-center gap-1 transition-opacity duration-200"
+                  class="flex-none flex items-center gap-1 transition-opacity duration-200"
                   class:opacity-0={inlineSearchFocused}
-                  class:flex,flex-none={!inlineSearchFocused}
                 >
-                  {#if !inlineSearchFocused}
-                    <kbd class="kbd kbd-sm">Ctrl</kbd>
-                    <kbd class="kbd kbd-sm">K</kbd>
-                  {/if}
+                  <kbd class="kbd kbd-sm" class:d-none={inlineSearchFocused}>Ctrl</kbd>
+                  <kbd class="kbd kbd-sm" class:d-none={inlineSearchFocused}>K</kbd>
                 </div>
                 <div class="flex-none flex items-center">
                   <span class="iconify lucide--search text-lg"></span>
