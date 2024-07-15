@@ -35,14 +35,11 @@
   <input id="drawer" type="checkbox" class="drawer-toggle" bind:checked={drawerOpened} />
   <div class="drawer-content">
     <div
-      class="ml-auto text-base-content fixed transition-colors duration-300 top-0 right-0 z-30 flex h-16 w-full justify-center"
+      class="ml-auto text-base-content fixed transition-colors duration-300 top-0 right-0 z-30 flex h-16 w-full justify-center bg-gradient-to-b from-base-100 via-base-100/75 via-80%"
       class:bg-base-100={scrollY > 0}
       class:border-accent={scrollY > 0}
       class:border-b-2={scrollY > 0}
-      class:shadow-sm={scrollY > 0}
-      class:bg-gradient-to-b={scrollY === 0}
-      class:from-base-100={scrollY === 0}
-      class:border-none={scrollY === 0}
+      class:shadow={scrollY > 0}
       class:max-w-[calc(100%-20rem)]={drawerOpened}
       class:ml-auto={drawerOpened}
     >
@@ -76,6 +73,8 @@
                 id="inline-search-label"
                 for="inline-search"
                 class:input-accent={inlineSearchFocused}
+                class:bg-opacity-0={!inlineSearchFocused}
+                class:backdrop-blur={!inlineSearchFocused}
               >
                 <input
                   name="search"
@@ -95,8 +94,8 @@
                   class="flex-none flex items-center gap-1 transition-opacity duration-200"
                   class:opacity-0={inlineSearchFocused}
                 >
-                  <kbd class="kbd kbd-sm" class:d-none={inlineSearchFocused}>Ctrl</kbd>
-                  <kbd class="kbd kbd-sm" class:d-none={inlineSearchFocused}>K</kbd>
+                  <kbd class="kbd kbd-sm" class:hidden={inlineSearchFocused}>Ctrl</kbd>
+                  <kbd class="kbd kbd-sm" class:hidden={inlineSearchFocused}>K</kbd>
                 </div>
                 <div class="flex-none flex items-center">
                   <span class="iconify lucide--search text-lg"></span>
@@ -167,7 +166,7 @@
   </div>
   <div class="drawer-side z-40">
     <label for="drawer" class="drawer-overlay" aria-label="Close drawer"></label>
-    <aside class="bg-base-200 min-h-screen w-80">
+    <aside class="bg-base-200 shadow-inner min-h-screen w-80">
       <div
         data-sveltekit-preload-data="hover"
         class="bg-base-200 sticky top-0 z-20 hidden items-center gap-2 bg-opacity-90 px-4 py-2 backdrop-blur lg:flex justify-between"
