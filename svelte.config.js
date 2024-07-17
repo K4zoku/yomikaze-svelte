@@ -20,9 +20,10 @@ const config = {
     // See https://kit.svelte.dev/docs/adapters for more information about adapters.
     adapter: adapter(),
     alias: {
+      $components: path.resolve('./src/lib/components'),
+      $models: path.resolve('./src/lib/models'),
+      $utils: path.resolve('./src/lib/utils'),
       '~': path.resolve('./src'),
-      $components: path.resolve('./src/components'),
-      $utils: path.resolve('./src/utils')
     },
     version: {
       name: pkg.version
