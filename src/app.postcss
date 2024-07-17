@@ -1,3 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.menu li > *:not(ul, .menu-title, details, .btn):active, .menu li > *:not(ul, .menu-title, details, .btn).active, .menu li > details > summary:active {
+  @apply bg-accent;
+}
