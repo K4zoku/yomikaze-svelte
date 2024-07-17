@@ -241,7 +241,7 @@
             id="inline-search-container"
             class:grow={inlineSearch.focused}
           >
-            <form data-svelte-search="">
+            <form action="/search">
               <label
                 class="input input-bordered input-sm flex items-center gap-2 w-full max-w-full transition-colors duration-200 ease-in-out backdrop-blur-sm"
                 id="inline-search-label"
@@ -250,7 +250,7 @@
                 class:bg-opacity-0={!inlineSearch.focused}
               >
                 <input
-                  name="search"
+                  name="name"
                   type="search"
                   placeholder="Search…"
                   autocomplete="off"
@@ -275,35 +275,8 @@
                   <span class="iconify lucide--search text-lg"></span>
                 </div>
               </label>
+              <button class="hidden" type="submit"></button>
             </form>
-            <ul
-              role="listbox"
-              class="svelte-typeahead-list"
-              aria-labelledby="inline-search-label"
-              id="inline-search-listbox"
-            >
-              <!-- <li
-                role="option"
-                class="svelte-4tg1b1 selected"
-                aria-selected="true"
-              >
-                <div class="py-1 text-sm font-normal">Install</div>
-              </li>
-              <li
-                role="option"
-                class="svelte-4tg1b1"
-                aria-selected="false"
-              >
-                <div class="py-1 text-sm font-normal">Config</div>
-              </li>
-              <li
-                role="option"
-                class="svelte-4tg1b1"
-                aria-selected="false"
-              >
-                <div class="py-1 text-sm font-normal">Themes</div>
-              </li> -->
-            </ul>
           </div>
           <div class="flex gap-4 items-center pe-2">
             <details class="dropdown dropdown-end">

@@ -1,0 +1,12 @@
+diff --git a/node_modules/@jhubbardsf/svelte-sortablejs/SortableList.svelte b/node_modules/@jhubbardsf/svelte-sortablejs/SortableList.svelte
+index 2fdbf19..5b8f1a9 100644
+--- a/node_modules/@jhubbardsf/svelte-sortablejs/SortableList.svelte
++++ b/node_modules/@jhubbardsf/svelte-sortablejs/SortableList.svelte
+@@ -1,5 +1,6 @@
+ <script>import { onDestroy, onMount } from 'svelte';
+-import Sortable, { MultiDrag, Swap } from 'sortablejs';
++import Sortable from 'sortablejs';
++const {MultiDrag, Swap} = Sortable;
+ // Svelte Library Variables
+ let list;
+ let sortable;
