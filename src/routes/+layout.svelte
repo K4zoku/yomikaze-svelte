@@ -3,10 +3,11 @@
 
   import Brand from '$components/brand.svelte';
   import DefaultAvatar from '$components/default-user-avatar.svelte';
-  import Swap from '$lib/components/daisyui/actions/swap.svelte';
+  import Swap from '$components/daisyui/actions/swap.svelte';
 
   import { version } from '$app/environment';
   import { page } from '$app/stores';
+    import { draw } from 'svelte/transition';
   let path: string;
   $: path = $page.url.pathname;
 
@@ -203,13 +204,15 @@
   </div>
   <div class="drawer-content transition-all duration-300">
     <div
-      class="ml-auto text-base-content fixed transition-colors duration-300 top-0 right-0 z-30 flex h-16 w-full justify-center bg-gradient-to-b from-base-100 via-base-100/75 via-80%"
+      class="ml-auto text-base-content fixed transition-all duration-300 top-0 right-0 z-30 flex h-16 justify-center bg-gradient-to-b from-base-100 via-base-100/75 via-80%"
       class:bg-base-100={scrollY > 0}
       class:border-accent={scrollY > 0}
       class:border-b-2={scrollY > 0}
       class:shadow={scrollY > 0}
       class:max-w-[calc(100%-20rem)]={drawerOpened}
       class:ml-auto={drawerOpened}
+      class:w-full={!drawerOpened} 
+      class:w-[calc(100%_-_20rem)]={drawerOpened}
     >
       <nav class="navbar max-w-screen-2xl w-full mx-auto px-6">
         <div class="navbar-start">
@@ -314,8 +317,10 @@
         </div>
       </nav>
     </div>
-    <div class="px-6 max-w-screen-2xl w-full mx-auto">
+    <div class="px-6 max-w-screen-2xl mx-auto transition-[width] duration-200" class:w-full={!drawerOpened} class:w-[calc(100%_-_20rem)]={drawerOpened}>
       <slot />
     </div>
   </div>
 </div>
+
+<div class="h-20"></div>

@@ -1,6 +1,6 @@
 <script lang="ts">
   import TriSwap from '$components/daisyui/actions/tri-swap.svelte';
-
+               
   export let data;
   let { categories } = data;
   let categoryIds = Object.keys(categories).sort();
