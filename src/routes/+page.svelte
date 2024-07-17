@@ -1,3 +1,15 @@
+<script lang="ts">
+  import Carousel from 'svelte-carousel';
+  import { browser } from '$app/environment';
+</script>
+
+{#if browser}
+  <Carousel autoplay autoplayDuration={2000}>
+    <div class="background-primary">Primary</div>
+    <div class="background-secondary">Secondary</div>
+  </Carousel>
+{/if}
+
 {#each Array(20) as item}
   <p class="text-justify">
     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi pretium elit ac convallis
