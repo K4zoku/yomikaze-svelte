@@ -76,8 +76,5 @@
   {/await}
 {/if}
 
-<div class="container">
-  {#each {length: 1000} as _, index}
-    <p>Dummy text for scrolling</p>
-  {/each}
+<div class="container mt-4">
 </div>
