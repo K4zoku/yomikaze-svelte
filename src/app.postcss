@@ -1,7 +1,37 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
+*, ::before, ::after {
+  --tw-drawer-width: 20rem;
+}
 .menu li > *:not(ul, .menu-title, details, .btn):active, .menu li > *:not(ul, .menu-title, details, .btn).active, .menu li > details > summary:active {
   @apply bg-accent;
+}
+
+.shadow-inner {
+  box-shadow: inset -2px 0 8px -2px rgba(0,0,0,0.2);
+}
+
+.drawer-side > .drawer-overlay {
+  transition-duration: 200ms;
+}
+.drawer-side > *:not(.drawer-overlay) {
+  transition-duration: 300ms;
+}
+
+.w-drawer {
+  width: var(--tw-drawer-width)
+}
+@screen xl {
+  .w-drawer-content {
+    width: calc(100vw - var(--tw-drawer-width));
+  }
+
+  .max-w-drawer-content {
+    max-width: calc(100vw - var(--tw-drawer-width));
+  }
+
+  .min-w-drawer-content {
+    min-width: calc(100vw - var(--tw-drawer-width));
+  }
 }

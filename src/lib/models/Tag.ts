@@ -1,7 +1,7 @@
-import type BaseModel from "./BaseModel";
+import type Model from "./Model";
 import type TagCategory from "./TagCategory";
 
-export default interface Tag extends BaseModel {
+export default interface Tag extends Model {
     name: string,
     description?: string,
     readonly category: TagCategory,

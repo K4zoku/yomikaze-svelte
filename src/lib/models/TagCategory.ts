@@ -1,5 +1,5 @@
-import type BaseModel from "./BaseModel";
+import type Model from "./Model";
 
-export default interface TagCategory extends BaseModel {
+export default interface TagCategory extends Model {
     name: string,
 }

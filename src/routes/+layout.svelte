@@ -3,24 +3,22 @@
 
   import Brand from '$components/brand.svelte';
   import DefaultAvatar from '$components/default-user-avatar.svelte';
-  import Swap from '$components/daisyui/actions/swap.svelte';
 
   import { version } from '$app/environment';
   import { page } from '$app/stores';
-    import { draw } from 'svelte/transition';
   let path: string;
   $: path = $page.url.pathname;
 
   let drawerOpened: boolean = true;
-  
+
   interface InlineSearch {
-    focused: boolean,
-    element: HTMLInputElement | undefined
+    focused: boolean;
+    element: HTMLInputElement | undefined;
   }
-  let inlineSearch : InlineSearch = {
+  let inlineSearch: InlineSearch = {
     focused: false,
     element: undefined
-  }
+  };
 
   let scrollY: number;
   function onKeyDown(event: KeyboardEvent) {
@@ -42,11 +40,11 @@
 </script>
 
 <svelte:window bind:scrollY on:keydown={onKeyDown} />
-<div class="drawer bg-base-100" class:lg:drawer-open={drawerOpened}>
+<div class="drawer" class:xl:drawer-open={drawerOpened}>
   <input id="drawer" type="checkbox" class="drawer-toggle" bind:checked={drawerOpened} />
   <div class="drawer-side z-40">
     <label for="drawer" class="drawer-overlay" aria-label="Close drawer"></label>
-    <aside class="bg-base-200 min-h-screen w-80 shadow-[inset_-2px_0_8px_-2px_rgba(0,0,0,0.2)]">
+    <aside class="bg-base-200 min-h-screen w-80 shadow-inner">
       <div
         data-sveltekit-preload-data="hover"
         class="sticky top-0 z-20 items-center gap-2 px-4 py-2 flex justify-between transition-opacity duration-200"
@@ -54,13 +52,9 @@
         <div class="transition-transform duration-500" class:translate-x-50={!drawerOpened}>
           <Brand autoHideBrandName={false} />
         </div>
-        <Swap rotate={true} bind:active={drawerOpened}>
-          <span slot="on" class="duration-500 iconify lucide--x text-2xl"></span>
-          <span
-            slot="off"
-            class="duration-500 iconify lucide--bar-chart text-2xl transform rotate-90 scale-x-flip"
-          ></span>
-        </Swap>
+        <label for="drawer" class="btn btn-circle btn-ghost">
+          <span class="duration-500 iconify lucide--x text-2xl"></span>
+        </label>
       </div>
       <div class="h-4"></div>
       <ul class="menu px-4 py-0">
@@ -202,35 +196,28 @@
       </footer>
     </aside>
   </div>
-  <div class="drawer-content transition-all duration-300">
+  <div class="drawer-content">
     <div
-      class="ml-auto text-base-content fixed transition-all duration-300 top-0 right-0 z-30 flex h-16 justify-center bg-gradient-to-b from-base-100 via-base-100/75 via-80%"
+      class="ml-auto text-base-content fixed transition-[background-color,border-color,width,margin] duration-300 top-0 right-0 z-30 flex h-16 justify-center"
       class:bg-base-100={scrollY > 0}
       class:border-accent={scrollY > 0}
       class:border-b-2={scrollY > 0}
       class:shadow={scrollY > 0}
-      class:max-w-[calc(100%-20rem)]={drawerOpened}
       class:ml-auto={drawerOpened}
-      class:w-full={!drawerOpened} 
-      class:w-[calc(100%_-_20rem)]={drawerOpened}
+      class:w-full={!drawerOpened}
+      class:w-drawer-content={drawerOpened}
     >
       <nav class="navbar max-w-screen-2xl w-full mx-auto px-6">
         <div class="navbar-start">
           <div
-            class="flex gap-4 justify-between items-center transition-[opacity,transform] duration-200"
-            class:opacity-0={drawerOpened}
-            class:translate-x-[-2.5rem]={drawerOpened}
+            class="flex gap-4 justify-between items-center transition-opacity duration-200"
+            class:hidden={drawerOpened}
           >
-            {#if !drawerOpened}
-            <Swap rotate={true} bind:active={drawerOpened}>
-              <span slot="on" class="duration-500 iconify lucide--x text-2xl"></span>
-              <span
-                slot="off"
-                class="duration-500 iconify lucide--bar-chart text-2xl transform rotate-90 scale-x-flip"
+            <label for="drawer" class="btn btn-circle btn-ghost">
+              <span class="iconify lucide--bar-chart text-2xl transform rotate-90 scale-x-flip"
               ></span>
-            </Swap>
+            </label>
             <Brand />
-            {/if}
           </div>
         </div>
         <div class="navbar-end gap-4">
@@ -246,11 +233,11 @@
           >
             <form action="/search">
               <label
-                class="input input-bordered input-sm flex items-center gap-2 w-full max-w-full transition-colors duration-200 ease-in-out backdrop-blur-sm"
+                class="input input-bordered input-sm flex items-center gap-2 w-full max-w-full transition-colors duration-200 ease-in-out backdrop-blur"
                 id="inline-search-label"
                 for="inline-search"
                 class:input-accent={inlineSearch.focused}
-                class:bg-opacity-0={!inlineSearch.focused}
+                class:bg-opacity-50={!inlineSearch.focused}
               >
                 <input
                   name="name"
@@ -264,8 +251,8 @@
                   id="inline-search"
                   class="grow"
                   bind:this={inlineSearch.element}
-                  on:focus={() => inlineSearch.focused = true}
-                  on:blur={() => inlineSearch.focused = false}
+                  on:focus={() => (inlineSearch.focused = true)}
+                  on:blur={() => (inlineSearch.focused = false)}
                 />
                 <div
                   class="flex-none flex items-center gap-1 transition-opacity duration-200"
@@ -317,10 +304,9 @@
         </div>
       </nav>
     </div>
-    <div class="px-6 max-w-screen-2xl mx-auto transition-[width] duration-200" class:w-full={!drawerOpened} class:w-[calc(100%_-_20rem)]={drawerOpened}>
+
+    <div class="mx-auto w-full transition-[max-width] duration-300" class:max-w-drawer-content={drawerOpened}>
       <slot />
     </div>
   </div>
 </div>
-
-<div class="h-20"></div>
