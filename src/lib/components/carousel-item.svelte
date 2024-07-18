@@ -2,6 +2,7 @@
   import type Comic from '$models/Comic';
 
   export let comic: Comic;
+  export let index: number;
 </script>
 
 <a href={`/comics/${comic.id}`} class="w-full aspect-[20/6] min-h-80 select-none relative z-0" draggable="false" on:drag|preventDefault={() => {}}>
@@ -44,6 +45,9 @@
         <div class="flex flex-col gap-2 max-h-full">
           <h3 class="text-xl md:text-2xl lg:text-4xl font-extrabold">{comic.name}</h3>
           <div class="flex gap-2 py-2 max-w-screen-lg overflow-x-hidden shrink-0">
+            {#if index === 0}
+              <span class="flex-shrink-0 badge badge-outline badge-accent">Suggestive</span>
+            {/if}
             {#each comic.tags as tag}
               <span class="flex-shrink-0 badge badge-outline">{tag.name}</span>
             {:else}

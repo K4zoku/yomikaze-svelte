@@ -1,9 +1,18 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 *, ::before, ::after {
   --tw-drawer-width: 20rem;
 }
+
+.container {
+  @apply max-w-screen-2xl;
+  @apply w-full;
+  @apply mx-auto;
+  @apply px-6;
+}
+
 .menu li > *:not(ul, .menu-title, details, .btn):active, .menu li > *:not(ul, .menu-title, details, .btn).active, .menu li > details > summary:active {
   @apply bg-accent;
 }
@@ -22,6 +31,7 @@
 .w-drawer {
   width: var(--tw-drawer-width)
 }
+
 @screen xl {
   .w-drawer-content {
     width: calc(100vw - var(--tw-drawer-width));

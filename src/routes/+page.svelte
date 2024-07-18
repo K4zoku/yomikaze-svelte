@@ -51,17 +51,18 @@
       dots={false}
       bind:goToPrev
       bind:goToNext
+      let:currentPageIndex={index}
       on:pageChange={(event) => (currentPageIndex = event.detail)}
     >
       {#each popComics as comic (comic.id)}
-        <CarouselItem {comic}></CarouselItem>
+        <CarouselItem {index} {comic}></CarouselItem>
       {/each}
       <div slot="prev"></div>
       <div
         slot="next"
         class="absolute bottom-0 right-0 z-10 flex gap-8 items-center justify-center mb-[4%] mr-[10%]"
       >
-        <span class="shrink-0 font-bold text-lg">No.{currentPageIndex + 1}</span>
+        <span class="shrink-0 font-bold text-lg" class:text-accent={!currentPageIndex}>No.{currentPageIndex + 1}</span>
         <div class="flex gap-2">
           <button class="btn btn-circle btn-sm btn-ghost" on:click={() => goToPrev()}>
             <span class="iconify lucide--chevron-left font-extrabold text-2xl"></span>
@@ -74,3 +75,9 @@
     </Carousel>
   {/await}
 {/if}
+
+<div class="container">
+  {#each {length: 1000} as _, index}
+    <p>Dummy text for scrolling</p>
+  {/each}
+</div>
