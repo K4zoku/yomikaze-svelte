@@ -1,6 +1,7 @@
 import type Comic from "$models/Comic";
 import http from "./http";
 import { PUBLIC_CDN_BASE_URL } from "$env/static/public";
+import { delayedValuePromise } from "./common";
 
 const CDN_BASE_URL = PUBLIC_CDN_BASE_URL ?? "https://i.yomikaze.org";
 
@@ -14,8 +15,7 @@ export async function getPopularComics() : Promise<Comic[]> {
         comics.push(...response.data.results);
     }
     comics = comics.map(comic => normalizeComic(comic));
-    console.log(comics);
-    return comics;
+    return await delayedValuePromise(1000, comics);
 }
 
 export function normalizeComic(comic: Comic) : Comic {

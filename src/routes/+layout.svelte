@@ -305,7 +305,7 @@
       </nav>
     </div>
 
-    <div class="mx-auto w-full transition-[max-width] duration-300" class:max-w-drawer-content={drawerOpened}>
+    <div class="mx-auto w-full max-w-full transition-[max-width] duration-300" class:max-w-drawer-content={drawerOpened}>
       <slot />
     </div>
   </div>
