@@ -1,17 +1,25 @@
 <script lang="ts">
   import Carousel from 'svelte-carousel';
   import { browser } from '$app/environment';
-  import type Comic from '$models/Comic';
-  import { getPopularComics } from '$utils/comic-utils';
+  import type {PageData} from './$types';
   import CarouselItem from '$components/carousel-item.svelte';
 
-  let goToPrev: () => void;
-  let goToNext: () => void;
-  let currentPageIndex: number = 0;
+  interface CarouselData {
+    goToPrev: () => void;
+    goToNext: () => void;
+    currentPageIndex: number;
+  }
+  let carousel: CarouselData = {
+    goToNext: () => {},
+    goToPrev: () => {},
+    currentPageIndex: 0,
+  }
+  export let data: PageData;
+  let {popular} = data;
 </script>
 
 {#if browser}
-  {#await getPopularComics()}
+  {#await popular}
     <div class="w-full aspect-[20/6] min-h-80 select-none relative z-0">
       <div class="w-full aspect-[20/6] bg-base-300"></div>
       <div
@@ -49,10 +57,10 @@
       autoplayDuration={3000}
       pauseOnFocus
       dots={false}
-      bind:goToPrev
-      bind:goToNext
+      bind:goToPrev={carousel.goToPrev}
+      bind:goToNext={carousel.goToNext}
       let:currentPageIndex={index}
-      on:pageChange={(event) => (currentPageIndex = event.detail)}
+      on:pageChange={(event) => (carousel.currentPageIndex = event.detail)}
     >
       {#each popComics as comic (comic.id)}
         <CarouselItem {index} {comic}></CarouselItem>
@@ -62,12 +70,12 @@
         slot="next"
         class="absolute bottom-0 right-0 z-10 flex gap-8 items-center justify-center mb-[4%] mr-[10%]"
       >
-        <span class="shrink-0 font-bold text-lg" class:text-accent={!currentPageIndex}>No.{currentPageIndex + 1}</span>
+        <span class="shrink-0 font-bold text-lg" class:text-accent={!carousel.currentPageIndex}>No.{carousel.currentPageIndex + 1}</span>
         <div class="flex gap-2">
-          <button class="btn btn-circle btn-sm btn-ghost" on:click={() => goToPrev()}>
+          <button class="btn btn-circle btn-sm btn-ghost" on:click={() => carousel.goToPrev()}>
             <span class="iconify lucide--chevron-left font-extrabold text-2xl"></span>
           </button>
-          <button class="btn btn-circle btn-sm btn-ghost" on:click={() => goToNext()}>
+          <button class="btn btn-circle btn-sm btn-ghost" on:click={() => carousel.goToNext()}>
             <span class="iconify lucide--chevron-right font-extrabold text-2xl"></span>
           </button>
         </div>

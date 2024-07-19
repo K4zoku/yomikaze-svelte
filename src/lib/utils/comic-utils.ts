@@ -15,7 +15,7 @@ export async function getPopularComics() : Promise<Comic[]> {
         comics.push(...response.data.results);
     }
     comics = comics.map(comic => normalizeComic(comic));
-    return await delayedValuePromise(1000, comics);
+    return await delayedValuePromise(3000, comics);
 }
 
 export function normalizeComic(comic: Comic) : Comic {
