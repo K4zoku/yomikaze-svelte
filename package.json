@@ -37,6 +37,7 @@
   },
   "type": "module",
   "dependencies": {
+    "@babichjacob/svelte-localstorage": "^1.0.1",
     "@types/node": "^20.14.11",
     "autoprefixer": "^10.4.19",
     "axios": "^1.7.2",
