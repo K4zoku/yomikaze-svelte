@@ -1,0 +1,168 @@
+<script lang="ts">
+  // import SideBar from '../Side-Bar/+page.svelte';
+  import { goto } from '$app/navigation';
+
+  let role_modal: HTMLDialogElement;
+  let report_modal: HTMLDialogElement;
+  function handleClick() {
+    // goto('/'); // Điều hướng về trang chủ nếu không có lịch sử
+  }
+
+  let profileData = {
+    avatar: 'https://i.yomikaze.org/images/misc/72649494579240960.webp',
+    banner: 'https://i.yomikaze.org/images/misc/72649699668123648.webp',
+    bio: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque ut enim vitae erat iaculis vulputate. Donec id velit diam. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut purus nec est fringilla lacinia. Sed a semper leo. Pellentesque molestie nibh eu neque commodo, eu rhoncus dui interdum. Donec arcu dui, volutpat sit amet dignissim nec, vestibulum sit amet ante. Donec tempus tellus tempus lacus elementum pulvinar. Cras molestie viverra sodales.',
+    name: 'Joysinh',
+    birthday: '2002-07-19T10:20:37.881Z',
+    balance: 3000,
+    roles: ['Super', 'Admin'],
+    id: 'string',
+    creationTime: '2024-07-19T10:20:37.881Z',
+    lastModification: '2024-07-19T10:20:37.881Z'
+  };
+</script>
+
+<div class="w-full aspect-[20/6]">
+  <div class="w-full aspect-[20/6]">
+    <img alt="" src={profileData.banner} class="w-full h-full object-cover" />
+  </div>
+  <!-- Avatar -->
+  <div
+  class="absolute w-full aspect-[20/6] top-0 left-0 bg-gradient-to-b from-base-100/60 to-base-100 backdrop-blur"
+>
+  <div class="bottom-0 absolute flex gap-2">
+    <div class="avatar">
+      <div class="w-28 h-28 rounded-full shadow-lg ms-16 me-5">
+        <img alt="" src={profileData.avatar} />
+      </div>
+    </div>
+    <div class="flex flex-col gap-2">
+      <h2 class="text-3xl font-semibold">{profileData.name}</h2>
+      <div class="flex gap-1">
+        {#each profileData.roles as role}
+          <div class="badge badge-outline">{role}</div>
+        {/each}
+      </div>
+      <span class=" text-l font-medium">{profileData.balance}</span>
+    </div>
+  </div>
+  </div>
+</div>
+<div class="container mt-6">
+  <div class="mt-4 ms-12 flex flex-col gap-2">
+    <!-- edit -->
+    <button on:click={handleClick} class="btn btn-outline w-1/4">
+      <svg xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24"
+        ><g
+          fill="none"
+          stroke="black"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          ><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path
+            d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"
+          /></g
+        ></svg
+      >
+      Edit Profile</button
+    >
+    <button class="btn btn-outline w-1/4" on:click={() => report_modal.showModal()}>
+      <!-- badge-alert -->
+      <svg xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24"
+        ><path
+          fill="none"
+          stroke="black"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M3.85 8.62a4 4 0 0 1 4.78-4.77a4 4 0 0 1 6.74 0a4 4 0 0 1 4.78 4.78a4 4 0 0 1 0 6.74a4 4 0 0 1-4.77 4.78a4 4 0 0 1-6.75 0a4 4 0 0 1-4.78-4.77a4 4 0 0 1 0-6.76M12 8v4m0 4h.01"
+        /></svg
+      >
+      Report User</button
+    >
+    <dialog id="report_modal" bind:this={report_modal} class="modal">
+      <div class="modal-box">
+        <h3 class="text-lg font-bold mb-4">Report User</h3>
+        <div class="flex items-center mb-4">
+          <div class="avatar">
+            <div class="w-12 rounded-full">
+              <img
+                alt=""
+                src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg"
+              />
+            </div>
+          </div>
+          <span class="ml-4 text-base font-medium">Joysing</span>
+        </div>
+        <div class="divider"></div>
+        <div class="mb-4">
+          <label for="report-reason" class="block mb-2 font-medium">Reason</label>
+          <select id="report-reason" class="select select-bordered w-2/3">
+            <option value="">Copyright infringement</option>
+            <option value="">Violation of website rules</option>
+            <option value="">Disruptive behavior</option>
+          </select>
+        </div>
+        <div class="mb-6">
+          <label for="report-description" class="block mb-2 font-medium">Description</label>
+          <textarea
+            id="report-description"
+            class="textarea textarea-bordered w-full"
+            placeholder="Please provide additional details"
+          ></textarea>
+        </div>
+        <div class="modal-action">
+          <form method="dialog" class="flex space-x-2">
+            <button type="submit" class="btn">Report</button>
+            <button type="submit" class="btn">Close</button>
+          </form>
+        </div>
+      </div>
+    </dialog>
+
+    <button class="btn btn-outline w-1/4" on:click={() => role_modal.showModal()}>
+      <!-- user-round-check -->
+      <svg xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24"
+        ><g
+          fill="none"
+          stroke="black"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          ><path d="M2 21a8 8 0 0 1 13.292-6" /><circle cx="10" cy="8" r="5" /><path
+            d="m16 19l2 2l4-4"
+          /></g
+        ></svg
+      >
+      Change Role</button
+    >
+    <dialog id="role_modal" bind:this={role_modal} class="modal">
+      <div class="modal-box">
+        <h3 class="text-lg font-bold">Change Role</h3>
+        <h5 class="font-medium">User</h5>
+        <div class="avatar">
+          <div class="w-12 rounded-full mt-3">
+            <img
+              alt=""
+              src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg"
+            />
+          </div>
+          <span class="mt-6 ms-5">Joysing</span>
+        </div>
+        <div class="divider"></div>
+        <select class="select select-bordered w-full max-w-xs">
+          <option value="">Admin</option>
+          <option value="">Reader</option>
+          <option value="">Publisher</option>
+        </select>
+        <div class="modal-action">
+          <form method="dialog">
+            <button class="btn">Close</button>
+            <button class="btn">Send Repuest</button>
+          </form>
+        </div>
+      </div>
+    </dialog>
+    <!-- CardComic -->
+  </div>
+</div>
