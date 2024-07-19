@@ -40,6 +40,7 @@
     "@types/node": "^20.14.11",
     "autoprefixer": "^10.4.19",
     "axios": "^1.7.2",
+    "momment": "^0.0.1",
     "patch-package": "^8.0.0",
     "postcss": "^8.4.39",
     "sortablejs": "^1.15.2",
