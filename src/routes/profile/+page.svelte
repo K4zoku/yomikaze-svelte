@@ -20,30 +20,7 @@
       tags: ['Action', 'Ninja', 'Comedy', 'Martial Arts', 'Adventure', 'Drama', 'Fantasy'],
       status: 'Completed',
       timeAgo: '22 days ago'
-    },
-    {
-      cover: 'https://i.yomikaze.org/images/misc/72733305899966464.webp',
-      chapter: '1',
-      name: 'Naruto',
-      author: 'Kishimoto Masashi',
-      description:
-        "Before Naruto's birth, a great demon fox had attacked the Hidden Leaf Village. The 4th Hokage from the leaf village sealed the demon inside the newly born Naruto, causing him to unknowingly grow up detested by his fellow villagers. Despite his lack of talent in many areas of ninjutsu, Naruto strives for only one goal: to gain the title of Hokage, the strongest ninja in his village. Desiring the respect he never received, Naruto works toward his dream with fellow friends Sasuke and Sakura and mentor Kakashi as they go through many trials and battles that come with being a ninja.",
-      tags: ['Action', 'Ninja', 'Comedy', 'Martial Arts', 'Adventure', 'Drama', 'Fantasy'],
-      status: 'Completed',
-      timeAgo: '22 days ago'
-    },
-    {
-      cover: 'https://i.yomikaze.org/images/misc/72733305899966464.webp',
-      chapter: '1',
-      name: 'Naruto',
-      author: 'Kishimoto Masashi',
-      description:
-        "Before Naruto's birth, a great demon fox had attacked the Hidden Leaf Village. The 4th Hokage from the leaf village sealed the demon inside the newly born Naruto, causing him to unknowingly grow up detested by his fellow villagers. Despite his lack of talent in many areas of ninjutsu, Naruto strives for only one goal: to gain the title of Hokage, the strongest ninja in his village. Desiring the respect he never received, Naruto works toward his dream with fellow friends Sasuke and Sakura and mentor Kakashi as they go through many trials and battles that come with being a ninja.",
-      tags: ['Action', 'Ninja', 'Comedy', 'Martial Arts', 'Adventure', 'Drama', 'Fantasy'],
-      status: 'Completed',
-      timeAgo: '22 days ago'
     }
-    // Các comic khác...
   ];
 
   let profileData = {
@@ -58,6 +35,12 @@
     creationTime: '2024-07-19T10:20:37.881Z',
     lastModification: '2024-07-19T10:20:37.881Z'
   };
+
+  let activeContent = 'content1';
+
+  function showContent(content) {
+    activeContent = content;
+  }
 </script>
 
 <div class="w-full aspect-[20/6]">
@@ -70,7 +53,7 @@
   >
     <div class="bottom-0 absolute flex gap-2">
       <div class="avatar">
-        <div class="w-28 h-28 rounded-full shadow-lg ms-16 me-5">
+        <div class="w-32 h-32 rounded-full shadow-lg ms-28 me-5">
           <img alt="" src={profileData.avatar} />
         </div>
       </div>
@@ -86,9 +69,9 @@
     </div>
   </div>
 </div>
-<div class="container mt-6">
-  <div class="flex mt-4 ms-12 gap-4">
-    <div class="flex flex-col gap-2 w-1/5">
+<div class="container">
+  <div class="flex ms-8 gap-4">
+    <div class="flex flex-col mt-12 gap-2 w-1/5">
       <button on:click={handleClick} class="btn btn-outline w-full">
         <svg xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24"
           ><g
@@ -202,77 +185,125 @@
       </dialog>
     </div>
     <div class="w-3/4">
-      <div class="">
-        <h3 class="text-lg font-bold mb-2">Bio</h3>
-        <p class="text-base">{profileData.bio}</p>
+      <div class="flex justify-end">
+        <button
+          on:click={() => showContent('content1')}
+          class="rounded-l-lg px-3 py-3 bg-neutral-content focus:bg-accent-content focus:text-base-100 text-lg font-medium text-warning-content"
+          autofocus
+          ><svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 24 24"
+            ><path
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"
+            /></svg
+          ></button
+        >
+        <button
+          on:click={() => showContent('content2')}
+          class="rounded-r-lg px-3 py-3 bg-neutral-content focus:bg-accent-content focus:text-base-100 text-lg font-medium text-warning-content"
+          ><svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 24 24"
+            ><g
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              ><rect width="20" height="6" x="2" y="4" rx="2" /><rect
+                width="20"
+                height="6"
+                x="2"
+                y="14"
+                rx="2"
+              /></g
+            ></svg
+          ></button
+        >
       </div>
-      <div class="">
-        <h3 class="text-lg font-bold mb-2">Comic I Wrote</h3>
-        {#each comics as comic}
-          <div class="card">
-            <div class="card-body gird items-center rounded-lg shadow-md">
-              <div class="flex gap-1">
-                <div class="flex items-center">
-                  <img
-                    src={comic.cover}
-                    alt={comic.name}
-                    class="w-42 h-56 rounded-lg object-cover mb-auto"
-                  />
+      <div class="content {activeContent === 'content1' ? 'active' : ''}">
+        <div class="grid gap-3">
+          <div class="">
+            <h3 class="text-lg font-bold mb-2">Bio</h3>
+            <p class="text-base">{profileData.bio}</p>
+          </div>
+        </div>
+      </div>
+      <div class="content {activeContent === 'content2' ? 'active' : ''}">
+        <div class="flex flex-col gap-2.5 h-80">
+          <h3 class="text-lg font-bold mb-2">Comic I Wrote</h3>
+          {#each comics as comic}
+            <div class="card">
+              <div class="card-body gird items-center rounded-lg shadow-md">
+                <div class="flex gap-1">
+                  <div class="flex items-center">
+                    <img
+                      src={comic.cover}
+                      alt={comic.name}
+                      class="w-42 h-56 rounded-lg object-cover mb-auto"
+                    />
 
-                  <div class="flex-grow flex flex-col justify-evenly ml-2">
-                    <div class="flex justify-between">
-                      <div class="flex items-center space-x-2 mb-2">
-                        <h2 class="text-l font-bold mb-0">{comic.name}</h2>
-                        <span class="text-l text-gray-600 mb-0">{comic.author}</span>
-                      </div>
-                      <div class="flex gap-3 mb-1">
-                        <div class="flex gap-1 my-auto bg-base-300 rounded px-2 mb-1">
-                          <svg
-                            data-v-9ba4cb7e=""
-                            data-v-6ebb56e1=""
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 6.35 6.35"
-                            class="icon"
-                            style="color: rgb(0,255,0);"
-                            ><path
-                              fill="currentColor"
-                              d="M4.233 3.175a1.06 1.06 0 0 1-1.058 1.058 1.06 1.06 0 0 1-1.058-1.058 1.06 1.06 0 0 1 1.058-1.058 1.06 1.06 0 0 1 1.058 1.058"
-                            ></path></svg
-                          >
-                          <span class="text-base font">{comic.status}</span>
+                    <div class="flex-grow flex flex-col justify-evenly ml-2">
+                      <div class="flex justify-between">
+                        <div class="flex items-center space-x-2 mb-2">
+                          <h2 class="text-l font-bold mb-0">{comic.name}</h2>
+                          <span class="text-l text-gray-600 mb-0">{comic.author}</span>
+                        </div>
+                        <div class="flex gap-3 mb-1">
+                          <div class="flex gap-1 my-auto bg-base-300 rounded px-2 mb-1">
+                            <svg
+                              data-v-9ba4cb7e=""
+                              data-v-6ebb56e1=""
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 6.35 6.35"
+                              class="icon"
+                              style="color: rgb(0,255,0);"
+                              ><path
+                                fill="currentColor"
+                                d="M4.233 3.175a1.06 1.06 0 0 1-1.058 1.058 1.06 1.06 0 0 1-1.058-1.058 1.06 1.06 0 0 1 1.058-1.058 1.06 1.06 0 0 1 1.058 1.058"
+                              ></path></svg
+                            >
+                            <span class="text-base font">{comic.status}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div class="divider custom-divider"></div>
+                      <div class="divider custom-divider"></div>
 
-                    <div class="flex gap-2 mt-4 mb-3">
-                      <!-- {#each showAll ? chapters.slice(0, 5) : chapters.slice(0, 3) as chapter} -->
-                      {#each comic.tags as tag}
-                        <a class="badge badge-outline">{tag}</a>
-                      {/each}
-                    </div>
-
-                    <div class=" text-sm font-normal line-clamp-3">
-                      <span class="text-base">{comic.description} </span>
+                      <div class="flex gap-2 mt-4 mb-3">
+                        <!-- {#each showAll ? chapters.slice(0, 5) : chapters.slice(0, 3) as chapter} -->
+                        {#each comic.tags as tag}
+                          <a class="badge badge-outline">{tag}</a>
+                        {/each}
+                      </div>
+                      <div class=" text-sm font-normal">
+                        <span class="text-base">{comic.description} </span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        {/each}
+          {/each}
+        </div>
       </div>
     </div>
   </div>
 </div>
-<style>
-	.custom-divider {
-		height: 1px;
-		width: calc(100% - 2rem);
-		margin: 0 auto;
-		background-color: #e2e8f0;
-	}
 
+<style>
+  .custom-divider {
+    height: 1px;
+    width: calc(100% - 2rem);
+    margin: 0 auto;
+    background-color: #e2e8f0;
+  }
+  .content {
+    display: none;
+  }
+  .content.active {
+    display: block;
+  }
 </style>
