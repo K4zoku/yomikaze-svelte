@@ -53,30 +53,32 @@
   >
     <div class="bottom-0 absolute flex gap-2">
       <div class="avatar">
-        <div class="w-32 h-32 rounded-full shadow-lg ms-28 me-5">
+        <div class="w-32 h-32 rounded-full shadow-lg ms-20 me-5">
           <img alt="" src={profileData.avatar} />
         </div>
       </div>
-      <div class="flex flex-col gap-2">
+      <div class="flex flex-col gap-2 mt-12">
         <h2 class="text-3xl font-semibold">{profileData.name}</h2>
         <div class="flex gap-1">
           {#each profileData.roles as role}
             <div class="badge badge-outline">{role}</div>
           {/each}
         </div>
-        <span class=" text-l font-medium">{profileData.balance}</span>
+        <span class="flex text-l font-medium">{profileData.balance} 
+          <svg class="ms-1" xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18M7 6h1v4"/><path d="m16.71 13.88l.7.71l-2.82 2.82"/></g></svg>
+        </span>
       </div>
     </div>
   </div>
 </div>
 <div class="container">
   <div class="flex ms-8 gap-4">
-    <div class="flex flex-col mt-12 gap-2 w-1/5">
-      <button on:click={handleClick} class="btn btn-outline w-full">
-        <svg xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24"
+    <div class="flex flex-col mt-12 gap-2 w-1/6">
+      <button on:click={handleClick} class="btn btn-outline btn-warning w-full">
+        <svg class="text-warning" xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24"
           ><g
             fill="none"
-            stroke="black"
+            stroke="currentColor"
             stroke-linecap="round"
             stroke-linejoin="round"
             stroke-width="2"
@@ -87,12 +89,12 @@
         >
         Edit Profile
       </button>
-      <button class="btn btn-outline w-full" on:click={() => report_modal.showModal()}>
+      <button class="btn btn-outline btn-warning w-full" on:click={() => report_modal.showModal()}>
         <!-- badge-alert -->
-        <svg xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24"
+        <svg class="text-warning" xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24"
           ><path
             fill="none"
-            stroke="black"
+            stroke="currentColor"
             stroke-linecap="round"
             stroke-linejoin="round"
             stroke-width="2"
@@ -140,12 +142,12 @@
           </div>
         </div>
       </dialog>
-      <button class="btn btn-outline w-full" on:click={() => role_modal.showModal()}>
+      <button class="btn btn-outline btn-warning w-full" on:click={() => role_modal.showModal()}>
         <!-- user-round-check -->
-        <svg xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24"
+        <svg class="text-warning" xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24"
           ><g
             fill="none"
-            stroke="black"
+            stroke="currentColor"
             stroke-linecap="round"
             stroke-linejoin="round"
             stroke-width="2"
@@ -188,7 +190,7 @@
       <div class="flex justify-end">
         <button
           on:click={() => showContent('content1')}
-          class="rounded-l-lg px-3 py-3 bg-neutral-content focus:bg-accent-content focus:text-base-100 text-lg font-medium text-warning-content"
+          class="rounded-l-lg px-3 py-3 btn-outline btn-warning border"
           autofocus
           ><svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 24 24"
             ><path
@@ -203,7 +205,7 @@
         >
         <button
           on:click={() => showContent('content2')}
-          class="rounded-r-lg px-3 py-3 bg-neutral-content focus:bg-accent-content focus:text-base-100 text-lg font-medium text-warning-content"
+          class="rounded-r-lg px-3 py-3 btn-outline btn-warning border"
           ><svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 24 24"
             ><g
               fill="none"
@@ -224,6 +226,9 @@
       </div>
       <div class="content {activeContent === 'content1' ? 'active' : ''}">
         <div class="grid gap-3">
+          <div class="">
+            
+          </div>
           <div class="">
             <h3 class="text-lg font-bold mb-2">Bio</h3>
             <p class="text-base">{profileData.bio}</p>
