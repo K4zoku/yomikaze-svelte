@@ -2,8 +2,10 @@
   // import SideBar from '../Side-Bar/+page.svelte';
   import { goto } from '$app/navigation';
 
-  let role_modal: HTMLDialogElement;
-  let report_modal: HTMLDialogElement;
+  let roleRequestModal: HTMLDialogElement;
+  let reportModal: HTMLDialogElement;
+  let deleteCategoryModal: HTMLDialogElement;
+  let createCategoryModal:HTMLDialogElement;
 
   function handleClick() {
     // goto('/'); // Điều hướng về trang chủ nếu không có lịch sử
@@ -64,8 +66,25 @@
             <div class="badge badge-outline">{role}</div>
           {/each}
         </div>
-        <span class="flex text-l font-medium">{profileData.balance} 
-          <svg class="ms-1" xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18M7 6h1v4"/><path d="m16.71 13.88l.7.71l-2.82 2.82"/></g></svg>
+        <span class="flex text-l font-medium"
+          >{profileData.balance}
+          <svg
+            class="ms-1"
+            xmlns="http://www.w3.org/2000/svg"
+            width="1.4em"
+            height="1.4em"
+            viewBox="0 0 24 24"
+            ><g
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              ><circle cx="8" cy="8" r="6" /><path
+                d="M18.09 10.37A6 6 0 1 1 10.34 18M7 6h1v4"
+              /><path d="m16.71 13.88l.7.71l-2.82 2.82" /></g
+            ></svg
+          >
         </span>
       </div>
     </div>
@@ -78,21 +97,18 @@
         <span class="iconify lucide--edit text-xl"></span>
         Edit Profile
       </button>
-      <button class="btn btn-outline btn-warning w-full" on:click={() => report_modal.showModal()}>
+      <button class="btn btn-outline btn-warning w-full" on:click={() => reportModal.showModal()}>
         <!-- badge-alert -->
         <span class="iconify lucide--alert-circle text-xl"></span>
         Report User
       </button>
-      <dialog id="report_modal" bind:this={report_modal} class="modal">
+      <dialog bind:this={reportModal} class="modal">
         <div class="modal-box">
           <h3 class="text-lg font-bold mb-4">Report User</h3>
           <div class="flex items-center mb-4">
             <div class="avatar">
               <div class="w-12 rounded-full">
-                <img
-                  alt=""
-                  src={profileData.avatar}
-                />
+                <img alt="" src={profileData.avatar} />
               </div>
             </div>
             <span class="ml-4 text-base font-medium">{profileData.name}</span>
@@ -122,21 +138,18 @@
           </div>
         </div>
       </dialog>
-      <button class="btn btn-outline btn-warning w-full" on:click={() => role_modal.showModal()}>
+      <button class="btn btn-outline btn-warning w-full" on:click={() => roleRequestModal.showModal()}>
         <!-- user-round-check -->
         <span class="iconify lucide--user-round-check text-xl"></span>
         Change Role
       </button>
-      <dialog id="role_modal" bind:this={role_modal} class="modal">
+      <dialog bind:this={roleRequestModal} class="modal">
         <div class="modal-box">
           <h3 class="text-lg font-bold">Change Role</h3>
           <h5 class="font-medium">User</h5>
           <div class="avatar">
             <div class="w-12 rounded-full mt-3">
-              <img
-                alt=""
-                src={profileData.avatar}
-              />
+              <img alt="" src={profileData.avatar} />
             </div>
             <span class="mt-6 ms-5">{profileData.name}</span>
           </div>
@@ -158,19 +171,17 @@
     <div class="w-3/4">
       <div class="flex justify-end">
         <button
-        on:click={() => showContent('content1')}
-        class="rounded-l-lg p-2 btn-outline btn-warning border"
+          on:click={() => showContent('content1')}
+          class="rounded-l-lg p-2 btn-outline btn-warning border"
         >
-        <span class="iconify lucide--list text-2xl mt-1"></span>
-        </button
-      >
-      <button
-        on:click={() => showContent('content2')}
-        class="rounded-r-lg p-2 btn-outline btn-warning border"
+          <span class="iconify lucide--list text-2xl mt-1"></span>
+        </button>
+        <button
+          on:click={() => showContent('content2')}
+          class="rounded-r-lg p-2 btn-outline btn-warning border"
         >
-        <span class="iconify lucide--stretch-horizontal text-2xl mt-1"></span>
-        </button
-      >
+          <span class="iconify lucide--stretch-horizontal text-2xl mt-1"></span>
+        </button>
       </div>
       <div class="content {activeContent === 'content1' ? 'active' : ''}">
         <div class="grid gap-3">
@@ -218,7 +229,30 @@
                             >
                             <span class="text-base font">{comic.status}</span>
                           </div>
-                        <span class="iconify lucide--more-vertical text-xl"></span>
+                          <div class="dropdown dropdown-left">
+                            <span
+                              tabindex="0"
+                              role="button"
+                              class="iconify lucide--more-vertical text-xl"
+                            ></span>
+                            <ul
+                              tabindex="0"
+                              class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow"
+                            >
+                              <li>
+                                <a on:click={() => {createCategoryModal.showModal()}}>
+                                  <span class="flex iconify lucide--edit text-xl"></span>
+                                  <span>Edit Comic</span>
+                                </a>
+                              </li>
+                              <li>
+                                <a on:click={() => {deleteCategoryModal.showModal()}}>
+                                  <span class="flex iconify lucide--trash-2 text-xl"></span>
+                                  <span>Delete Comic</span>
+                                </a>
+                              </li>
+                            </ul>
+                          </div>
                         </div>
                       </div>
                       <div class="divider custom-divider"></div>
@@ -243,6 +277,40 @@
     </div>
   </div>
 </div>
+
+ <!-- DIALOG CREATE PERSONAL CATEGORY -->
+ <dialog bind:this={createCategoryModal} class="modal">
+  <div class="modal-box flex flex-col items-center text-center">
+    <h3 class="text-lg font-bold">Create new personal category</h3>
+    <h5 class="mb-2">Name for personal category</h5>
+    <input
+      type="text"
+      placeholder="Type here"
+      class="input input-bordered w-full max-w-xs"
+    />
+    <div class="modal-action">
+      <form method="dialog">
+        <button class="btn btn-outline btn-success">Create</button>
+
+        <button class="btn">Close</button>
+      </form>
+    </div>
+  </div>
+</dialog>
+
+<!-- DIALOG DELETE COMIC -->
+<dialog bind:this={deleteCategoryModal} class="modal">
+  <div class="modal-box flex flex-col items-center text-center">
+    <span class="iconify lucide--alert-circle text-4xl text-error"></span>
+    <h3 class="text-lg font-bold">Are you sure you want to Delete Comic?</h3>
+    <div class="modal-action">
+      <form method="dialog">
+        <button class="btn btn-outline btn-error">Delete</button>
+        <button class="btn">Close</button>
+      </form>
+    </div>
+  </div>
+</dialog>
 
 <style>
   .custom-divider {
