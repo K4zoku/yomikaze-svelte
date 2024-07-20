@@ -1,27 +1,32 @@
 <script lang="ts">
-  import http from '$lib/http';
+  import http from '$lib/utils/http';
   // import moment from 'moment';
   import { onDestroy } from 'svelte';
-  import DefaultAvatar from '$components/default-user-avatar.svelte' 
-  import {page} from '$app/stores'
+  import { goto } from '$app/navigation';
+  import DefaultAvatar from '$components/default-user-avatar.svelte';
+  import { page } from '$app/stores';
 
   export let data;
   let { key } = data;
   let commentId = $page.url.searchParams.get('commentId');
-  
+
   let comic;
-  let genreTags;
-  let themeTags;
+  let genreTags: string;
+  let themeTags: string;
   let loading = true;
   let cover = 'https://i.yomikaze.org';
-  let activeContent = commentId?'content2' : 'content1';
+  let activeContent = commentId ? 'content2' : 'content1';
   let chapters = [];
   let comments = [];
+  let replies = [];
   let newComment = '';
   let error = '';
-  let currentPageChapter = 1;
-  let currentPageComment = 1;
-  const itemsPerPage = 4;
+
+  let newReplies = '';
+
+  let currentPage = 1;
+  let pageSize = 5;
+  let totalPages = 0;
 
   (async () => {
     let response = await http.get(`/comics/${key}`);
@@ -32,8 +37,8 @@
     comic = response.data;
 
     console.log(comic);
-    genreTags = comic.tags.filter((tag) => tag.category === 'Genre');
-    themeTags = comic.tags.filter((tag) => tag.category === 'Theme');
+    genreTags = comic.tags.filter((tag) => tag.category.name === 'Genre');
+    themeTags = comic.tags.filter((tag) => tag.category.name === 'Theme');
     setTimeout(() => (loading = false), 500);
   })();
 
@@ -55,11 +60,25 @@
     comments = response.data.results;
   })();
 
+  async function loadComments(page = 1) {
+    let response = await http.get(`/comics/${key}/comments?page=${page}&pageSize=${pageSize}`);
+
+    if (response.status == 404) {
+      return;
+    }
+    comments = response.data.results;
+    currentPage = response.data.currentPage;
+    totalPages = response.data.totalPages;
+    
+  }
+
+  loadComments();
+
   function showContent(content) {
     activeContent = content;
   }
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     // return moment(dateString).startOf('minutes').fromNow();
     return dateString;
   };
@@ -80,9 +99,13 @@
       newComment = '';
       error = '';
     }
+    if (response.status === 401) {
+      error = 'Please log in to be able to perform this function';
+      // goto('/');
+    }
   }
 
-  async function deleteComment(commentId) {
+  async function deleteComment(commentId: string) {
     try {
       const response = await http.delete(`/comics/${key}/comments/${commentId}`);
       if (response.status === 200) {
@@ -94,7 +117,7 @@
     }
   }
 
-  function handleKeyPress(event) {
+  function handleKeyPress(event: any) {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       addComment();
@@ -105,21 +128,40 @@
     error = '';
   }
 
-  function setPage(listType, page) {
-    if (listType === 'chapter') {
-      currentPageChapter = page;
-    } else if (listType === 'comment') {
-      currentPageComment = page;
+  function handleInput(event: any) {
+    const maxLength = 1024;
+    const currentLength = event.target.value.length;
+
+    if (currentLength == maxLength) {
+      error = `Comment must not exceed ${maxLength} characters.`;
+    } else {
+      error = ''; // Xóa thông báo lỗi khi nội dung hợp lệ
+      newComment = event.target.value; // Cập nhật biến newComment
     }
   }
 
-  function paginatedData(data, currentPage) {
-    const start = (currentPage - 1) * itemsPerPage;
-    return data.slice(start, start + itemsPerPage);
+  function goToFirstPage() {
+    loadComments(1);
+  }
+
+  function goToPreviousPage() {
+    if (currentPage > 1) {
+      loadComments(currentPage - 1);
+    }
+  }
+
+  function goToNextPage() {
+    if (currentPage < totalPages) {
+      loadComments(currentPage + 1);
+    }
+  }
+
+  function goToLastPage() {
+    loadComments(totalPages);
   }
 </script>
 
-<div class="comic-detail mt-20">
+<div class=" mt-20">
   {#if loading}
     <!-- <p>Loading comic details...</p> -->
     <div class="flex w-52 flex-col gap-4">
@@ -133,14 +175,14 @@
       <div class="skeleton h-32 w-full"></div>
     </div>
   {:else}
-    <div class=" w-full h-96 border-2 brightness-50">
+    <div class=" w-full h-96 border-2 brightness-50 items-center">
       <picture>
-        <source class="w-full h-full object-cover" srcset={cover + comic.banner} />
+        <!-- <source class="w-full h-full object-cover" srcset={cover + comic.banner} /> -->
         <source class="w-full h-full object-cover" srcset={cover + comic.cover} />
         <img class="w-full h-full object-cover" src="/images/default.webp" alt="" />
       </picture>
     </div>
-    <div class=" relative bottom-56 left-10">
+    <div class=" relative bottom-56 left-10 w-11/12 mx-auto">
       <picture class="w-52 h-72 float-left">
         <source srcset={cover + comic.cover} />
         <img src="/images/default.webp" alt="" />
@@ -314,33 +356,17 @@
           {comic.description}
         </p>
       </div>
-      <!-- <div class="flex mt-3">
-        <button
-          on:click={() => showContent('content1')}
-          class="rounded-l-lg px-3 py-3 bg-base-300  text-lg font-medium"
-          >Chapters</button
-        >
-        <button
-          on:click={() => showContent('content2')}
-          class="rounded-r-lg px-3 py-3 bg-base-300 focus:bg-accent-content focus:text-base-100 text-lg font-medium"
-          >Comment</button
-        >
-      </div> -->
       <div role="tablist" class="tabs tabs-boxed w-fit">
         <a
           on:click={() => showContent('content1')}
           class="tab"
-          class:tab-active={activeContent === 'content1'}
-          >Chapters</a
+          class:tab-active={activeContent === 'content1'}>Chapters</a
         >
         <a
           on:click={() => showContent('content2')}
           class="tab"
-          class:tab-active={activeContent === 'content2'}
-          >Comment</a
+          class:tab-active={activeContent === 'content2'}>Comment</a
         >
-
-
       </div>
 
       <div class="grid grid-cols-3 mt-5">
@@ -359,7 +385,7 @@
             <div class="text-xl font-bold">Genres</div>
             <div class="grid grid-cols-4 gap-2 mt-2">
               {#each genreTags as tag}
-                <span class="rounded bg-base-300 text-center p-1 font-medium">{tag.name}</span>
+                <span class="badge badge-secondary">{tag.name}</span>
               {/each}
             </div>
           </div>
@@ -368,7 +394,7 @@
             <div class="text-xl font-bold">Themes</div>
             <div class="grid grid-cols-4 gap-2 mt-2">
               {#each themeTags as tag}
-                <span class="rounded bg-base-300 text-center p-1 font-medium">{tag.name}</span>
+                <span class="badge badge-neutral">{tag.name}</span>
               {/each}
             </div>
           </div>
@@ -379,144 +405,153 @@
               <p class="text-xl font-semibold">Total: {comic.totalChapters}</p>
             </div>
 
-            <div class="flex flex-col gap-2.5 max-h-80">
-              {#each paginatedData(chapters, currentPageChapter) as chapter}
-                <a
-                  href=""
-                  class="flex justify-between bg-base-200 p-2 px-3 w-100 hover:bg-neutral-content hover:text-base-100"
-                  ><div class="flex gap-2">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="1.5em"
-                      height="1.5em"
-                      viewBox="0 0 24 24"
-                      ><g
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        ><path d="M2 12s3-7 10-7s10 7 10 7s-3 7-10 7s-10-7-10-7" /><circle
-                          cx="12"
-                          cy="12"
-                          r="3"
-                        /></g
-                      ></svg
-                    >
-                    Chapter {chapter.number}
-                  </div>
-                  <div class="flex flex-col gap-2">
-                    <div class="flex gap-9">
-                      <div class="flex gap-3">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="1.5em"
-                          height="1.5em"
-                          viewBox="0 0 24 24"
-                          ><g
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            ><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></g
-                          ></svg
-                        ><span>{formatDate(chapter.creationTime)}</span>
+            <div class="flex flex-col gap-2.5 max-h-80 w-10/12">
+              {#each chapters as chapter, index}
+                {#if index < 6}
+                  <a
+                    href=""
+                    class="flex justify-between bg-base-200 p-2 px-3 w-100 hover:bg-neutral-content hover:text-base-100"
+                    ><div class="flex gap-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1.5em"
+                        height="1.5em"
+                        viewBox="0 0 24 24"
+                        ><g
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          ><path d="M2 12s3-7 10-7s10 7 10 7s-3 7-10 7s-10-7-10-7" /><circle
+                            cx="12"
+                            cy="12"
+                            r="3"
+                          /></g
+                        ></svg
+                      >
+                      Chapter {chapter.number}
+                    </div>
+                    <div class="flex flex-col gap-2">
+                      <div class="flex gap-9">
+                        <div class="flex gap-3">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="1.5em"
+                            height="1.5em"
+                            viewBox="0 0 24 24"
+                            ><g
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              ><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></g
+                            ></svg
+                          ><span>{formatDate(chapter.creationTime)}</span>
+                        </div>
+
+                        <!--! show view chapter -->
+                        <div class="flex gap-3">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="1.5em"
+                            height="1.5em"
+                            viewBox="0 0 24 24"
+                            ><g
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              ><path d="M2 12s3-7 10-7s10 7 10 7s-3 7-10 7s-10-7-10-7" /><circle
+                                cx="12"
+                                cy="12"
+                                r="3"
+                              /></g
+                            ></svg
+                          > <span>{chapter.views}</span>
+                        </div>
                       </div>
 
-                      <!--! show view chapter -->
-                      <div class="flex gap-3">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="1.5em"
-                          height="1.5em"
-                          viewBox="0 0 24 24"
-                          ><g
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            ><path d="M2 12s3-7 10-7s10 7 10 7s-3 7-10 7s-10-7-10-7" /><circle
-                              cx="12"
-                              cy="12"
-                              r="3"
-                            /></g
-                          ></svg
-                        > <span>{chapter.views}</span>
+                      <!--! show name publisher -->
+                      <div class="flex gap-9">
+                        <div class="flex gap-3">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="1.5em"
+                            height="1.5em"
+                            viewBox="0 0 24 24"
+                            ><g
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              ><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle
+                                cx="12"
+                                cy="7"
+                                r="4"
+                              /></g
+                            ></svg
+                          ><span>Your pinga</span>
+                        </div>
+
+                        <!--! show amount comment -->
+                        <div class="flex gap-3">
+                          <svg
+                            class="ml-2"
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="1.5em"
+                            height="1.5em"
+                            viewBox="0 0 24 24"
+                            ><path
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                            /></svg
+                          ><span>{chapter.totalComments}</span>
+                        </div>
                       </div>
                     </div>
-
-                    <!--! show name publisher -->
-                    <div class="flex gap-9">
-                      <div class="flex gap-3">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="1.5em"
-                          height="1.5em"
-                          viewBox="0 0 24 24"
-                          ><g
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            ><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle
-                              cx="12"
-                              cy="7"
-                              r="4"
-                            /></g
-                          ></svg
-                        ><span>Your pinga</span>
-                      </div>
-
-                      <!--! show amount comment -->
-                      <div class="flex gap-3">
-                        <svg
-                          class="ml-2"
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="1.5em"
-                          height="1.5em"
-                          viewBox="0 0 24 24"
-                          ><path
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
-                          /></svg
-                        ><span>{chapter.totalComments}</span>
-                      </div>
-                    </div>
-                  </div>
-                </a>
+                  </a>
+                {/if}
               {/each}
 
               <div class="mt-4 flex justify-center">
-                {#each Array(Math.ceil(chapters.length / itemsPerPage)).fill(0) as _, i}
-                  <button
-                    class="btn btn-sm mx-1 {i + 1 === currentPageChapter ? 'btn-active' : ''}"
-                    on:click={() => setPage('chapter', i + 1)}
-                  >
-                    {i + 1}
-                  </button>
-                {/each}
+                <!-- <button
+                  class="btn"
+                  on:click={() => setPage('chapters', currentPageChapter - 1)}
+                  disabled={currentPageChapter <= 1}
+                >
+                  <span class="iconify lucide--chevrons-left"></span>
+                </button>
+                <span>Page {currentPageChapter} of {Math.ceil(totalChapters / itemsPerPage)}</span>
+                <button
+                  class="btn btn-primary"
+                  on:click={() => setPage('chapters', currentPageChapter + 1)}
+                  disabled={currentPageChapter >= Math.ceil(totalChapters / itemsPerPage)}
+                >
+                  <span class="iconify lucide--chevrons-right"></span>
+                </button> -->
               </div>
             </div>
           </div>
 
           <div class={activeContent === 'content2' ? 'block' : 'hidden'}>
             {#if comments.length > 0}
-              <ul >
-                {#each paginatedData(comments, currentPageComment) as comment}
-                  <li class="mb-3 w-75">
+              <ul>
+                {#each comments as comment}
+                  <li class="mb-3 w-10/12">
                     <div class="flex flex-col border-2 rounded-lg border-accent-content p-4">
                       <div class="flex justify-between border-b-2 border-base-200 pb-2">
                         <div class="flex gap-4 items-center">
                           <div class="avatar">
                             <div class="w-8 ring-2 ring-offset-2 ring-neutral rounded-full">
-                            <DefaultAvatar></DefaultAvatar>
+                              <DefaultAvatar></DefaultAvatar>
                             </div>
                           </div>
                           <div class=" leading-none font-medium">{comment.author.name}</div>
@@ -559,38 +594,43 @@
                       <div class="mt-1 break-words">
                         <span class="text-balance">{comment.content}</span>
                       </div>
-                      <div class="flex">
-                        <!--! action comment here -->
-                      </div>
+                      <div class="flex"></div>
                     </div>
                   </li>
                 {/each}
               </ul>
 
               <div class="mt-4 flex justify-center">
-                {#each Array(Math.ceil(comments.length / itemsPerPage)).fill(0) as _, i}
-                  <button
-                    class="btn btn-sm mx-1 {i + 1 === currentPageComment ? 'btn-active' : ''}"
-                    on:click={() => setPage('comment', i + 1)}
-                  >
-                    {i + 1}
-                  </button>
-                {/each}
+                <button class="btn" on:click={goToFirstPage} disabled={currentPage === 1}
+                  ><span class="iconify lucide--chevrons-left"></span></button
+                >
+                <button class="btn" on:click={goToPreviousPage} disabled={currentPage === 1}
+                  ><span class="iconify lucide--chevron-left"></span></button
+                >
+                <span class="text-sm">Page {currentPage} of {totalPages}</span>
+                <button class="btn" on:click={goToNextPage} disabled={currentPage === totalPages}
+                  ><span class="iconify lucide--chevron-right"></span></button
+                >
+                <button class="btn" on:click={goToLastPage} disabled={currentPage === totalPages}
+                  ><span class="iconify lucide--chevrons-right"></span></button
+                >
               </div>
             {:else}
               <p>No comments available.</p>
             {/if}
             <!--! comment here -->
-            <div class="flex flex-col justify-center gap-3 mt-3">
+            <div class="flex flex-col justify-center gap-3 mt-3 w-10/12">
               <div class="text-xl font-bold">Comments</div>
               <div class="flex flex-col gap-3">
                 <form on:submit|preventDefault={addComment} class="mt-2">
                   <div class="flex flex-col">
                     <textarea
-                      class="comment-box textarea textarea-bordered rounded-2xl focus:border-accent-content focus:border-2 h-28 w-75"
+                      class="comment-box textarea textarea-bordered rounded-2xl focus:border-accent-content focus:border-2 h-36 w-75"
                       bind:value={newComment}
                       placeholder="Write your comment here..."
                       on:keypress={handleKeyPress}
+                      on:input={handleInput}
+                      maxlength="1024"
                     ></textarea>
                     {#if error}
                       <p class="text-error font-semibold mt-2">{error}</p>
