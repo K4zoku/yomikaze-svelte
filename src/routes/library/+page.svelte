@@ -10,7 +10,7 @@
   let delete_comic1: HTMLDialogElement;
   let delete_comic2: HTMLDialogElement;
 
-  let total = '2';
+  let total = '3';
   let comics = [
     {
       cover: 'https://i.yomikaze.org/images/misc/72733305899966464.webp',
@@ -82,7 +82,7 @@
               >Reading
               <svg
                 class="absolute mb-8 ms-8 hidden group-hover:block text-error"
-				on:click={() => delete_personal.showModal()}
+                on:click={() => delete_personal.showModal()}
                 xmlns="http://www.w3.org/2000/svg"
                 width="1.4em"
                 height="1.4em"
@@ -99,37 +99,36 @@
                   <path d="M8 12h8" />
                 </g>
               </svg>
-			  
             </button>
-			<dialog id="delete_personal" bind:this={delete_personal} class="modal">
-				<div class="modal-box flex flex-col items-center text-center">
-					<svg
-						class="mx-auto mb-4 w-12 h-12 text-error"
-						xmlns="http://www.w3.org/2000/svg"
-						width="1.4em"
-						height="1.4em"
-						viewBox="0 0 24 24"
-					>
-						<g
-							fill="none"
-							stroke="currentColor"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-						>
-							<circle cx="12" cy="12" r="10" />
-							<path d="M12 8v4m0 4h.01" />
-						</g>
-					</svg>
-					<h3 class="text-lg font-bold">Are you sure you want to Delete Personal?</h3>
-					<div class="modal-action">
-						<form method="dialog">
-							<button class="btn btn-outline btn-error">Confirm</button>
-							<button class="btn">Close</button>
-						</form>
-					</div>
-				</div>
-			</dialog>
+            <dialog id="delete_personal" bind:this={delete_personal} class="modal">
+              <div class="modal-box flex flex-col items-center text-center">
+                <svg
+                  class="mx-auto mb-4 w-12 h-12 text-error"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="1.4em"
+                  height="1.4em"
+                  viewBox="0 0 24 24"
+                >
+                  <g
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 8v4m0 4h.01" />
+                  </g>
+                </svg>
+                <h3 class="text-lg font-bold">Are you sure you want to Delete Personal?</h3>
+                <div class="modal-action">
+                  <form method="dialog">
+                    <button class="btn btn-outline btn-error">Confirm</button>
+                    <button class="btn">Close</button>
+                  </form>
+                </div>
+              </div>
+            </dialog>
           </div>
           <button class="tab btn-outline rounded" data-tab="plan-to-read">Plan to read</button>
           <button class="tab btn-outline rounded" data-tab="completed">Completed</button>
@@ -230,8 +229,8 @@
             </div>
           </div>
         </dialog>
-        <h2 class="text-xl font-semibold start-0">Total: {total}</h2>
-      </div>
+		<h2 class="text-xl font-semibold">Total: {total}</h2>
+	</div>
       <div class="flex justify-end items-end">
         <button
           on:click={() => showContent('content1')}
@@ -270,25 +269,25 @@
       </div>
     </div>
     <div class="content {activeContent === 'content1' ? 'active' : ''}">
-      <div class="flex flex-col gap-2.5 h-80">
+      <!-- <div class="flex flex-col gap-2.5 h-80"> -->
         {#each comics as comic}
-          <div class="card">
-            <div class="card-body gird items-center rounded-lg shadow-md">
-              <div class="flex gap-1">
+          <div class="card p-2">
+            <div class="card-body gird items-center rounded-lg shadow-md py-3 px-3">
+              <div class="flex">
                 <div class="flex items-center">
                   <img
                     src={comic.cover}
                     alt={comic.name}
-                    class="w-42 h-56 rounded-lg object-cover mb-auto"
+                    class="w-42 h-56 rounded-lg object-cover"
                   />
 
-                  <div class="flex-grow flex flex-col justify-evenly ml-2">
+                  <div class="flex-grow flex flex-col justify-evenly ml-4">
                     <div class="flex justify-between">
                       <div class="flex items-center space-x-2 mb-2">
                         <h2 class="text-l font-bold mb-0">{comic.name}</h2>
                         <span class="text-l text-gray-600 mb-0">{comic.author}</span>
                       </div>
-                      <div class="flex gap-1 my-auto" on:click={() => delete_comic1.showModal()}>
+                      <div class="flex mb-3" on:click={() => delete_comic1.showModal()}>
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="1.4em"
@@ -375,10 +374,10 @@
       </div>
     </div>
     <div class="content {activeContent === 'content2' ? 'active' : ''}">
-      <div class="grid grid-cols-2 gap-3 mt-4">
+      <div class="grid grid-cols-2">
         {#each comics as comic}
-          <div class="card">
-            <div class="card-body gird items-center rounded-lg shadow-md">
+          <div class="card p-2">
+            <div class="card-body items-center rounded-lg shadow-md py-3 px-3">
               <div class="flex">
                 <a href=""
                   ><div class="w-40 h-56">
@@ -483,7 +482,38 @@
         {/each}
       </div>
     </div>
-  </div>
+	<div class="flex justify-center pt-2 pb-2">
+		<div class="join">
+			<button class="join-item btn">
+				<!-- chevron-left -->
+				<svg xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24"
+					><path
+						fill="none"
+						stroke="black"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="m15 18l-6-6l6-6"
+					/></svg
+				>
+			</button>
+			<button class="join-item btn">1</button>
+			<button class="join-item btn">
+				<!-- chevron-right -->
+				<svg xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24"
+					><path
+						fill="none"
+						stroke="black"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="m9 18l6-6l-6-6"
+					/></svg
+				>
+			</button>
+		</div>
+	</div>
+  <!-- </div> -->
 </div>
 
 <style>
