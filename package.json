@@ -46,6 +46,7 @@
     "postcss": "^8.4.39",
     "sortablejs": "^1.15.2",
     "svelte-carousel": "^1.0.25",
+    "svelte-guard": "^0.1.0",
     "svelte-multicssclass": "^2.1.1",
     "tailwindcss": "^3.4.4",
     "theme-change": "^2.5.0"

@@ -10,7 +10,9 @@
   let path: string;
   $: path = $page.url.pathname;
 
-  let drawerOpened: Writable<boolean> = localStorageWritable('drawer-opened', false);
+  let theme: Writable<string> = localStorageWritable('theme', '');
+
+  let drawerOpened: boolean = true;
 
   interface InlineSearch {
     focused: boolean;
@@ -41,16 +43,17 @@
 </script>
 
 <svelte:window bind:scrollY on:keydown={onKeyDown} />
-<div class="drawer" class:xl:drawer-open={$drawerOpened}>
-  <input id="drawer" type="checkbox" class="drawer-toggle" bind:checked={$drawerOpened} />
+
+<div data-theme={$theme} class="drawer" class:xl:drawer-open={drawerOpened}>
+  <input id="drawer" type="checkbox" class="drawer-toggle" bind:checked={drawerOpened} />
   <div class="drawer-side z-40">
     <label for="drawer" class="drawer-overlay" aria-label="Close drawer"></label>
-    <aside class="bg-base-200 min-h-screen w-80 shadow-inner fixed">
+    <aside class="bg-base-200 h-screen max-h-screen overflow-y-scroll w-80 shadow-inner fixed">
       <div
         data-sveltekit-preload-data="hover"
         class="sticky top-0 z-20 items-center gap-2 px-4 py-2 flex justify-between transition-opacity duration-200"
       >
-        <div class="transition-transform duration-500" class:translate-x-50={!$drawerOpened}>
+        <div class="transition-transform duration-500" class:translate-x-50={!drawerOpened}>
           <Brand autoHideBrandName={false} />
         </div>
         <label for="drawer" class="btn btn-circle btn-ghost">
@@ -204,15 +207,15 @@
       class:border-accent={scrollY > 0}
       class:border-b-2={scrollY > 0}
       class:shadow={scrollY > 0}
-      class:ml-auto={$drawerOpened}
-      class:w-full={!$drawerOpened}
-      class:w-drawer-content={$drawerOpened}
+      class:ml-auto={drawerOpened}
+      class:w-full={!drawerOpened}
+      class:w-drawer-content={drawerOpened}
     >
       <nav class="navbar container">
         <div class="navbar-start">
           <div
             class="flex gap-4 justify-between items-center transition-opacity duration-200"
-            class:hidden={$drawerOpened}
+            class:hidden={drawerOpened}
           >
             <label for="drawer" class="btn btn-circle btn-ghost">
               <span class="iconify lucide--bar-chart text-2xl transform rotate-90 scale-x-flip"
@@ -307,8 +310,8 @@
     </div>
     <div
       class="absolute transition-[background-color,border-color,width,margin] duration-300 top-0 right-0"
-      class:w-full={!$drawerOpened}
-      class:w-drawer-content={$drawerOpened}
+      class:w-full={!drawerOpened}
+      class:w-drawer-content={drawerOpened}
     >
       <slot />
     </div>
