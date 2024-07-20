@@ -4,17 +4,18 @@
   import http from '$utils/http';
   import { writable } from 'svelte/store';
   import { onMount } from 'svelte';
+  import type Chapter from '$models/Chapter';
   let images: Array<string | ArrayBuffer | null> = [
-    "/images/comics/67466676832157697/chapters/1/001.jpeg",
-    "/images/comics/67466676832157697/chapters/1/002.jpeg",
-    "/images/comics/67466676832157697/chapters/1/003.jpeg",
-    "/images/comics/67466676832157697/chapters/1/004.jpeg",
-    "/images/comics/67466676832157697/chapters/1/005.jpeg",
-    "/images/comics/67466676832157697/chapters/1/006.jpeg",
-    "/images/comics/67466676832157697/chapters/1/007.jpeg",
-    "/images/comics/67466676832157697/chapters/1/008.jpeg",
-    "/images/comics/67466676832157697/chapters/1/009.jpeg",
-    "/images/comics/67466676832157697/chapters/1/010.jpeg",
+    '/images/comics/67466676832157697/chapters/1/001.jpeg',
+    '/images/comics/67466676832157697/chapters/1/002.jpeg',
+    '/images/comics/67466676832157697/chapters/1/003.jpeg',
+    '/images/comics/67466676832157697/chapters/1/004.jpeg',
+    '/images/comics/67466676832157697/chapters/1/005.jpeg',
+    '/images/comics/67466676832157697/chapters/1/006.jpeg',
+    '/images/comics/67466676832157697/chapters/1/007.jpeg',
+    '/images/comics/67466676832157697/chapters/1/008.jpeg',
+    '/images/comics/67466676832157697/chapters/1/009.jpeg',
+    '/images/comics/67466676832157697/chapters/1/010.jpeg'
   ]; // Mảng để lưu trữ các URL của các hình ảnh đã tải lên
   let imageUrl: string;
   let imageData = {
@@ -22,12 +23,12 @@
     ComicId: '68638295025815553',
     ChapterIndex: ''
   };
-  let chapterData = {
-    number: null,
+  let chapterData: Chapter = {
+    number: 0,
     originalLanguage: '',
     name: '',
     pages: [],
-    price: null
+    price: 0
   };
   async function uploadImage(file, comicId) {
     let formData = new FormData();
@@ -103,13 +104,17 @@
 <div class="flex justify-center">
   <div class="ml-10 w-9/12 aspect-[20/6]">
     <div class="h-20"></div>
-    <button class="btn btn-block">Make sure to read the guidelines!</button>
+    <button class="btn btn-block bg-orange-500 hover:bg-orange-600"><p class="text-white">Make sure to read the guidelines!</p></button>
     <div class="">
       <p class="text-xl font-bold">Details</p>
     </div>
     <div class="bg-base-200 flex">
       <div class="h-24 w-16 self-center">
-        <img class="object-cover" src="https://i.yomikaze.org/images/comics/67466676832157697/67468445754712064.webp" alt="" />
+        <img
+          class="object-cover"
+          src="https://i.yomikaze.org/images/comics/67466676832157697/67468445754712064.webp"
+          alt=""
+        />
       </div>
       <div class="ml-3 self-center">
         <p class="text-xl font-bold">Oshinobi Dousei</p>
@@ -129,9 +134,7 @@
             placeholder="Chapter Number"
             class="border-orange-500 h-14 w-72 bg-gray-200 focus:outline-none focus:ring-2 focus:ring-warning custom-input"
           />
-          <select
-            class="h-14 w-72 bg-gray-200 focus:outline-none focus:ring-2 focus:ring-warning"
-          >
+          <select class="h-14 w-72 bg-gray-200 focus:outline-none focus:ring-2 focus:ring-warning">
             <option disabled selected>Original Language</option>
             <option>Homer</option>
             <option>Marge</option>
@@ -139,9 +142,7 @@
             <option>Lisa</option>
             <option>Maggie</option>
           </select>
-          <select
-            class="h-14 w-72 bg-gray-200 focus:outline-none focus:ring-2 focus:ring-warning"
-          >
+          <select class="h-14 w-72 bg-gray-200 focus:outline-none focus:ring-2 focus:ring-warning">
             <option disabled selected>Choose Coin</option>
             <option>Homer</option>
             <option>Marge</option>
@@ -157,12 +158,12 @@
           class="h-14 w-full bg-gray-200 focus:outline-none focus:ring-2 focus:ring-warning mt-3 custom-input"
         />
       </div>
-      <div class="mt-10 grid grid-cols-6 gap-4">
+      <div class="mt-10 grid grid-cols-4 gap-4">
         <SortableList class="contents" animation={150}>
           <!-- Vòng lặp để hiển thị các hình ảnh đã tải lên -->
           {#each images as imgUrl}
             <div
-              class=" indicator relative inline-block min-w-40 min-h-52 w-40 h-52 shadow flex justify-center items-center"
+              class=" indicator min-w-40 min-h-52 w-40 h-52 shadow bg-base-200 flex justify-center"
             >
               <span class=" indicator-item indicator-end">
                 <button
@@ -192,7 +193,7 @@
               <img
                 src={'https://i.yomikaze.org' + imgUrl}
                 alt="Uploaded Image"
-                class="max-w-full max-h-full"
+                class="max-w-full max-h-full object-contain"
               />
             </div>
           {/each}
