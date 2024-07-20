@@ -24,7 +24,7 @@
   ];
 
   let profileData = {
-    avatar: 'https://i.yomikaze.org/images/misc/72649494579240960.webp',
+    avatar: 'https://i.yomikaze.org/images/misc/73159321495658496.webp',
     banner: 'https://i.yomikaze.org/images/misc/72649699668123648.webp',
     bio: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque ut enim vitae erat iaculis vulputate. Donec id velit diam.',
     name: 'Joysinh',
@@ -75,32 +75,12 @@
   <div class="flex ms-8 gap-4">
     <div class="flex flex-col mt-12 gap-2 w-1/6">
       <button on:click={handleClick} class="btn btn-outline btn-warning w-full">
-        <svg class="text-warning" xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24"
-          ><g
-            fill="none"
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            ><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path
-              d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"
-            /></g
-          ></svg
-        >
+        <span class="iconify lucide--edit text-xl"></span>
         Edit Profile
       </button>
       <button class="btn btn-outline btn-warning w-full" on:click={() => report_modal.showModal()}>
         <!-- badge-alert -->
-        <svg class="text-warning" xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24"
-          ><path
-            fill="none"
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M3.85 8.62a4 4 0 0 1 4.78-4.77a4 4 0 0 1 6.74 0a4 4 0 0 1 4.78 4.78a4 4 0 0 1 0 6.74a4 4 0 0 1-4.77 4.78a4 4 0 0 1-6.75 0a4 4 0 0 1-4.78-4.77a4 4 0 0 1 0-6.76M12 8v4m0 4h.01"
-          /></svg
-        >
+        <span class="iconify lucide--alert-circle text-xl"></span>
         Report User
       </button>
       <dialog id="report_modal" bind:this={report_modal} class="modal">
@@ -111,7 +91,7 @@
               <div class="w-12 rounded-full">
                 <img
                   alt=""
-                  src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg"
+                  src={profileData.avatar}
                 />
               </div>
             </div>
@@ -144,18 +124,7 @@
       </dialog>
       <button class="btn btn-outline btn-warning w-full" on:click={() => role_modal.showModal()}>
         <!-- user-round-check -->
-        <svg class="text-warning" xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24"
-          ><g
-            fill="none"
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            ><path d="M2 21a8 8 0 0 1 13.292-6" /><circle cx="10" cy="8" r="5" /><path
-              d="m16 19l2 2l4-4"
-            /></g
-          ></svg
-        >
+        <span class="iconify lucide--user-round-check text-xl"></span>
         Change Role
       </button>
       <dialog id="role_modal" bind:this={role_modal} class="modal">
@@ -166,7 +135,7 @@
             <div class="w-12 rounded-full mt-3">
               <img
                 alt=""
-                src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg"
+                src={profileData.avatar}
               />
             </div>
             <span class="mt-6 ms-5">{profileData.name}</span>
@@ -189,46 +158,22 @@
     <div class="w-3/4">
       <div class="flex justify-end">
         <button
-          on:click={() => showContent('content1')}
-          class="rounded-l-lg px-3 py-3 btn-outline btn-warning border"
-          autofocus
-          ><svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 24 24"
-            ><path
-              fill="none"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"
-            /></svg
-          ></button
+        on:click={() => showContent('content1')}
+        class="rounded-l-lg p-2 btn-outline btn-warning border"
         >
-        <button
-          on:click={() => showContent('content2')}
-          class="rounded-r-lg px-3 py-3 btn-outline btn-warning border"
-          ><svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 24 24"
-            ><g
-              fill="none"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              ><rect width="20" height="6" x="2" y="4" rx="2" /><rect
-                width="20"
-                height="6"
-                x="2"
-                y="14"
-                rx="2"
-              /></g
-            ></svg
-          ></button
+        <span class="iconify lucide--list text-2xl mt-1"></span>
+        </button
+      >
+      <button
+        on:click={() => showContent('content2')}
+        class="rounded-r-lg p-2 btn-outline btn-warning border"
         >
+        <span class="iconify lucide--stretch-horizontal text-2xl mt-1"></span>
+        </button
+      >
       </div>
       <div class="content {activeContent === 'content1' ? 'active' : ''}">
         <div class="grid gap-3">
-          <div class="">
-            
-          </div>
           <div class="">
             <h3 class="text-lg font-bold mb-2">Bio</h3>
             <p class="text-base">{profileData.bio}</p>
@@ -273,6 +218,7 @@
                             >
                             <span class="text-base font">{comic.status}</span>
                           </div>
+                        <span class="iconify lucide--more-vertical text-xl"></span>
                         </div>
                       </div>
                       <div class="divider custom-divider"></div>
