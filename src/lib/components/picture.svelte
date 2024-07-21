@@ -32,7 +32,7 @@
   <slot name="loading">
     <div class={$$props.class ? $$props.class : ''}>
       <div class="flex justify-center items-center bg-base-200 {imgClass}">
-        <span class="loading loading-ring loading-lg"></span>
+        <span class="loading loading-dots"></span>
       </div>
     </div>
   </slot>
@@ -49,8 +49,9 @@
       <div
         class="{imgClass} flex flex-col gap-2 justify-center items-center bg-base-200 border-2 border-neutral"
       >
-        <span class="iconify lucide--triangle-alert text-6xl text-warning"></span>
-        <span class="px-2 text-center font-bold text-neutral max-w-full w-full text-wrap">Failed to load image</span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-full stroke-warning p-1" viewBox="0 0 24 24">
+          <path fill="none" stroke="stroke-warning" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21.73 18l-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3M12 9v4m0 4h.01" />
+        </svg>
       </div>
     </div>
   </slot>

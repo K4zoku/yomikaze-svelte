@@ -45,6 +45,10 @@
   @apply min-w-full;
 }
 
+::-webkit-scrollbar-button:single-button {
+  @apply hidden;
+}
+
 @screen xl {
   .w-drawer-content {
     width: calc(100vw - var(--tw-drawer-width));
@@ -57,4 +61,8 @@
   .min-w-drawer-content {
     min-width: calc(100vw - var(--tw-drawer-width));
   }
+}
+
+.aspect-cover {
+  aspect-ratio: 11/16;
 }

@@ -9,7 +9,7 @@ export default interface Comic extends Model {
     cover?: string,
     banner?: string,
     publicationDate?: string | Date,
-    authors?: Array<string>
+    authors: Array<string>
     status: string | ComicStatus,
     tags: Array<Tag>,
     publisher: Profile,

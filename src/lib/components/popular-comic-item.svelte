@@ -5,17 +5,17 @@
   export let comic: Comic;
 </script>
 
-<a href={`/comics/${comic.id}`} class="w-full h-96 min-h-96 max-h-96 select-none relative z-0" draggable="false">
-  <Picture src={[comic.banner, comic.cover]} class="w-full h-96 min-h-96 max-h-96 object-cover object-top" imgClass="w-full h-full object-cover object-top"/>
+<a href={`/comics/${comic.id}`} class="w-full h-112 min-h-112 max-h-112 select-none relative z-0" draggable="false">
+  <Picture src={[comic.banner, comic.cover]} class="w-full h-112 min-h-112 max-h-112 object-cover object-top" imgClass="w-full h-full object-cover object-top"/>
   <div
     class="absolute w-full h-full top-0 left-0 bg-gradient-to-b from-base-100/60 to-base-100"
   >
-    <div class="sm:h-5/6 w-full max-w-screen-xl mx-auto mt-16 lg:mt-16">
-      <div class="flex flex-col items-center sm:flex-row gap-2 sm:gap-6 sm:h-5/6 py-2 px-4">
+    <div class="w-full max-w-screen-xl mx-auto mt-28">
+      <div class="flex flex-col items-center sm:flex-row gap-2 sm:gap-6 py-2 px-4 h-64">
         <figure class="h-64 w-44 shrink-0">
           <Picture src={comic.cover} class="h-full w-full" imgClass="w-full h-full rounded-lg shadow-md object-cover object-center"/>
         </figure>
-        <div class="flex flex-col grow w-full gap-2 max-h-full ">
+        <div class="flex flex-col grow w-full gap-2 max-h-full h-full">
           <div class="grow sm:grow-0">
             <h3 class="text-2xl font-extrabold w-full line-clamp-1 sm:line-clamp-5 text-ellipsis text-center sm:text-left">{comic.name}</h3>
           </div>
@@ -26,7 +26,7 @@
               <span class="badge opacity-0 appearance-none">{'{tag}'}</span>
             {/each}
           </div>
-          <div class="min-w-full max-w-full max-h-full h-full overflow-y-scroll grow hidden md:block">
+          <div class="min-w-full max-w-full max-h-full h-full overflow-y-scroll scrollbar grow hidden md:block">
             <p class="text-justify">
               {comic.description}
             </p>

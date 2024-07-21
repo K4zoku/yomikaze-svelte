@@ -7,10 +7,19 @@ module.exports = {
     extend: {
       scale: {
         flip: '-1'
+      },
+      spacing: {
+        '112': '28rem',
+        '128': '32rem',
+        '144': '36rem',
+        '160': '40rem',
+        '192': '48rem',
+        '224': '56rem',
+        '256': '64rem',
       }
     }
   },
-  plugins: [require('@tailwindcss/typography'), require('daisyui'), addIconSelectors(['lucide', 'hugeicons'])],
+  plugins: [require('@tailwindcss/typography'), require('tailwind-scrollbar'), require('daisyui'), addIconSelectors(['lucide', 'hugeicons'])],
   daisyui: {
     darkTheme: 'ayu-mirage',
     themes: [
@@ -22,7 +31,7 @@ module.exports = {
           neutral: '#ACB6BF',
           'base-100': '#FCFCFC',
           'base-200': '#F3F4F5',
-          'base-300': '#ACB6BF',
+          'base-300': '#e5e7e9',
           info: '#399EE6',
           success: '#6CBF43',
           warning: '#F2AE49',

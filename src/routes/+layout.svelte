@@ -7,17 +7,16 @@
   import type { Writable } from 'svelte/store';
   import { version } from '$app/environment';
   import { page } from '$app/stores';
+    import Icon from '$components/icon.svelte';
   let path: string;
   $: path = $page.url.pathname;
 
   let theme: Writable<string> = localStorageWritable('theme', '');
   let screenWidth: number;
-  let drawerOpened: boolean;
+  let drawerOpened: boolean = true;
 
   $: drawerOpened = screenWidth >= 1280; // xl:breakpoint
   
-  
-
   interface InlineSearch {
     focused: boolean;
     element: HTMLInputElement | undefined;
@@ -47,7 +46,6 @@
 </script>
 
 <svelte:window bind:scrollY on:keydown={onKeyDown} bind:innerWidth={screenWidth}/>
-
 <div data-theme={$theme} class="drawer xl:drawer-open" class:xl:drawer-open={drawerOpened}>
   <input id="drawer" type="checkbox" class="drawer-toggle" bind:checked={drawerOpened} />
   <div class="drawer-side z-40">
@@ -66,18 +64,19 @@
           <span class="duration-500 iconify lucide--x text-2xl"></span>
         </label>
       </div>
-      <div class="overflow-y-scroll h-full max-h-full">
+      <div class="overflow-y-scroll h-full max-h-full scrollbar">
         <ul class="menu px-4 py-0">
           <li>
             <a href="/" class="font-bold" class:active={path === '/'}>
-              <span class="iconify lucide--home text-xl"></span>
+              <Icon icon="lucide--home" class="text-xl"/>
+              
               Home
             </a>
           </li>
           <li>
             <details id="me" open>
               <summary class="group font-bold">
-                <span class="iconify lucide--user text-xl"></span>
+                <Icon icon="lucide--user" class="text-xl"/>
                 Me
               </summary>
               <ul class="menu">
@@ -96,7 +95,7 @@
           <li>
             <details id="titles" open>
               <summary class="group font-bold">
-                <span class="iconify lucide--book-open text-xl"></span>
+                <Icon icon="lucide--book-open" class="text-xl"/>
                 Titles
               </summary>
               <ul class="menu">
@@ -118,7 +117,7 @@
           <li>
             <details id="transactions" open>
               <summary class="group font-bold">
-                <span class="iconify lucide--wallet text-xl"></span>
+                <Icon icon="lucide--wallet" class="text-xl"/>
                 Transactions
               </summary>
               <ul class="menu">
@@ -134,7 +133,7 @@
           <li>
             <details id="transactions" open>
               <summary class="group font-bold">
-                <span class="iconify lucide--pin text-xl"></span>
+                <Icon icon="lucide--pin" class="text-xl"/>
                 Yomikaze
               </summary>
               <ul class="menu">
@@ -352,7 +351,7 @@
             aria-label="Facebook"
             target="_blank"
           >
-            <span class="iconify hugeicons--facebook-02 text-xl"></span>
+            <Icon icon="hugeicons--facebook-02" class="text-xl"/>
           </a>
           <a
             href="https://x.com"
@@ -360,7 +359,7 @@
             aria-label="X"
             target="_blank"
           >
-            <span class="iconify hugeicons--new-twitter text-xl"></span>
+            <Icon icon="hugeicons--new-twitter" class="text-xl"/>
           </a>
           <a
             href="mailto:contact@yomikaze.org"
@@ -368,7 +367,7 @@
             aria-label="Mail"
             target="_blank"
           >
-            <span class="iconify lucide--mail text-xl"></span>
+            <Icon icon="lucide--mail" class="text-xl"/>
           </a>
           <a
             href="https://status.yomikaze.org"
@@ -376,7 +375,7 @@
             aria-label="Status"
             target="_blank"
           >
-            <span class="iconify lucide--activity text-xl"></span>
+            <Icon icon="lucide--activity" class="text-xl"/>
           </a>
         </div>
         <div class="w-full flex flex-col justify-center items-center">
@@ -452,7 +451,7 @@
                   <kbd class="kbd kbd-sm" class:hidden={inlineSearch.focused}>K</kbd>
                 </div>
                 <div class="flex-none flex items-center">
-                  <span class="iconify lucide--search text-lg"></span>
+                  <Icon icon="lucide--search" class="text-lg"/>
                 </div>
               </label>
               <button class="hidden" type="submit"></button>
@@ -460,8 +459,8 @@
           </div>
           <div class="flex gap-4 items-center pe-2">
             <details class="dropdown dropdown-end">
-              <summary class="btn btn-circle">
-                <span class="iconify lucide--bell text-2xl"></span>
+              <summary class="btn btn-sm md:btn-md btn-circle">
+                <Icon icon="lucide--bell" class="md:text-2xl" />
               </summary>
               <div
                 class="dropdown-content bg-base-100 rounded-box z-[1] w-52 p-2 shadow flex flex-col justify-center items-center"
@@ -495,7 +494,7 @@
       </nav>
     </div>
     <div
-      class="absolute transition-[background-color,border-color,width,margin] duration-300 top-0 right-0"
+      class="absolute transition-[background-color,border-color,width,margin] duration-200 top-0 right-0 w-drawer-content"
       class:w-full={!drawerOpened}
       class:w-drawer-content={drawerOpened}
     >
