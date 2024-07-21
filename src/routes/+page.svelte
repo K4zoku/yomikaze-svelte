@@ -24,26 +24,28 @@
       <div
         class="absolute w-full h-full top-0 left-0 bg-gradient-to-b from-base-100/60 to-base-100 backdrop-blur"
       >
-        <div class="h-5/6 w-full max-w-screen-xl mx-auto mt-16 lg:mt-16">
-          <div class="flex gap-6 h-5/6 py-2 px-4">
-            <div class="h-full aspect-[7/10] shrink-0">
-              <div class="h-full aspect-[7/10] skeleton"></div>
+        <div class="sm:h-5/6 w-full max-w-screen-xl mx-auto mt-16 lg:mt-16">
+          <div class="flex flex-col items-center sm:flex-row gap-2 sm:gap-6 sm:h-5/6 py-2 px-4">
+            <div class="h-64 w-44 shrink-0">
+              <div class="h-full w-full skeleton"></div>
             </div>
-            <div class="flex flex-col grow gap-4 max-h-full w-full">
-              <div class="h-8 w-2/3 skeleton"></div>
-              <div class="flex gap-2 py-2 max-w-screen-lg overflow-x-hidden shrink-0">
+            <div class="flex flex-col grow w-full gap-4 justify-between max-h-full">
+              <div class="grow sm:grow-0">
+                <div class="h-8 w-2/3 skeleton"></div>
+              </div>
+              <div class="hidden sm:flex grow md:grow-0 gap-2 py-2 max-w-screen-lg overflow-x-hidden shrink-0">
                 {#each { length: 4 } as _, i}
                   <span class="flex-shrink-0 h-4 w-16 skeleton"></span>
                 {/each}
               </div>
               <div
-                class="max-w-full w-full max-h-48 overflow-y-scroll grow hidden md:flex md:flex-col gap-2"
+                class="w-full max-h-full overflow-y-scroll grow hidden md:flex flex-col gap-1"
               >
                 <div class="w-full h-4 skeleton"></div>
                 <div class="w-full h-4 skeleton"></div>
                 <div class="w-1/2 h-4 skeleton"></div>
               </div>
-              <div class="w-full italic max-w-screen-lg overflow-hidden shrink-0">
+              <div class="w-full italic max-w-screen-lg overflow-hidden shrink-0 hidden sm:block">
                 <div class="h-4 w-24 skeleton"></div>
               </div>
             </div>

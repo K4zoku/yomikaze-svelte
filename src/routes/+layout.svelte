@@ -11,8 +11,12 @@
   $: path = $page.url.pathname;
 
   let theme: Writable<string> = localStorageWritable('theme', '');
+  let screenWidth: number;
+  let drawerOpened: boolean;
 
-  let drawerOpened: boolean = true;
+  $: drawerOpened = screenWidth >= 1280; // xl:breakpoint
+  
+  
 
   interface InlineSearch {
     focused: boolean;
@@ -42,9 +46,9 @@
   }
 </script>
 
-<svelte:window bind:scrollY on:keydown={onKeyDown} />
+<svelte:window bind:scrollY on:keydown={onKeyDown} bind:innerWidth={screenWidth}/>
 
-<div data-theme={$theme} class="drawer" class:xl:drawer-open={drawerOpened}>
+<div data-theme={$theme} class="drawer xl:drawer-open" class:xl:drawer-open={drawerOpened}>
   <input id="drawer" type="checkbox" class="drawer-toggle" bind:checked={drawerOpened} />
   <div class="drawer-side z-40">
     <label for="drawer" class="drawer-overlay" aria-label="Close drawer"></label>

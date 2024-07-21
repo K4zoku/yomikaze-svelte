@@ -12,10 +12,10 @@
   >
     <div class="sm:h-5/6 w-full max-w-screen-xl mx-auto mt-16 lg:mt-16">
       <div class="flex flex-col items-center sm:flex-row gap-2 sm:gap-6 sm:h-5/6 py-2 px-4">
-        <figure class="h-64 w-44 aspect-[7/10] shrink-0">
-          <Picture src={comic.cover} class="h-full aspect-[7/10]" imgClass="w-full h-full rounded-lg shadow-md object-cover object-center"/>
+        <figure class="h-64 w-44 shrink-0">
+          <Picture src={comic.cover} class="h-full w-full" imgClass="w-full h-full rounded-lg shadow-md object-cover object-center"/>
         </figure>
-        <div class="flex flex-col grow w-full gap-2 justify-between max-h-full ">
+        <div class="flex flex-col grow w-full gap-2 max-h-full ">
           <div class="grow sm:grow-0">
             <h3 class="text-2xl font-extrabold w-full line-clamp-1 sm:line-clamp-5 text-ellipsis text-center sm:text-left">{comic.name}</h3>
           </div>
@@ -26,7 +26,7 @@
               <span class="badge opacity-0 appearance-none">{'{tag}'}</span>
             {/each}
           </div>
-          <div class="min-w-full max-w-full max-h-48 overflow-y-scroll grow hidden md:block">
+          <div class="min-w-full max-w-full max-h-full h-full overflow-y-scroll grow hidden md:block">
             <p class="text-justify">
               {comic.description}
             </p>
