@@ -5,8 +5,8 @@
   export let comic: Comic;
 </script>
 
-<a href={`/comics/${comic.id}`} class="w-full max-w-screen-2xl h-96 min-h-96 max-h-96 select-none relative z-0" draggable="false">
-  <Picture src={[comic.banner, comic.cover]} class="w-full max-w-screen-2xl h-96 min-h-96 max-h-96 object-cover object-top" imgClass="w-full h-full object-cover object-top"/>
+<a href={`/comics/${comic.id}`} class="w-full h-96 min-h-96 max-h-96 select-none relative z-0" draggable="false">
+  <Picture src={[comic.banner, comic.cover]} class="w-full h-96 min-h-96 max-h-96 object-cover object-top" imgClass="w-full h-full object-cover object-top"/>
   <div
     class="absolute w-full h-full top-0 left-0 bg-gradient-to-b from-base-100/60 to-base-100"
   >
