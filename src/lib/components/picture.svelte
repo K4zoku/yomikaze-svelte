@@ -31,27 +31,26 @@
 {#await loadImage(src)}
   <slot name="loading">
     <div class={$$props.class ? $$props.class : ''}>
-      <div class="flex justify-center items-center bg-base-300 {imgClass}">
+      <div class="flex justify-center items-center bg-base-200 {imgClass}">
         <span class="loading loading-ring loading-lg"></span>
       </div>
     </div>
   </slot>
 {:then src}
   <picture class={$$props.class ? $$props.class : ''}>
-    <source
-      class={imgClass}
-      srcset={src}
-    />
+    <source class={imgClass} srcset={src} />
     <slot name="fallback">
-        <img class={imgClass} src="/images/default.svg" alt="" />
+      <img class={imgClass} src="/images/default.svg" alt="" />
     </slot>
   </picture>
 {:catch}
   <slot name="error">
     <div class={$$props.class ? $$props.class : ''}>
-      <div class="flex flex-col gap-2 justify-center items-center bg-base-200 {imgClass}">
+      <div
+        class="{imgClass} flex flex-col gap-2 justify-center items-center bg-base-200 border-2 border-neutral"
+      >
         <span class="iconify lucide--triangle-alert text-6xl text-warning"></span>
-        <span class="text-lg font-bold text-neutral">Failed to load image</span>
+        <span class="px-2 text-center font-bold text-neutral max-w-full w-full text-wrap">Failed to load image</span>
       </div>
     </div>
   </slot>
