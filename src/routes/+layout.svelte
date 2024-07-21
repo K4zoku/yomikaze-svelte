@@ -237,7 +237,7 @@
           >
             <form action="/search">
               <label
-                class="input input-bordered input-sm flex items-center gap-2 w-full max-w-full transition-colors duration-200 ease-in-out backdrop-blur"
+                class="input input-bordered input-sm hidden md:flex items-center gap-2 w-full max-w-full transition-colors duration-200 ease-in-out backdrop-blur"
                 id="inline-search-label"
                 for="inline-search"
                 class:input-accent={inlineSearch.focused}

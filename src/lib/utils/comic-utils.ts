@@ -8,14 +8,14 @@ const CDN_BASE_URL = PUBLIC_CDN_BASE_URL ?? "https://i.yomikaze.org";
 export async function getPopularComics() : Promise<Comic[]> {
     let comics: Comic[] = [];
     let url: URL = new URL("/comics", http.defaults.baseURL);
+    url.searchParams.set("OrderBy", "TotalViewsDesc");
     url.searchParams.set("Size", "10");
-    url.searchParams.append("OrderBy", "TotalViewsDesc");
     let response = await http.get(url.pathname + url.search);
     if (response.status === 200) {
-        comics.push(...response.data.results);
+        comics.push(...response.data.results as Comic[]);
     }
     comics = comics.map(comic => normalizeComic(comic));
-    return await delayedValuePromise(3000, comics);
+    return await delayedValuePromise(1000, comics);
 }
 
 export function normalizeComic(comic: Comic) : Comic {

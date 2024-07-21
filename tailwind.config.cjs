@@ -10,7 +10,7 @@ module.exports = {
       }
     }
   },
-  plugins: [require('daisyui'), addIconSelectors(['lucide', 'hugeicons'])],
+  plugins: [require('@tailwindcss/typography'), require('daisyui'), addIconSelectors(['lucide', 'hugeicons'])],
   daisyui: {
     darkTheme: 'ayu-mirage',
     themes: [
