@@ -19,7 +19,10 @@
 			comments: 39,
 			votes: '5',
 			status: 'Completed',
-			timeAgo: '22 days ago'
+			timeAgo: '22 days ago',
+			chapters: [
+                { title: 'Ch. 5 - The King of the Pirates and the Master Swordsman', timeAgo: '10 days ago' }
+            ]
 		},
 		{
 			cover: 'https://i.yomikaze.org/images/misc/72733305899966464.webp',
@@ -35,7 +38,14 @@
 			comments: 39,
 			votes: '5',
 			status: 'Completed',
-			timeAgo: '22 days ago'
+			timeAgo: '22 days ago',
+			chapters: [
+                { title: 'Ch. 1 - Romance Dawn', timeAgo: '10 days ago', publisher: '123' },
+                { title: 'Ch. 2 - Enter Zoro', timeAgo: '10 days ago', publisher: '123' },
+                { title: 'Ch. 3 - Morgan vs Luffy', timeAgo: '10 days ago', publisher: '123' },
+                { title: 'Ch. 4 - The Great Captain Morgan', timeAgo: '10 days ago', publisher: '123' },
+                { title: 'Ch. 5 - The King of the Pirates and the Master Swordsman', timeAgo: '10 days ago' }
+            ]
 		},
 		{
 			cover: 'https://i.yomikaze.org/images/misc/72733305899966464.webp',
@@ -51,11 +61,14 @@
 			comments: 39,
 			votes: '5',
 			status: 'Completed',
-			timeAgo: '22 days ago'
+			timeAgo: '22 days ago',
+			chapters: [
+                { title: 'Ch. 4 - The Great Captain Morgan', timeAgo: '10 days ago', publisher: '123' },
+                { title: 'Ch. 5 - The King of the Pirates and the Master Swordsman', timeAgo: '10 days ago' }
+            ]
 		},
 		{
 			cover: 'https://i.yomikaze.org/images/misc/72733305899966464.webp',
-			chapter: '1',
 			name: 'Naruto',
 			author: 'Kishimoto Masashi',
 			description:
@@ -67,66 +80,91 @@
 			views: 'N/A',
 			comments: 39,
 			status: 'Completed',
-			timeAgo: '22 days ago'
+			timeAgo: '22 days ago',
+			chapters: [
+                { title: 'Ch. 1 - Romance Dawn', timeAgo: '10 days ago', publisher: '123' },
+                { title: 'Ch. 2 - Enter Zoro', timeAgo: '10 days ago', publisher: '123' },
+                { title: 'Ch. 3 - Morgan vs Luffy', timeAgo: '10 days ago', publisher: '123' },
+                { title: 'Ch. 4 - The Great Captain Morgan', timeAgo: '10 days ago', publisher: '123' },
+                { title: 'Ch. 5 - The King of the Pirates and the Master Swordsman', timeAgo: '10 days ago' }
+            ]
+
 		}
 		// Các comic khác...
 	];
 
-	let chapters = [
-		{
-			title: `Ch. 17 - Let's Have Some Tea`,
-			timeAgo: '22 days ago',
-			publisher: '123'
-		},
-		{
-			title: `Ch. 17 - Let's Have Some Tea`,
-			timeAgo: '22 days ago',
-			publisher: '123'
-		},
-		{
-			title: `Ch. 17 - Let's Have Some Tea`,
-			timeAgo: '22 days ago',
-			publisher: '123'
-		},
-		{
-			title: `Ch. 17 - Let's Have Some Tea`,
-			timeAgo: '22 days ago',
-			publisher: '123'
-		},
-		{
-			title: `Ch. 17 - Let's Have Some Tea`,
-			timeAgo: '22 days ago'
-		},
-		{
-			title: `Ch. 17 - Let's Have Some Tea`,
-			timeAgo: '22 days ago'
-		},
-		{
-			title: `Ch. 17 - Let's Have Some Tea`,
-			timeAgo: '22 days ago'
-		},
-		{
-			title: `Ch. 17 - Let's Have Some Tea`,
-			timeAgo: '22 days ago'
-		}
-	];
+	// let chapters = [
+	// 	{
+	// 		title: `Ch. 1 - Let's Have Some Tea`,
+	// 		timeAgo: '22 days ago',
+	// 		publisher: '123'
+	// 	},
+	// 	{
+	// 		title: `Ch. 2 - Let's Have Some Tea`,
+	// 		timeAgo: '22 days ago',
+	// 		publisher: '123'
+	// 	},
+	// 	{
+	// 		title: `Ch. 3 - Let's Have Some Tea`,
+	// 		timeAgo: '22 days ago',
+	// 		publisher: '123'
+	// 	},
+	// 	{
+	// 		title: `Ch. 4 - Let's Have Some Tea`,
+	// 		timeAgo: '22 days ago',
+	// 		publisher: '123'
+	// 	},
+	// 	{
+	// 		title: `Ch. 5 - Let's Have Some Tea`,
+	// 		timeAgo: '22 days ago'
+	// 	},
+	// 	{
+	// 		title: `Ch. 6 - Let's Have Some Tea`,
+	// 		timeAgo: '22 days ago'
+	// 	},
+	// 	{
+	// 		title: `Ch. 7 - Let's Have Some Tea`,
+	// 		timeAgo: '22 days ago'
+	// 	},
+	// 	{
+	// 		title: `Ch. 8 - Let's Have Some Tea`,
+	// 		timeAgo: '22 days ago'
+	// 	}
+	// ];
 
-	let showAll = false;
+	// let showAll = false;
 
 	// Function to toggle show all chapters
-	function toggleShowAll() {
-		showAll = !showAll;
-	}
+	// function toggleShowAll() {
+	// 	showAll = !showAll;
+	// }
 
-	function showLess() {
-		showAll = false;
-	}
+	// function showLess() {
+	// 	showAll = false;
+	// }
+
+	// Array to track show all status for each comic
+	// let showAllStatus = new Array(comics.length).fill(false);
+
+	// Function to toggle show all chapters for a specific comic
+	// function toggleShowAll(index) {
+	// 	showAllStatus[index] = !showAllStatus[index];
+	// }
 
 	// Determine if to show the "Show All" button based on chapters length
-	function shouldShowShowAllButton() {
-		return chapters.length >= 3;
-	}
+	// function shouldShowShowAllButton() {
+	// 	return chapters.length >= 3;
+	// }
 
+	let showAllStatus = new Array(comics.length).fill(false);
+
+function toggleShowAll(index: number) {
+	showAllStatus[index] = !showAllStatus[index];
+}
+
+function shouldShowShowAllButton(index: number): boolean {
+	return comics[index].chapters.length > 3;
+}
 	function showTags() {
 		return tag.length >= 3;
 	}
@@ -138,7 +176,7 @@
 	}
 </script>
 
-<div class="h-screen container mx-auto p-6 bg-white">
+<div class="h-screen container mx-auto bg-white">
 	<div class="label mt-12">
 		<a class="btn btn-ghost">
 			<svg xmlns="http://www.w3.org/2000/svg" width="1.8em" height="1.8em" viewBox="0 0 24 24">
@@ -188,16 +226,12 @@
           <span class="iconify lucide--stretch-horizontal text-2xl mt-1"></span>
         </button>
       </div>
-	<div class="content {activeContent === 'content1' ? 'active' : ''}">
+	  <div class="content {activeContent === 'content1' ? 'active' : ''}">
 		<div class="mt-5">
 			<div class="space-y-4">
-				{#each comics as comic}
+				{#each comics as comic, index}
 					<div class="flex p-3 items-center bg-gray-100 rounded-lg shadow-md">
-						<img
-							src={comic.cover}
-							alt={comic.name}
-							class="w-42 h-56 rounded-lg object-cover mb-auto"
-						/>
+						<img src={comic.cover} alt={comic.name} class="w-42 h-56 rounded-lg object-cover mb-auto"/>
 						<div class="flex flex-col ml-4 flex-grow object-cover mb-auto">
 							<div class="flex items-center">
 								<div class="flex items-center space-x-2 mb-0">
@@ -206,12 +240,9 @@
 								</div>
 							</div>
 							<div class="divider custom-divider"></div>
-
-							{#each showAll ? chapters.slice(0, 5) : chapters.slice(0, 3) as chapter}
+							{#each showAllStatus[index] ? comic.chapters.slice(0, 5) : comic.chapters.slice(0, 3) as chapter}
 								<div>
-									<a
-										class="text-lg text-gray-600 mt-2 flex justify-between p-2 px-3 w-100 hover:bg-neutral-content rounded"
-									>
+									<a class="text-lg text-gray-600 mt-2 flex justify-between p-2 px-3 w-100 hover:bg-neutral-content rounded">
 										<div class="flex gap-2">
 											<span class="iconify lucide--eye mt-1"></span>
 											<span>{chapter.title}</span>
@@ -225,20 +256,13 @@
 									</a>
 								</div>
 							{/each}
-
-							{#if shouldShowShowAllButton()}
-								{#if !showAll}
-									<a
-										class="text-lg text-gray-600 mt-2 flex justify-center p-2 px-3 w-100 hover:bg-neutral-content rounded"
-										on:click={toggleShowAll}
-									>
+							{#if shouldShowShowAllButton(index)}
+								{#if !showAllStatus[index]}
+									<a class="text-lg text-gray-600 mt-2 flex justify-center p-2 px-3 w-100 hover:bg-neutral-content rounded" on:click={() => toggleShowAll(index)}>
 										Show All
 									</a>
 								{:else}
-									<a
-										class="text-lg text-gray-600 mt-2 flex justify-center p-2 px-3 w-100 hover:bg-neutral-content rounded"
-										on:click={showLess}
-									>
+									<a class="text-lg text-gray-600 mt-2 flex justify-center p-2 px-3 w-100 hover:bg-neutral-content rounded" on:click={() => toggleShowAll(index)}>
 										Show Less
 									</a>
 								{/if}

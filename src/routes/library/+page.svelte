@@ -174,7 +174,7 @@
   });
 </script>
 
-<div class="h-screen container mx-auto p-6 bg-white">
+<div class="h-screen container mx-auto bg-white">
   <!-- <NavBar title={title} /> -->
   <div class="">
     <div class="label mt-12">
