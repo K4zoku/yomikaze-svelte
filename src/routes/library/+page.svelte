@@ -1,6 +1,8 @@
 <script lang="ts">
-  import type LibraryCategory from '$models/LibraryCategory.js';
+  import { onMount } from 'svelte';
+  import Sortable from 'sortablejs';
 
+  import type LibraryCategory from '$models/LibraryCategory.js';
   import type { PageData } from './$types';
 
   export let data: PageData;
@@ -42,7 +44,61 @@
     },
     {
       id: '1',
-      name: 'Comics4',
+      name: 'Comics3',
+      userId: '1',
+      creationTime: ''
+    },
+    {
+      id: '1',
+      name: 'Comics3',
+      userId: '1',
+      creationTime: ''
+    },
+    {
+      id: '1',
+      name: 'Comics3',
+      userId: '1',
+      creationTime: ''
+    },
+    {
+      id: '1',
+      name: 'Comics3',
+      userId: '1',
+      creationTime: ''
+    },
+    {
+      id: '1',
+      name: 'Comics3',
+      userId: '1',
+      creationTime: ''
+    },
+    {
+      id: '1',
+      name: 'Comics3',
+      userId: '1',
+      creationTime: ''
+    },
+    {
+      id: '1',
+      name: 'Comics3',
+      userId: '1',
+      creationTime: ''
+    },
+    {
+      id: '1',
+      name: 'Comics3',
+      userId: '1',
+      creationTime: ''
+    },
+    {
+      id: '1',
+      name: 'Comics3',
+      userId: '1',
+      creationTime: ''
+    },
+    {
+      id: '1',
+      name: 'Comics3',
       userId: '1',
       creationTime: ''
     }
@@ -83,9 +139,20 @@
       tags: ['Action', 'Ninja', 'Comedy', 'Martial Arts', 'Adventure', 'Drama', 'Fantasy'],
       status: 'Completed',
       timeAgo: '22 days ago'
-    }
-    // Các comic khác...
+    },
+    {
+      cover: 'https://i.yomikaze.org/images/misc/72733305899966464.webp',
+      chapter: '1',
+      name: 'Naruto',
+      author: 'Kishimoto Masashi',
+      description:
+        "Before Naruto's birth, a great demon fox had attacked the Hidden Leaf Village. The 4th Hokage from the leaf village sealed the demon inside the newly born Naruto, causing him to unknowingly grow up detested by his fellow villagers. Despite his lack of talent in many areas of ninjutsu, Naruto strives for only one goal: to gain the title of Hokage, the strongest ninja in his village. Desiring the respect he never received, Naruto works toward his dream with fellow friends Sasuke and Sakura and mentor Kakashi as they go through many trials and battles that come with being a ninja.",
+      tags: ['Action', 'Ninja', 'Comedy', 'Martial Arts', 'Adventure', 'Drama', 'Fantasy'],
+      status: 'Completed',
+      timeAgo: '22 days ago'
+    },
   ];
+
 
   let activeCategories = 'category1';
 
@@ -98,6 +165,13 @@
   function showContent(content) {
     activeContent = content;
   }
+
+  onMount(() => {
+    const sortable = new Sortable(document.getElementById('sortable-list'), {
+      animation: 150,
+      ghostClass: 'sortable-ghost'
+    });
+  });
 </script>
 
 <div class="h-screen container mx-auto p-6 bg-white">
@@ -109,12 +183,14 @@
         <span class="text-xl">Library</span>
       </a>
     </div>
-    <div class="flex justify-between items-center p-4">
+    <div class="flex justify-between items-start overflow-x-auto p-4">
       <!-- Center part -->
 
-      <div class="w-9/12 flex flex-wrap gap-2 tabs tabs-boxed p-2">
+      <div class=" flex flex-wrap gap-2 tabs tabs-boxed p-2">
         {#each categories as category}
-          <button class="tab tab-active" data-tab="plan-to-read">{category.name}</button>
+          <button class="tab tab-active whitespace-nowrap" data-tab="plan-to-read"
+            >{category.name}</button
+          >
         {/each}
       </div>
 
@@ -132,22 +208,65 @@
           <!-- search -->
           <span class="iconify lucide--search text-2xl"></span>
         </button>
-       
+
         <!-- 2 -->
         <dialog bind:this={categoryManagementModal} class="modal">
           <div class="modal-box w-11/12 max-w-5xl flex flex-col items-center text-center">
             <h3 class="text-lg font-bold">Category Management</h3>
-            <div class="flex justify-between w-9/12 btn-ghost p-2 rounded">
-              <div class="flex gap-2">
-                <span class="flex iconify lucide--menu text-2xl"></span>
-                <span class="justify-center items-center">Menu</span>
+            <div id="sortable-list" class="flex flex-col gap-2 w-full items-center">
+              <div class="flex justify-between w-9/12 btn-ghost p-2 rounded bg-gray-200">
+                <div class="flex gap-2">
+                  <span class="flex iconify lucide--menu text-2xl"></span>
+                  <span class="justify-center items-center">Menu 1</span>
+                </div>
+                <div class="flex gap-2">
+                  <span
+                    class="iconify lucide--edit text-xl"
+                    on:click={() => {
+                      createCategoryModal.showModal();
+                    }}
+                  ></span>
+                  <span
+                    class="iconify lucide--trash-2 text-xl"
+                    on:click={() => deleteCategoryModal.showModal()}
+                  ></span>
+                </div>
               </div>
-              <div class="flex gap-2">
-                <span class="iconify lucide--edit text-xl" on:click={()=> {createCategoryModal.showModal()}}></span>
-                <span
-                  class="iconify lucide--trash-2 text-xl"
-                  on:click={() => deleteCategoryModal.showModal()}
-                ></span>
+              <div class="flex justify-between w-9/12 btn-ghost p-2 rounded bg-gray-200">
+                <div class="flex gap-2">
+                  <span class="flex iconify lucide--menu text-2xl"></span>
+                  <span class="justify-center items-center">Menu 2</span>
+                </div>
+                <div class="flex gap-2">
+                  <span
+                    class="iconify lucide--edit text-xl"
+                    on:click={() => {
+                      createCategoryModal.showModal();
+                    }}
+                  ></span>
+                  <span
+                    class="iconify lucide--trash-2 text-xl"
+                    on:click={() => deleteCategoryModal.showModal()}
+                  ></span>
+                </div>
+              </div>
+              <div class="flex justify-between w-9/12 btn-ghost p-2 rounded bg-gray-200">
+                <div class="flex gap-2">
+                  <span class="flex iconify lucide--menu text-2xl"></span>
+                  <span class="justify-center items-center">Menu 3</span>
+                </div>
+                <div class="flex gap-2">
+                  <span
+                    class="iconify lucide--edit text-xl"
+                    on:click={() => {
+                      createCategoryModal.showModal();
+                    }}
+                  ></span>
+                  <span
+                    class="iconify lucide--trash-2 text-xl"
+                    on:click={() => deleteCategoryModal.showModal()}
+                  ></span>
+                </div>
               </div>
             </div>
             <div class="modal-action">
@@ -168,8 +287,9 @@
     <div class="flex justify-between items-center p-4">
       <div class=" flex flex-col space-x-2 p-4">
         <div class="flex" on:click={() => createCategoryModal.showModal()}>
-          <span class="iconify lucide--arrow-left text-2xl mt-1"></span>
           <h1 class=" text-xl font-semibold ms-1">Reading</h1>
+          <span class="iconify lucide--edit text-l mt-2 ms-3"></span>
+
         </div>
 
         <h2 class="text-xl font-semibold">Total: {total}</h2>
@@ -322,29 +442,22 @@
   <div class="flex justify-center pt-2 pb-2">
     <div class="join">
       <button class="join-item btn">
-        <!-- chevron-left -->
         <span class="iconify lucide--chevron-left text-2xl"></span>
       </button>
       <button class="join-item btn text-xl">1</button>
       <button class="join-item btn">
-        <!-- chevron-right -->
         <span class="iconify lucide--chevron-right text-2xl"></span>
       </button>
     </div>
   </div>
-  <!-- </div> -->
 </div>
 
- <!-- DIALOG CREATE PERSONAL CATEGORY -->
- <dialog bind:this={createCategoryModal} class="modal">
+<!-- DIALOG CREATE PERSONAL CATEGORY -->
+<dialog bind:this={createCategoryModal} class="modal">
   <div class="modal-box flex flex-col items-center text-center">
     <h3 class="text-lg font-bold">Create new personal category</h3>
     <h5 class="mb-2">Name for personal category</h5>
-    <input
-      type="text"
-      placeholder="Type here"
-      class="input input-bordered w-full max-w-xs"
-    />
+    <input type="text" placeholder="Type here" class="input input-bordered w-full max-w-xs" />
     <div class="modal-action">
       <form method="dialog">
         <button class="btn btn-outline btn-success">Create</button>
@@ -382,5 +495,8 @@
   .content.active {
     display: block;
   }
-  
+  .sortable-ghost {
+    opacity: 0.5;
+    background: #f0f0f0;
+  }
 </style>
