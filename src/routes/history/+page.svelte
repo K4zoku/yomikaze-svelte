@@ -90,71 +90,7 @@
             ]
 
 		}
-		// Các comic khác...
 	];
-
-	// let chapters = [
-	// 	{
-	// 		title: `Ch. 1 - Let's Have Some Tea`,
-	// 		timeAgo: '22 days ago',
-	// 		publisher: '123'
-	// 	},
-	// 	{
-	// 		title: `Ch. 2 - Let's Have Some Tea`,
-	// 		timeAgo: '22 days ago',
-	// 		publisher: '123'
-	// 	},
-	// 	{
-	// 		title: `Ch. 3 - Let's Have Some Tea`,
-	// 		timeAgo: '22 days ago',
-	// 		publisher: '123'
-	// 	},
-	// 	{
-	// 		title: `Ch. 4 - Let's Have Some Tea`,
-	// 		timeAgo: '22 days ago',
-	// 		publisher: '123'
-	// 	},
-	// 	{
-	// 		title: `Ch. 5 - Let's Have Some Tea`,
-	// 		timeAgo: '22 days ago'
-	// 	},
-	// 	{
-	// 		title: `Ch. 6 - Let's Have Some Tea`,
-	// 		timeAgo: '22 days ago'
-	// 	},
-	// 	{
-	// 		title: `Ch. 7 - Let's Have Some Tea`,
-	// 		timeAgo: '22 days ago'
-	// 	},
-	// 	{
-	// 		title: `Ch. 8 - Let's Have Some Tea`,
-	// 		timeAgo: '22 days ago'
-	// 	}
-	// ];
-
-	// let showAll = false;
-
-	// Function to toggle show all chapters
-	// function toggleShowAll() {
-	// 	showAll = !showAll;
-	// }
-
-	// function showLess() {
-	// 	showAll = false;
-	// }
-
-	// Array to track show all status for each comic
-	// let showAllStatus = new Array(comics.length).fill(false);
-
-	// Function to toggle show all chapters for a specific comic
-	// function toggleShowAll(index) {
-	// 	showAllStatus[index] = !showAllStatus[index];
-	// }
-
-	// Determine if to show the "Show All" button based on chapters length
-	// function shouldShowShowAllButton() {
-	// 	return chapters.length >= 3;
-	// }
 
 	let showAllStatus = new Array(comics.length).fill(false);
 
@@ -320,7 +256,6 @@ function shouldShowShowAllButton(index: number): boolean {
 	
 					<div class="flex justify-between gap-2">
 					  <div class="flex gap-2 mt-1">
-						<!-- {#each showAll ? chapters.slice(0, 5) : chapters.slice(0, 3) as chapter} -->
 						{#each comic.tags.slice(0, 3) as tag}
 						  <a class="badge badge-outline">{tag}</a>
 						{/each}
@@ -346,7 +281,6 @@ function shouldShowShowAllButton(index: number): boolean {
 	<div class="flex justify-center mt-4">
 		<div class="join">
 			<button class="join-item btn">
-				<!-- chevron-left -->
 				<svg xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24"
 					><path
 						fill="none"
@@ -360,7 +294,6 @@ function shouldShowShowAllButton(index: number): boolean {
 			</button>
 			<button class="join-item btn">1</button>
 			<button class="join-item btn">
-				<!-- chevron-right -->
 				<svg xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24"
 					><path
 						fill="none"
