@@ -3,7 +3,7 @@
 	import { onMount } from 'svelte';
 	import { writable } from 'svelte/store';
 	import Tags from '../create-comic/tags/+page.svelte';
-	import http from '$lib/http.js'; // Assuming http.js correctly handles HTTP requests
+	import http from '$lib/utils/http'; // Assuming http.js correctly handles HTTP requests
 	import httpImage from '$lib/utils/httpImage.js';
 
 	function goBack() {
@@ -145,7 +145,7 @@
 	}
 </script>
 
-<div class="mt-20">
+<div class="mt-20 mx-auto w-11/12">
 	<div class="flex my-3 gap-2">
 		<button on:click={goBack}>
 			<svg xmlns="http://www.w3.org/2000/svg" width="2.5em" height="2.5em" viewBox="0 0 24 24">
