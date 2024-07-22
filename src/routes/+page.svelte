@@ -5,9 +5,8 @@
   import Picture from '$components/picture.svelte';
   import Time from 'svelte-time/Time.svelte';
   import Icon from '$components/icon.svelte';
-  import svelteTilt from 'vanilla-tilt-svelte';
   import { getLatestChapter } from '$utils/comic-utils';
-  import type Comic from '$models/Comic';
+  import { onMount, tick } from 'svelte';
 
   export let data: PageData;
   let { popular, latest, recent } = data;
@@ -24,14 +23,47 @@
     currentPageIndex: 0
   };
 
-  let recentlyCarousel: CarouselData = {
-    goToNext: () => {},
-    goToPrev: () => {},
-    currentPageIndex: 0
-  };
+  function handleOnPopularWheel(event: WheelEvent) {
+    const target = event.target as HTMLElement;
+    if (event.deltaY === 0) return;
+    let depth = 3;
+    let elem = target;
+    do {
+      if (elem.scrollHeight > elem.clientHeight || elem.scrollWidth > elem.clientWidth) {
+        return;
+      }
+      if (!elem.parentElement) {
+        break;
+      }
+      elem = elem.parentElement;
+    } while (elem && depth--);
+
+    event.preventDefault();
+    (event.deltaY > 0 ? popularCarousel.goToNext : popularCarousel.goToPrev)();
+  }
+
+  let recentContainer: HTMLDivElement;
+  let accumulatedDelta = 0;
+  async function handleOnRecentWheel(event: WheelEvent) {
+    if (event.deltaY === 0) return;
+    event.preventDefault();
+    await tick();
+    accumulatedDelta += event.deltaY;
+  }
+  onMount(() => {
+    setInterval(() => {
+      if (accumulatedDelta === 0) return;
+      const delta = accumulatedDelta;
+      accumulatedDelta = 0;
+      recentContainer.scrollTo({
+        left: recentContainer.scrollLeft + delta,
+        behavior: 'smooth'
+      });
+    }, 100);
+  });
 </script>
 
-<section id="popular">
+<section id="popular" on:wheel={handleOnPopularWheel}>
   {#await popular}
     <div class="w-full h-112 min-h-112 max-h-112 select-none relative z-0">
       <div class="w-full h-full bg-base-300"></div>
@@ -146,7 +178,7 @@
                 class="bg-base-300/40 rounded-lg shadow-md hover:shadow-lg transition duration-200 p-2 gap-2 w-full max-w-full"
               >
                 <div class="flex gap-2 w-full max-w-full h-24">
-                  <div class="shrink-0 h-24 aspect-cover" use:svelteTilt={{ scale: 1.03, max: 10 }}>
+                  <div class="shrink-0 h-24 aspect-cover">
                     <div class="h-24 w-full skeleton"></div>
                   </div>
                   <div class="flex flex-col h-full max-w-full w-full gap-2">
@@ -175,12 +207,11 @@
               {#each comics.slice(column * 6, (column + 1) * 6) as comic (comic.id)}
                 <a
                   href="/comics/{comic.id}"
-                  class="bg-base-300 hover:bg-base-300/50 rounded-lg shadow-md hover:shadow-lg transition duration-300 p-2 gap-2 w-full max-w-full"
+                  class="bg-base-100/80 hover:bg-base-100 rounded-lg shadow-md hover:shadow-lg transition duration-300 p-2 gap-2 w-full max-w-full"
                 >
                   <div class="flex gap-2 w-full max-w-full h-24">
                     <div
                       class="shrink-0 h-24 aspect-cover"
-                      use:svelteTilt={{ scale: 1.03, max: 25, glare: true, maxGlare: 1 }}
                     >
                       <Picture
                         src={comic.cover}
@@ -253,34 +284,27 @@
       <div class="px-6 flex justify-evenly gap-4">
         {#each { length: 9 } as _, i (i)}
           <div class="flex flex-col gap-2 items-center">
-            <div class="h-48 w-32 aspect-cover rounded-md shadow-md">
-              <div class="h-full w-full skeleton"></div>
+            <div class="h-48 w-32 aspect-cover">
+              <div class="h-full w-full skeleton shadow-md"></div>
             </div>
-            <span class="text-sm font-bold text-center max-w-full text-ellipsis line-clamp-2">
-              <div class="h-4 w-24 skeleton"></div>
+            <span class="font-bold flex flex-col gap-2 w-full">
+              <div class="h-4 w-3/4 skeleton"></div>
+              <div class="h-4 w-1/2 skeleton"></div>
             </span>
           </div>
         {/each}
       </div>
     {:then comics}
-      <Carousel
-        swiping={true}
-        autoplay
-        autoplayDuration={5000}
-        pauseOnFocus
-        dots={true}
-        particlesToShow={9}
-        particlesToScroll={3}
-        infinite={false}
-        bind:goToPrev={recentlyCarousel.goToPrev}
-        bind:goToNext={recentlyCarousel.goToNext}
-        on:pageChange={(event) => (recentlyCarousel.currentPageIndex = event.detail)}
+      <div
+        class="overflow-x-scroll max-w-full w-full flex gap-6 snap-x"
+        bind:this={recentContainer}
+        on:wheel={handleOnRecentWheel}
       >
         {#each comics as comic (comic.id)}
-          <a href="/comics/{comic.id}" class="flex flex-col gap-2 items-center">
+          <a href="/comics/{comic.id}" class="flex flex-col gap-2 items-center snap-start p-2">
             <Picture
               src={comic.cover}
-              class="h-48 w-32 aspect-cover rounded-md shadow-md"
+              class="h-48 w-32 aspect-cover rounded-md shadow-md hover:shadow-lg hover:scale-105 transition duration-300"
               imgClass="rounded-md shadow w-full h-full object-cover object-center"
             />
             <span class="text-sm font-bold text-center max-w-full text-ellipsis line-clamp-2"
@@ -288,20 +312,7 @@
             >
           </a>
         {/each}
-        <div slot="dots" let:pagesCount let:currentPageIndex let:showPage class="flex gap-1">
-          {#each { length: pagesCount } as _, i}
-            <button
-              class:badge-accent={currentPageIndex === i}
-              class:badge-neutral={currentPageIndex !== i}
-              class="badge badge-xs"
-              on:click={() => showPage(i)}
-            >
-            </button>
-          {/each}
-        </div>
-        <div slot="prev"></div>
-        <div slot="next"></div>
-      </Carousel>
+      </div>
     {/await}
   </section>
 </div>

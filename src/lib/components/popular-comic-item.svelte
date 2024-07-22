@@ -1,8 +1,25 @@
 <script lang="ts">
   import type Comic from '$models/Comic';
+    import { onMount } from 'svelte';
   import Picture from './picture.svelte';
 
   export let comic: Comic;
+
+  let tagsContainer: HTMLDivElement;
+  let accumulatedDelta = 0;
+  function handleOnWheel(event: WheelEvent) {
+    accumulatedDelta += event.deltaY / 2;
+  }
+  onMount(() => {
+    setInterval(() => {
+      if (accumulatedDelta === 0) return;
+      tagsContainer.scrollBy({
+        left: accumulatedDelta,
+        behavior: 'smooth',
+      });
+      accumulatedDelta = 0;
+    }, 100);
+  });
 </script>
 
 <a href={`/comics/${comic.id}`} class="w-full h-112 min-h-112 max-h-112 select-none relative z-0" draggable="false">
@@ -15,11 +32,11 @@
         <figure class="h-64 w-44 shrink-0">
           <Picture src={comic.cover} class="h-full w-full" imgClass="w-full h-full rounded-lg shadow-md object-cover object-center"/>
         </figure>
-        <div class="flex flex-col grow w-full gap-2 max-h-full h-full">
+        <div class="flex flex-col grow w-full gap-2 max-h-full h-full min-w-[0]">
           <div class="grow sm:grow-0">
             <h3 class="text-2xl font-extrabold w-full line-clamp-1 sm:line-clamp-5 text-ellipsis text-center sm:text-left">{comic.name}</h3>
           </div>
-          <div class="hidden sm:flex grow md:grow-0 gap-2 py-2 max-w-screen-lg overflow-x-hidden shrink-0">
+          <div bind:this={tagsContainer} on:wheel|preventDefault={handleOnWheel} class="hidden sm:flex grow md:grow-0 gap-2 py-2 max-w-full overflow-x-scroll shrink-0">
             {#each comic.tags as tag}
               <span class="flex-shrink-0 badge badge-outline">{tag.name}</span>
             {:else}

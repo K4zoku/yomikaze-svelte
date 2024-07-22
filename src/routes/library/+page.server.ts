@@ -1,9 +1,14 @@
 import http from '$utils/http';
+import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
+import type LibraryEntry from '$models/LibraryEntry';
+import { getToken } from '$utils/auth-server-utils';
 
-export const load = (async () => {
-    http.defaults.headers.authorization= 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI3MjY1NjY5MjkyNzY1NTkzNiIsImlhdCI6MTcyMTM4OTkwNSwic3ViIjoiNjg2MzQxOTM0NjIwNjMxMDQiLCJuYW1lIjoiYWRtaW5pc3RyYXRvciIsImVtYWlsIjoiYWRtaW5pc3RyYXRvckB5b21pa2F6ZS5vcmciLCJzaWQiOiJFVDVQRlQ1T0hRRTVYUFQ1NExYREZRVFpPSlVKTUtONiIsInJvbGVzIjpbIlN1cGVyIiwiQWRtaW5pc3RyYXRvciJdfQ.f5G67sGwGy1SpfyW5RB1MxNYxkKEyRTW8bCoKPRX00c'
+export const load : PageServerLoad = (async ({ cookies }) => {
+    const token = await getToken(cookies);
+    const libraryEntries: LibraryEntry[] = await http.get('/library', { headers: { Authorization: `Bearer ${token}` }})
+        .then(response => response.data);
     return {
-        libraryEntries: http.get('/library')
+        libraryEntries
     };
 }) satisfies PageServerLoad;

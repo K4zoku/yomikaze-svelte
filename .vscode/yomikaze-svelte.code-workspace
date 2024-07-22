@@ -1,0 +1,21 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		}
+	],
+	"settings": {
+		"workbench.editor.customLabels.enabled": true,
+		"workbench.editor.customLabels.patterns": {
+			"**/src/routes/*/**/+page.server.{ts,js}": "${dirname} - Server",
+			"**/src/routes/*/**/+page.svelte": "${dirname} - Page",
+			"**/src/routes/+page.svelte": "Home - Page",
+			"**/src/routes/+layout.svelte": "Layout",
+			"**/static/**/*.*": "${filename} - Public",
+			"**/src/routes/+page.server.{ts,js}": "Home - Server",
+			"**/src/lib/components/**/*.svelte": "Component::${filename}",
+			"**/src/lib/models/*.ts": "Model::${filename}",
+			"**/src/lib/utils/*.ts": "Util::${filename}",
+		}
+	},
+}

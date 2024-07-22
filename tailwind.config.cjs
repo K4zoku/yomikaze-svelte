@@ -19,23 +19,28 @@ module.exports = {
       }
     }
   },
-  plugins: [require('@tailwindcss/typography'), require('tailwind-scrollbar'), require('daisyui'), addIconSelectors(['lucide', 'hugeicons'])],
+  plugins: [require('@tailwindcss/typography'), require('tailwind-scrollbar'), require('daisyui'), addIconSelectors(['lucide', 'hugeicons', 'la'])],
   daisyui: {
     darkTheme: 'ayu-mirage',
     themes: [
       {
         'ayu-light': {
-          primary: '#55B4D4',
+          primary: '#399EE6',
           secondary: '#6CBF43',
-          accent: '#FFAA33',
+          accent: '#FA8D3E',
+          'accent-content': '#FCFCFC',
           neutral: '#ACB6BF',
           'base-100': '#FCFCFC',
           'base-200': '#F3F4F5',
-          'base-300': '#e5e7e9',
+          'base-300': '#E5E7E9',
           info: '#399EE6',
+          'info-content': '#FCFCFC',
           success: '#6CBF43',
+          'success-content': '#FCFCFC',
           warning: '#F2AE49',
-          error: '#E65050'
+          'warning-content': '#FCFCFC',
+          error: '#E65050',
+          'error-content': '#FCFCFC',
         },
         'ayu-mirage': {
           primary: '#5CCFE6',

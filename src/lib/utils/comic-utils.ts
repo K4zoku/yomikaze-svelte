@@ -1,7 +1,6 @@
 import type Comic from "$models/Comic";
 import http from "./http";
 import { PUBLIC_CDN_BASE_URL } from "$env/static/public";
-import { delayedValuePromise } from "./common";
 import type Chapter from "$models/Chapter";
 import type PagedResult from "$models/PagedResult";
 import type Pagination from "$models/Pagination";
@@ -57,7 +56,7 @@ export async function getRecentComics() : Promise<Comic[]> {
     let paged = await getComics({ orderBy: ["CreationTimeDesc"] });
     comics.push(...paged.results);
     comics = comics.map(normalizeComic);
-    return delayedValuePromise(1000, comics);
+    return comics;
 }
 
 export async function getLatestChapter(comicId: string | bigint) : Promise<Chapter> {

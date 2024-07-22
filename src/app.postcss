@@ -15,7 +15,20 @@
 
 .menu li > *:not(ul, .menu-title, details, .btn):active, .menu li > *:not(ul, .menu-title, details, .btn).active, .menu li > details > summary:active {
   @apply bg-accent;
+  @apply text-accent-content;
 }
+
+.btn:is(input[type="radio"]:checked) {
+  @apply bg-accent;
+  @apply border-accent;
+  @apply text-accent-content;
+}
+
+.btn:is(input[type="radio"]:checked):hover {
+  @apply bg-accent/70;
+  @apply border-accent/70;
+}
+
 
 .shadow-inner {
   box-shadow: inset -2px 0 8px -2px rgba(0,0,0,0.2);
@@ -25,7 +38,7 @@
   transition-duration: 200ms;
 }
 .drawer-side > *:not(.drawer-overlay) {
-  transition-duration: 300ms;
+  transition-duration: 200ms;
 }
 
 .w-drawer {

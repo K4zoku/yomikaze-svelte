@@ -38,7 +38,7 @@
 
   let activeContent = 'content1';
 
-  function showContent(content) {
+  function showContent(content:string) {
     activeContent = content;
   }
 </script>
@@ -191,7 +191,6 @@
         <button
           on:click={() => showContent('content1')}
           class="rounded-l-lg px-3 py-3 btn-outline btn-warning border"
-          autofocus
           ><svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 24 24"
             ><path
               fill="none"
@@ -280,7 +279,7 @@
                       <div class="flex gap-2 mt-4 mb-3">
                         <!-- {#each showAll ? chapters.slice(0, 5) : chapters.slice(0, 3) as chapter} -->
                         {#each comic.tags as tag}
-                          <a class="badge badge-outline">{tag}</a>
+                          <span class="badge badge-outline">{tag}</span>
                         {/each}
                       </div>
                       <div class=" text-sm font-normal">

@@ -6,9 +6,9 @@
   let categoryIds = Object.keys(categories).sort();
 </script>
 
-<div class="py-20">
+<div class="container pt-24">
   {#each categoryIds as categoryId}
-    <h3 id="tc-{categoryId}" class="text-xl font-bold pt-4 py-2">{categories[categoryId].name}</h3>
+    <h3 id="tc-{categoryId}" class="text-xl font-bold pt-4 pb-2">{categories[categoryId].name}</h3>
     <div class="flex gap-1 flex-wrap">
       {#each categories[categoryId].tags as tag}
       <div class="tooltip" data-tip="{tag.description || undefined}">
@@ -31,7 +31,6 @@
       </div>
     {/each}
     </div>
-    <hr/>
   {:else}
     <span class="text-warning">There is no tags</span>
   {/each}
