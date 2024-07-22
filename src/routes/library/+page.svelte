@@ -11,6 +11,8 @@
   let categoryManagementModal: HTMLDialogElement;
   let deleteCategoryModal: HTMLDialogElement;
 
+  let alert:HTMLDialogElement;
+
   let categories: Array<LibraryCategory> = [
     {
       id: '1',
@@ -153,13 +155,6 @@
     },
   ];
 
-
-  // let activeCategories = 'category1';
-
-  // function showCategory(category) {
-  //   activeCategories = category;
-  // }
-
   let activeContent = 'content1';
 
   function showContent(content) {
@@ -188,7 +183,7 @@
 
       <div class="flex flex-wrap gap-2 tabs tabs-boxed p-2">
         {#each categories as category}
-          <button class="tab hover:bg-gray-500" data-tab="plan-to-read"
+          <button class="tab focus:bg-warning focus:text-white" data-tab="plan-to-read"
             >{category.name}</button
           >
         {/each}
@@ -209,15 +204,15 @@
           <span class="iconify lucide--search text-2xl"></span>
         </button>
 
-        <!-- 2 -->
         <dialog bind:this={categoryManagementModal} class="modal">
           <div class="modal-box w-11/12 max-w-5xl flex flex-col items-center text-center">
-            <h3 class="text-lg font-bold">Category Management</h3>
+            <h3 class="text-lg font-bold mb-2">Category Management</h3>
             <div id="sortable-list" class="flex flex-col gap-2 w-full items-center">
+              {#each categories as category}
               <div class="flex justify-between w-9/12 btn-ghost p-2 rounded bg-gray-200">
                 <div class="flex gap-2">
                   <span class="flex iconify lucide--menu text-2xl"></span>
-                  <span class="justify-center items-center">Menu 1</span>
+                  <span class="justify-center items-center">{category.name}</span>
                 </div>
                 <div class="flex gap-2">
                   <span
@@ -232,47 +227,14 @@
                   ></span>
                 </div>
               </div>
-              <div class="flex justify-between w-9/12 btn-ghost p-2 rounded bg-gray-200">
-                <div class="flex gap-2">
-                  <span class="flex iconify lucide--menu text-2xl"></span>
-                  <span class="justify-center items-center">Menu 2</span>
-                </div>
-                <div class="flex gap-2">
-                  <span
-                    class="iconify lucide--edit text-xl"
-                    on:click={() => {
-                      createCategoryModal.showModal();
-                    }}
-                  ></span>
-                  <span
-                    class="iconify lucide--trash-2 text-xl"
-                    on:click={() => deleteCategoryModal.showModal()}
-                  ></span>
-                </div>
-              </div>
-              <div class="flex justify-between w-9/12 btn-ghost p-2 rounded bg-gray-200">
-                <div class="flex gap-2">
-                  <span class="flex iconify lucide--menu text-2xl"></span>
-                  <span class="justify-center items-center">Menu 3</span>
-                </div>
-                <div class="flex gap-2">
-                  <span
-                    class="iconify lucide--edit text-xl"
-                    on:click={() => {
-                      createCategoryModal.showModal();
-                    }}
-                  ></span>
-                  <span
-                    class="iconify lucide--trash-2 text-xl"
-                    on:click={() => deleteCategoryModal.showModal()}
-                  ></span>
-                </div>
-              </div>
+              {/each}
+             
             </div>
             <div class="modal-action">
               <form method="dialog">
-                <button class="btn">Close</button>
+                <button on:click={() => alert.showModal()} class="btn">Close</button>
               </form>
+              
               <button
                 class="btn btn-outline btn-success"
                 on:click={() => {
@@ -287,9 +249,8 @@
     <div class="flex justify-between items-center p-4">
       <div class=" flex flex-col space-x-2 p-4">
         <div class="flex" on:click={() => createCategoryModal.showModal()}>
-          <h1 class=" text-xl font-semibold ms-1">Reading</h1>
+          <h1 class=" text-xl font-semibold ms-1">Ơ</h1>
           <span class="iconify lucide--edit text-l mt-2 ms-3"></span>
-
         </div>
 
         <h2 class="text-xl font-semibold">Total: {total}</h2>
