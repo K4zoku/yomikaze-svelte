@@ -7,6 +7,10 @@
   let deleteCategoryModal: HTMLDialogElement;
   let createCategoryModal:HTMLDialogElement;
 
+  import { page } from '$app/stores';
+  let path: string;
+  $: path = $page.url.pathname;
+
   function handleClick() {
     // goto('/'); // Điều hướng về trang chủ nếu không có lịch sử
   }
@@ -93,10 +97,10 @@
 <div class="container">
   <div class="flex ms-8 gap-4">
     <div class="flex flex-col mt-12 gap-2 w-1/6">
-      <button on:click={handleClick} class="btn btn-outline btn-warning w-full">
+      <a href="/editProfile" class:active={path.startsWith('/editProfile')} on:click={handleClick} class="btn btn-outline btn-warning w-full">
         <span class="iconify lucide--edit text-xl"></span>
         Edit Profile
-      </button>
+      </a>
       <button class="btn btn-outline btn-warning w-full" on:click={() => reportModal.showModal()}>
         <!-- badge-alert -->
         <span class="iconify lucide--alert-circle text-xl"></span>

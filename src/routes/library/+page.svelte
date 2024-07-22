@@ -154,11 +154,11 @@
   ];
 
 
-  let activeCategories = 'category1';
+  // let activeCategories = 'category1';
 
-  function showCategory(category) {
-    activeCategories = category;
-  }
+  // function showCategory(category) {
+  //   activeCategories = category;
+  // }
 
   let activeContent = 'content1';
 
@@ -186,15 +186,15 @@
     <div class="flex justify-between items-start overflow-x-auto p-4">
       <!-- Center part -->
 
-      <div class=" flex flex-wrap gap-2 tabs tabs-boxed p-2">
+      <div class="flex flex-wrap gap-2 tabs tabs-boxed p-2">
         {#each categories as category}
-          <button class="tab tab-active whitespace-nowrap" data-tab="plan-to-read"
+          <button class="tab hover:bg-gray-500" data-tab="plan-to-read"
             >{category.name}</button
           >
         {/each}
       </div>
 
-      <button class="btn ms-2 me-2" on:click={() => categoryManagementModal.showModal()}>
+      <button class="me-24 btn ms-2" on:click={() => categoryManagementModal.showModal()}>
         <span class="iconify lucide--settings text-2xl"></span>
       </button>
       <!-- Right part -->
@@ -297,13 +297,13 @@
       <div class="flex justify-end items-end">
         <button
           on:click={() => showContent('content1')}
-          class="rounded-l-lg p-2 btn-outline btn-warning border"
+          class="rounded-l-lg p-2 btn-outline btn-warning border focus:bg-warning focus:text-white"
         >
           <span class="iconify lucide--list text-2xl mt-1"></span>
         </button>
         <button
           on:click={() => showContent('content2')}
-          class="rounded-r-lg p-2 btn-outline btn-warning border"
+          class="rounded-r-lg p-2 btn-outline btn-warning border focus:bg-warning focus:text-white"
         >
           <span class="iconify lucide--stretch-horizontal text-2xl mt-1"></span>
         </button>
