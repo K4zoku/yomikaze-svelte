@@ -138,7 +138,14 @@
       </svg>
       <span class="text-xl mb-1">Reading History</span>
     </a>
-
+    <div class="flex justify-end items-end mt-4">
+      <a
+        on:click={() => {
+          clearHistoryModal.showModal();
+        }}
+        class="btn btn-outline btn-warning btn-md"><span class="text-l">Clear All</span></a
+      >
+    </div>
     <dialog bind:this={clearHistoryModal} class="modal">
       <div class="modal-box flex flex-col items-center text-center">
         <span class="iconify lucide--alert-circle text-4xl text-error"></span>
@@ -152,14 +159,14 @@
       </div>
     </dialog>
   </div>
-  <div class="flex justify-end items-end mb-3">
+  <!-- <div class="flex justify-end items-end mb-3">
     <a
       on:click={() => {
         clearHistoryModal.showModal();
       }}
       class="btn btn-outline btn-warning btn-md"><span class="text-l">Clear All</span></a
     >
-  </div>
+  </div> -->
   <div class="flex justify-end items-end">
     <button
       on:click={() => showContent('content1')}
@@ -234,72 +241,57 @@
     </div>
   </div>
   <div class="content {activeContent === 'content2' ? 'active' : ''}">
-    <div class="grid grid-cols-2">
-      {#each comics as comic}
-        <div class="card p-2">
-          <div class="card-body items-center rounded-lg shadow-md py-3 px-3">
-            <div class="flex">
-              <a href=""
-                ><div class="w-40 h-56">
-                  <img class="float-left rounded" src={comic.cover} alt={comic.name} />
-                </div></a
-              >
-              <div class=" flex flex-col justify-evenly ml-2">
-                <div class="flex justify-between gap-2">
-                  <div class="flex gap-2">
-                    <span class="font-semibold text-xl">{comic.name}</span>
-                  </div>
-                  <div class="flex">
-                    <div class="flex gap-3 me-2 mb-3">
-                      <div class="flex gap-1 my-auto bg-base-300 rounded px-2">
-                        <svg
-                          data-v-9ba4cb7e=""
-                          data-v-6ebb56e1=""
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 6.35 6.35"
-                          class="icon"
-                          style="color: rgb(0,255,0);"
-                          ><path
-                            fill="currentColor"
-                            d="M4.233 3.175a1.06 1.06 0 0 1-1.058 1.058 1.06 1.06 0 0 1-1.058-1.058 1.06 1.06 0 0 1 1.058-1.058 1.06 1.06 0 0 1 1.058 1.058"
-                          ></path></svg
-                        >
-                        <span class="text-base font">{comic.status}</span>
-                      </div>
-                    </div>
-                    <div
-                      class="flex gap-1 my-auto me-2 mb-3"
-                      on:click={() => deleteCategoryModal.showModal()}
-                    >
-                      <span class="iconify lucide--trash-2 text-2xl"></span>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="flex justify-between gap-2">
-                  <div class="flex gap-2 mt-1">
-                    {#each comic.tags.slice(0, 3) as tag}
-                      <a class="badge badge-outline">{tag}</a>
-                    {/each}
-                  </div>
-                </div>
-                <div class="flex justify-between gap-3 mt-1">
-                  <div class="flex gap-3">
-                    <h4 class="font-semibold text-l">Chapter: {comic.chapter}</h4>
-                  </div>
-                </div>
-                <div class=" text-sm font-normal">
-                  <span class="block text-base overflow-hidden max-h-20" id="description">
-                    {comic.description}
-                  </span>
+    <div class="mt-5">
+      <div class="space-y-4">
+        {#each comics as comic, index}
+          <div class="flex p-3 items-center bg-gray-100 rounded-lg shadow-md">
+            <div class="flex flex-col ml-4 flex-grow object-cover mb-auto">
+              <div class="flex items-center">
+                <div class="flex items-center space-x-2 mb-0">
+                  <h2 class="text-l font-bold mb-0">{comic.name}</h2>
+                  <span class="text-l text-gray-600 mb-0">{comic.author}</span>
                 </div>
               </div>
+              <div class="divider custom-divider"></div>
+              {#each showAllStatus[index] ? comic.chapters.slice(0, 5) : comic.chapters.slice(0, 3) as chapter}
+                <div>
+                  <a
+                    class="text-lg text-gray-600 mt-2 flex justify-between p-2 px-3 w-100 hover:bg-neutral-content rounded"
+                  >
+                    <div class="flex gap-2">
+                      <span class="iconify lucide--eye mt-1"></span>
+                      <span>{chapter.title}</span>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                      <div class="flex gap-3">
+                        <span class="iconify lucide--clock mt-1"></span>
+                        <span>{chapter.timeAgo}</span>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+              {/each}
+              {#if shouldShowShowAllButton(index)}
+                {#if !showAllStatus[index]}
+                  <a
+                    class="text-lg text-gray-600 mt-2 flex justify-center p-2 px-3 w-100 hover:bg-neutral-content rounded"
+                    on:click={() => toggleShowAll(index)}
+                  >
+                    Show All
+                  </a>
+                {:else}
+                  <a
+                    class="text-lg text-gray-600 mt-2 flex justify-center p-2 px-3 w-100 hover:bg-neutral-content rounded"
+                    on:click={() => toggleShowAll(index)}
+                  >
+                    Show Less
+                  </a>
+                {/if}
+              {/if}
             </div>
           </div>
-        </div>
-      {/each}
+        {/each}
+      </div>
     </div>
   </div>
   <div class="flex justify-center mt-4">

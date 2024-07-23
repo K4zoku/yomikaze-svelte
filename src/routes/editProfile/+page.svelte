@@ -5,8 +5,6 @@
     let save_profile:HTMLDialogElement;
 
     import UpdateImage from '../updateImage/+page.svelte'
-    
-	//import UpdateImage from '../updateImage/+page.svelte';
 
 	let profile = {
 		fullname: '',
@@ -211,7 +209,6 @@
 	<div class="flex justify-center lg:justify-end mt-8 space-x-4">
 		<button
 			class="btn btn-outline btn-warning"
-			on:click={() => save_profile.showModal()}
 			on:click={handleSubmit}>Save Profile</button
 		>
 		<!-- <Alert> -->

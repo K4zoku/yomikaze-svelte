@@ -1,6 +1,7 @@
 <script lang="ts">
   // import SideBar from '../Side-Bar/+page.svelte';
   import { goto } from '$app/navigation';
+  import http from '$utils/http';
 
   let roleRequestModal: HTMLDialogElement;
   let reportModal: HTMLDialogElement;
@@ -14,6 +15,7 @@
   function handleClick() {
     // goto('/'); // Điều hướng về trang chủ nếu không có lịch sử
   }
+  
 
   let comics = [
     {
@@ -72,23 +74,7 @@
         </div>
         <span class="flex text-l font-medium"
           >{profileData.balance}
-          <svg
-            class="ms-1"
-            xmlns="http://www.w3.org/2000/svg"
-            width="1.4em"
-            height="1.4em"
-            viewBox="0 0 24 24"
-            ><g
-              fill="none"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              ><circle cx="8" cy="8" r="6" /><path
-                d="M18.09 10.37A6 6 0 1 1 10.34 18M7 6h1v4"
-              /><path d="m16.71 13.88l.7.71l-2.82 2.82" /></g
-            ></svg
-          >
+          <span class="iconify lucide--coins"></span>
         </span>
       </div>
     </div>
@@ -173,29 +159,14 @@
       </dialog>
     </div>
     <div class="w-3/4">
-      <div class="flex justify-end">
-        <button
-          on:click={() => showContent('content1')}
-          class="rounded-l-lg p-2 btn-outline btn-warning border"
-        >
-          <span class="iconify lucide--list text-2xl mt-1"></span>
-        </button>
-        <button
-          on:click={() => showContent('content2')}
-          class="rounded-r-lg p-2 btn-outline btn-warning border"
-        >
-          <span class="iconify lucide--stretch-horizontal text-2xl mt-1"></span>
-        </button>
-      </div>
-      <div class="content {activeContent === 'content1' ? 'active' : ''}">
-        <div class="grid gap-3">
-          <div class="">
-            <h3 class="text-lg font-bold mb-2">Bio</h3>
-            <p class="text-base">{profileData.bio}</p>
+        <div class="grid gap-3 mt-12">
+          <div class="flex">
+            <h3 class="text-lg font-bold">Bio</h3>
+            <span class="iconify lucide--edit mt-1.5 ms-2"></span>
           </div>
+          <p class="text-base">{profileData.bio}</p>
         </div>
-      </div>
-      <div class="content {activeContent === 'content2' ? 'active' : ''}">
+        <div class="divider"></div>
         <div class="flex flex-col gap-2.5 h-80">
           <h3 class="text-lg font-bold mb-2">Comic I Wrote</h3>
           {#each comics as comic}
@@ -277,7 +248,6 @@
             </div>
           {/each}
         </div>
-      </div>
     </div>
   </div>
 </div>
