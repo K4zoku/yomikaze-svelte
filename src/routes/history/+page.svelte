@@ -112,9 +112,9 @@
   function shouldShowShowAllButton(index: number): boolean {
     return comics[index].chapters.length > 3;
   }
-  function showTags() {
-    return tag.length >= 3;
-  }
+  // function showTags() {
+  //   return tag.length >= 3;
+  // }
 
   let activeContent = 'content1';
 
@@ -138,12 +138,12 @@
       </svg>
       <span class="text-xl mb-1">Reading History</span>
     </a>
-    <div class="flex justify-end items-end mt-4">
+    <div class="flex justify-end items-end">
       <a
         on:click={() => {
           clearHistoryModal.showModal();
         }}
-        class="btn btn-outline btn-warning btn-md"><span class="text-l">Clear All</span></a
+        class="btn btn-outline btn-warning btn-md mt-4 me-1"><span class="text-l">Clear All</span></a
       >
     </div>
     <dialog bind:this={clearHistoryModal} class="modal">
@@ -159,15 +159,8 @@
       </div>
     </dialog>
   </div>
-  <!-- <div class="flex justify-end items-end mb-3">
-    <a
-      on:click={() => {
-        clearHistoryModal.showModal();
-      }}
-      class="btn btn-outline btn-warning btn-md"><span class="text-l">Clear All</span></a
-    >
-  </div> -->
-  <div class="flex justify-end items-end">
+ 
+  <div class="flex justify-end items-end me-2">
     <button
       on:click={() => showContent('content1')}
       class="rounded-l-lg p-2 btn-outline btn-warning border focus:bg-warning focus:text-white"
@@ -202,7 +195,7 @@
               {#each showAllStatus[index] ? comic.chapters.slice(0, 5) : comic.chapters.slice(0, 3) as chapter}
                 <div>
                   <a
-                    class="text-lg text-gray-600 mt-2 flex justify-between p-2 px-3 w-100 hover:bg-neutral-content rounded"
+                    class="text-lg text-gray-600 mt-2 flex justify-between p-2 px-3 w-100 hover:bg-base-400 hover:text-black rounded"
                   >
                     <div class="flex gap-2">
                       <span class="iconify lucide--eye mt-1"></span>
@@ -220,14 +213,14 @@
               {#if shouldShowShowAllButton(index)}
                 {#if !showAllStatus[index]}
                   <a
-                    class="text-lg text-gray-600 mt-2 flex justify-center p-2 px-3 w-100 hover:bg-neutral-content rounded"
+                    class="text-lg hover:bg-base-300 hover:text-black  mt-2 flex justify-center p-2 px-3 w-100 rounded"
                     on:click={() => toggleShowAll(index)}
                   >
                     Show All
                   </a>
                 {:else}
                   <a
-                    class="text-lg text-gray-600 mt-2 flex justify-center p-2 px-3 w-100 hover:bg-neutral-content rounded"
+                    class="text-lg hover:bg-base-300 hover:text-black  mt-2 flex justify-center p-2 px-3 w-100 rounded"
                     on:click={() => toggleShowAll(index)}
                   >
                     Show Less
@@ -256,7 +249,7 @@
               {#each showAllStatus[index] ? comic.chapters.slice(0, 5) : comic.chapters.slice(0, 3) as chapter}
                 <div>
                   <a
-                    class="text-lg text-gray-600 mt-2 flex justify-between p-2 px-3 w-100 hover:bg-neutral-content rounded"
+                    class="text-lg hover:bg-base-300 hover:text-black mt-2 flex justify-between p-2 px-3 w-100 rounded"
                   >
                     <div class="flex gap-2">
                       <span class="iconify lucide--eye mt-1"></span>
@@ -274,14 +267,14 @@
               {#if shouldShowShowAllButton(index)}
                 {#if !showAllStatus[index]}
                   <a
-                    class="text-lg text-gray-600 mt-2 flex justify-center p-2 px-3 w-100 hover:bg-neutral-content rounded"
+                    class="text-lg  mt-2 flex justify-center p-2 px-3 w-100 hover:bg-base-400 hover:text-black rounded"
                     on:click={() => toggleShowAll(index)}
                   >
                     Show All
                   </a>
                 {:else}
                   <a
-                    class="text-lg text-gray-600 mt-2 flex justify-center p-2 px-3 w-100 hover:bg-neutral-content rounded"
+                    class="text-lg text-gray-600 mt-2 flex justify-center p-2 px-3 w-100 hover:bg-base-400 hover:text-black rounded"
                     on:click={() => toggleShowAll(index)}
                   >
                     Show Less

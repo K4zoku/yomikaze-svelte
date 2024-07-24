@@ -11,12 +11,18 @@
   let categoryManagementModal: HTMLDialogElement;
   let deleteCategoryModal: HTMLDialogElement;
 
-  let alert:HTMLDialogElement;
+  let alert: HTMLDialogElement;
 
   let categories: Array<LibraryCategory> = [
     {
       id: '1',
-      name: 'Comics3',
+      name: 'Comics1',
+      userId: '1',
+      creationTime: ''
+    },
+    {
+      id: '1',
+      name: 'Comics2',
       userId: '1',
       creationTime: ''
     },
@@ -28,90 +34,92 @@
     },
     {
       id: '1',
-      name: 'Comics3',
+      name: 'Comics4',
       userId: '1',
       creationTime: ''
     },
     {
       id: '1',
-      name: 'Comics3',
+      name: 'Comics5',
       userId: '1',
       creationTime: ''
     },
     {
       id: '1',
-      name: 'Comics3',
+      name: 'Comics6',
       userId: '1',
       creationTime: ''
     },
     {
       id: '1',
-      name: 'Comics3',
+      name: 'Comics7',
       userId: '1',
       creationTime: ''
     },
     {
       id: '1',
-      name: 'Comics3',
+      name: 'Comics8',
       userId: '1',
       creationTime: ''
     },
     {
       id: '1',
-      name: 'Comics3',
+      name: 'Comics9',
       userId: '1',
       creationTime: ''
     },
     {
       id: '1',
-      name: 'Comics3',
+      name: 'Comics10',
       userId: '1',
       creationTime: ''
     },
     {
       id: '1',
-      name: 'Comics3',
+      name: 'Comics11',
       userId: '1',
       creationTime: ''
     },
     {
       id: '1',
-      name: 'Comics3',
+      name: 'Comics12',
       userId: '1',
       creationTime: ''
     },
     {
       id: '1',
-      name: 'Comics3',
+      name: 'Comics13',
       userId: '1',
       creationTime: ''
     },
     {
       id: '1',
-      name: 'Comics3',
+      name: 'Comics14',
       userId: '1',
       creationTime: ''
     },
     {
       id: '1',
-      name: 'Comics3',
-      userId: '1',
-      creationTime: ''
-    },
-    {
-      id: '1',
-      name: 'Comics3',
+      name: 'Comics15',
       userId: '1',
       creationTime: ''
     }
   ];
 
-  let activeTab: string;
+  let selectedCategory: LibraryCategory = categories[0];
+  let activeTab: string = categories[0].id;
+
+  function handleCategoryClick(category) {
+    selectedCategory = category;
+    activeTab = category.id;
+    updateTotalComics();
+  }
+
   let total = '3';
   let comics = [
     {
       cover: 'https://i.yomikaze.org/images/misc/72733305899966464.webp',
-      name: 'Naruto',
+      name: 'Naruto1',
       chapter: '1',
       author: 'Kishimoto Masashi',
       description:
@@ -123,7 +131,7 @@
     {
       cover: 'https://i.yomikaze.org/images/misc/72733305899966464.webp',
       chapter: '1',
-      name: 'Naruto',
+      name: 'Naruto2',
       author: 'Kishimoto Masashi',
       description:
         "Before Naruto's birth, a great demon fox had attacked the Hidden Leaf Village. The 4th Hokage from the leaf village sealed the demon inside the newly born Naruto, causing him to unknowingly grow up detested by his fellow villagers. Despite his lack of talent in many areas of ninjutsu, Naruto strives for only one goal: to gain the title of Hokage, the strongest ninja in his village. Desiring the respect he never received, Naruto works toward his dream with fellow friends Sasuke and Sakura and mentor Kakashi as they go through many trials and battles that come with being a ninja.",
@@ -134,7 +142,7 @@
     {
       cover: 'https://i.yomikaze.org/images/misc/72733305899966464.webp',
       chapter: '1',
-      name: 'Naruto',
+      name: 'Naruto3',
       author: 'Kishimoto Masashi',
       description:
         "Before Naruto's birth, a great demon fox had attacked the Hidden Leaf Village. The 4th Hokage from the leaf village sealed the demon inside the newly born Naruto, causing him to unknowingly grow up detested by his fellow villagers. Despite his lack of talent in many areas of ninjutsu, Naruto strives for only one goal: to gain the title of Hokage, the strongest ninja in his village. Desiring the respect he never received, Naruto works toward his dream with fellow friends Sasuke and Sakura and mentor Kakashi as they go through many trials and battles that come with being a ninja.",
@@ -145,7 +153,7 @@
     {
       cover: 'https://i.yomikaze.org/images/misc/72733305899966464.webp',
       chapter: '1',
-      name: 'Naruto',
+      name: 'Naruto4',
       author: 'Kishimoto Masashi',
       description:
         "Before Naruto's birth, a great demon fox had attacked the Hidden Leaf Village. The 4th Hokage from the leaf village sealed the demon inside the newly born Naruto, causing him to unknowingly grow up detested by his fellow villagers. Despite his lack of talent in many areas of ninjutsu, Naruto strives for only one goal: to gain the title of Hokage, the strongest ninja in his village. Desiring the respect he never received, Naruto works toward his dream with fellow friends Sasuke and Sakura and mentor Kakashi as they go through many trials and battles that come with being a ninja.",
@@ -153,7 +161,109 @@
       status: 'Completed',
       timeAgo: '22 days ago'
     },
+    {
+      cover: 'https://i.yomikaze.org/images/misc/72733305899966464.webp',
+      chapter: '1',
+      name: 'Naruto5',
+      author: 'Kishimoto Masashi',
+      description:
+        "Before Naruto's birth, a great demon fox had attacked the Hidden Leaf Village. The 4th Hokage from the leaf village sealed the demon inside the newly born Naruto, causing him to unknowingly grow up detested by his fellow villagers. Despite his lack of talent in many areas of ninjutsu, Naruto strives for only one goal: to gain the title of Hokage, the strongest ninja in his village. Desiring the respect he never received, Naruto works toward his dream with fellow friends Sasuke and Sakura and mentor Kakashi as they go through many trials and battles that come with being a ninja.",
+      tags: ['Action', 'Ninja', 'Comedy', 'Martial Arts', 'Adventure', 'Drama', 'Fantasy'],
+      status: 'Completed',
+      timeAgo: '22 days ago'
+    },
+    {
+      cover: 'https://i.yomikaze.org/images/misc/72733305899966464.webp',
+      chapter: '1',
+      name: 'Naruto6',
+      author: 'Kishimoto Masashi',
+      description:
+        "Before Naruto's birth, a great demon fox had attacked the Hidden Leaf Village. The 4th Hokage from the leaf village sealed the demon inside the newly born Naruto, causing him to unknowingly grow up detested by his fellow villagers. Despite his lack of talent in many areas of ninjutsu, Naruto strives for only one goal: to gain the title of Hokage, the strongest ninja in his village. Desiring the respect he never received, Naruto works toward his dream with fellow friends Sasuke and Sakura and mentor Kakashi as they go through many trials and battles that come with being a ninja.",
+      tags: ['Action', 'Ninja', 'Comedy', 'Martial Arts', 'Adventure', 'Drama', 'Fantasy'],
+      status: 'Completed',
+      timeAgo: '22 days ago'
+    },
+    {
+      cover: 'https://i.yomikaze.org/images/misc/72733305899966464.webp',
+      chapter: '1',
+      name: 'Naruto7',
+      author: 'Kishimoto Masashi',
+      description:
+        "Before Naruto's birth, a great demon fox had attacked the Hidden Leaf Village. The 4th Hokage from the leaf village sealed the demon inside the newly born Naruto, causing him to unknowingly grow up detested by his fellow villagers. Despite his lack of talent in many areas of ninjutsu, Naruto strives for only one goal: to gain the title of Hokage, the strongest ninja in his village. Desiring the respect he never received, Naruto works toward his dream with fellow friends Sasuke and Sakura and mentor Kakashi as they go through many trials and battles that come with being a ninja.",
+      tags: ['Action', 'Ninja', 'Comedy', 'Martial Arts', 'Adventure', 'Drama', 'Fantasy'],
+      status: 'Completed',
+      timeAgo: '22 days ago'
+    },
+    {
+      cover: 'https://i.yomikaze.org/images/misc/72733305899966464.webp',
+      chapter: '1',
+      name: 'Naruto7',
+      author: 'Kishimoto Masashi',
+      description:
+        "Before Naruto's birth, a great demon fox had attacked the Hidden Leaf Village. The 4th Hokage from the leaf village sealed the demon inside the newly born Naruto, causing him to unknowingly grow up detested by his fellow villagers. Despite his lack of talent in many areas of ninjutsu, Naruto strives for only one goal: to gain the title of Hokage, the strongest ninja in his village. Desiring the respect he never received, Naruto works toward his dream with fellow friends Sasuke and Sakura and mentor Kakashi as they go through many trials and battles that come with being a ninja.",
+      tags: ['Action', 'Ninja', 'Comedy', 'Martial Arts', 'Adventure', 'Drama', 'Fantasy'],
+      status: 'Completed',
+      timeAgo: '22 days ago'
+    },
+    {
+      cover: 'https://i.yomikaze.org/images/misc/72733305899966464.webp',
+      chapter: '1',
+      name: 'Naruto9',
+      author: 'Kishimoto Masashi',
+      description:
+        "Before Naruto's birth, a great demon fox had attacked the Hidden Leaf Village. The 4th Hokage from the leaf village sealed the demon inside the newly born Naruto, causing him to unknowingly grow up detested by his fellow villagers. Despite his lack of talent in many areas of ninjutsu, Naruto strives for only one goal: to gain the title of Hokage, the strongest ninja in his village. Desiring the respect he never received, Naruto works toward his dream with fellow friends Sasuke and Sakura and mentor Kakashi as they go through many trials and battles that come with being a ninja.",
+      tags: ['Action', 'Ninja', 'Comedy', 'Martial Arts', 'Adventure', 'Drama', 'Fantasy'],
+      status: 'Completed',
+      timeAgo: '22 days ago'
+    },
+    {
+      cover: 'https://i.yomikaze.org/images/misc/72733305899966464.webp',
+      chapter: '1',
+      name: 'Naruto10',
+      author: 'Kishimoto Masashi',
+      description:
+        "Before Naruto's birth, a great demon fox had attacked the Hidden Leaf Village. The 4th Hokage from the leaf village sealed the demon inside the newly born Naruto, causing him to unknowingly grow up detested by his fellow villagers. Despite his lack of talent in many areas of ninjutsu, Naruto strives for only one goal: to gain the title of Hokage, the strongest ninja in his village. Desiring the respect he never received, Naruto works toward his dream with fellow friends Sasuke and Sakura and mentor Kakashi as they go through many trials and battles that come with being a ninja.",
+      tags: ['Action', 'Ninja', 'Comedy', 'Martial Arts', 'Adventure', 'Drama', 'Fantasy'],
+      status: 'Completed',
+      timeAgo: '22 days ago'
+    },
+    {
+      cover: 'https://i.yomikaze.org/images/misc/72733305899966464.webp',
+      chapter: '1',
+      name: 'Naruto11',
+      author: 'Kishimoto Masashi',
+      description:
+        "Before Naruto's birth, a great demon fox had attacked the Hidden Leaf Village. The 4th Hokage from the leaf village sealed the demon inside the newly born Naruto, causing him to unknowingly grow up detested by his fellow villagers. Despite his lack of talent in many areas of ninjutsu, Naruto strives for only one goal: to gain the title of Hokage, the strongest ninja in his village. Desiring the respect he never received, Naruto works toward his dream with fellow friends Sasuke and Sakura and mentor Kakashi as they go through many trials and battles that come with being a ninja.",
+      tags: ['Action', 'Ninja', 'Comedy', 'Martial Arts', 'Adventure', 'Drama', 'Fantasy'],
+      status: 'Completed',
+      timeAgo: '22 days ago'
+    },
+    {
+      cover: 'https://i.yomikaze.org/images/misc/72733305899966464.webp',
+      chapter: '1',
+      name: 'Naruto12',
+      author: 'Kishimoto Masashi',
+      description:
+        "Before Naruto's birth, a great demon fox had attacked the Hidden Leaf Village. The 4th Hokage from the leaf village sealed the demon inside the newly born Naruto, causing him to unknowingly grow up detested by his fellow villagers. Despite his lack of talent in many areas of ninjutsu, Naruto strives for only one goal: to gain the title of Hokage, the strongest ninja in his village. Desiring the respect he never received, Naruto works toward his dream with fellow friends Sasuke and Sakura and mentor Kakashi as they go through many trials and battles that come with being a ninja.",
+      tags: ['Action', 'Ninja', 'Comedy', 'Martial Arts', 'Adventure', 'Drama', 'Fantasy'],
+      status: 'Completed',
+      timeAgo: '22 days ago'
+    },
+    {
+      cover: 'https://i.yomikaze.org/images/misc/72733305899966464.webp',
+      chapter: '1',
+      name: 'Naruto13',
+      author: 'Kishimoto Masashi',
+      description:
+        "Before Naruto's birth, a great demon fox had attacked the Hidden Leaf Village. The 4th Hokage from the leaf village sealed the demon inside the newly born Naruto, causing him to unknowingly grow up detested by his fellow villagers. Despite his lack of talent in many areas of ninjutsu, Naruto strives for only one goal: to gain the title of Hokage, the strongest ninja in his village. Desiring the respect he never received, Naruto works toward his dream with fellow friends Sasuke and Sakura and mentor Kakashi as they go through many trials and battles that come with being a ninja.",
+      tags: ['Action', 'Ninja', 'Comedy', 'Martial Arts', 'Adventure', 'Drama', 'Fantasy'],
+      status: 'Completed',
+      timeAgo: '22 days ago'
+    }
   ];
+  let isHovered = false;
+  let isEditing = false;
+  let categoryName = selectedCategory ? selectedCategory.name : 'Select a category';
 
   let activeContent = 'content1';
 
@@ -170,7 +280,6 @@
 </script>
 
 <div class="h-screen container mx-auto bg-white">
-  <!-- <NavBar title={title} /> -->
   <div class="">
     <div class="label mt-12">
       <a class="btn btn-ghost">
@@ -183,8 +292,9 @@
 
       <div class="flex flex-wrap gap-2 tabs tabs-boxed p-2">
         {#each categories as category}
-          <button class="tab focus:bg-warning focus:text-white" data-tab="plan-to-read"
-            >{category.name}</button
+          <button
+            class="tab focus:bg-warning focus:text-white"
+            on:click={() => handleCategoryClick(category)}>{category.name}</button
           >
         {/each}
       </div>
@@ -209,32 +319,31 @@
             <h3 class="text-lg font-bold mb-2">Category Management</h3>
             <div id="sortable-list" class="flex flex-col gap-2 w-full items-center">
               {#each categories as category}
-              <div class="flex justify-between w-9/12 btn-ghost p-2 rounded bg-gray-200">
-                <div class="flex gap-2">
-                  <span class="flex iconify lucide--menu text-2xl"></span>
-                  <span class="justify-center items-center">{category.name}</span>
+                <div class="flex justify-between w-9/12 btn-ghost p-2 rounded bg-gray-200">
+                  <div class="flex gap-2">
+                    <span class="flex iconify lucide--menu text-2xl"></span>
+                    <span class="justify-center items-center">{category.name}</span>
+                  </div>
+                  <div class="flex gap-2">
+                    <span
+                      class="iconify lucide--edit text-xl"
+                      on:click={() => {
+                        createCategoryModal.showModal();
+                      }}
+                    ></span>
+                    <span
+                      class="iconify lucide--trash-2 text-xl"
+                      on:click={() => deleteCategoryModal.showModal()}
+                    ></span>
+                  </div>
                 </div>
-                <div class="flex gap-2">
-                  <span
-                    class="iconify lucide--edit text-xl"
-                    on:click={() => {
-                      createCategoryModal.showModal();
-                    }}
-                  ></span>
-                  <span
-                    class="iconify lucide--trash-2 text-xl"
-                    on:click={() => deleteCategoryModal.showModal()}
-                  ></span>
-                </div>
-              </div>
               {/each}
-             
             </div>
             <div class="modal-action">
               <form method="dialog">
                 <button on:click={() => alert.showModal()} class="btn">Close</button>
               </form>
-              
+
               <button
                 class="btn btn-outline btn-success"
                 on:click={() => {
@@ -248,11 +357,30 @@
     </div>
     <div class="flex justify-between items-center p-4">
       <div class=" flex flex-col space-x-2 p-4">
-        <div class="flex" on:click={() => createCategoryModal.showModal()}>
-          <h1 class=" text-xl font-semibold ms-1">Ơ</h1>
-          <span class="iconify lucide--edit text-l mt-2 ms-3"></span>
-        </div>
+        <div
+          class="flex group"
+          on:mouseover={() => (isHovered = true)}
+          on:mouseleave={() => (isHovered = false)}
+        >
+          {#if isEditing}
+            <input
+              type="text"
+              class="text-xl font-semibold ms-1 border-b-2 border-gray-300 focus:outline-none"
+              bind:value={categoryName}
+              on:blur={() => (isEditing = false)}
+            />
+          {:else}
+            <h1 class="text-xl font-semibold ms-1">
+              {selectedCategory ? selectedCategory.name : 'Select a category'}
+            </h1>
+          {/if}
 
+          <!-- Biểu tượng edit sẽ hiển thị khi hover vào div -->
+          <span
+            class="iconify lucide--edit text-l mt-2 ms-3 relative opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer"
+            on:click={() => (isEditing = true)}
+          ></span>
+        </div>
         <h2 class="text-xl font-semibold">Total: {total}</h2>
       </div>
       <div class="flex justify-end items-end">
@@ -329,77 +457,78 @@
         </div>
       {/each}
     </div>
-  </div>
-  <div class="content {activeContent === 'content2' ? 'active' : ''}">
-    <div class="grid grid-cols-2">
-      {#each comics as comic}
-        <div class="card p-2">
-          <div class="card-body items-center rounded-lg shadow-md py-3 px-3">
-            <div class="flex">
-              <a href=""
-                ><div class="w-40 h-56">
-                  <img class="float-left rounded" src={comic.cover} alt={comic.name} />
-                </div></a
-              >
-              <div class=" flex flex-col justify-evenly ml-2">
-                <div class="flex justify-between gap-2">
-                  <div class="flex gap-2">
-                    <span class="font-semibold text-xl">{comic.name}</span>
-                  </div>
-                  <div class="flex">
-                    <div class="flex gap-3 me-2 mb-3">
-                      <div class="flex gap-1 my-auto bg-base-300 rounded px-2">
-                        <svg
-                          data-v-9ba4cb7e=""
-                          data-v-6ebb56e1=""
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 6.35 6.35"
-                          class="icon"
-                          style="color: rgb(0,255,0);"
-                          ><path
-                            fill="currentColor"
-                            d="M4.233 3.175a1.06 1.06 0 0 1-1.058 1.058 1.06 1.06 0 0 1-1.058-1.058 1.06 1.06 0 0 1 1.058-1.058 1.06 1.06 0 0 1 1.058 1.058"
-                          ></path></svg
-                        >
-                        <span class="text-base font">{comic.status}</span>
+    <div class="content {activeContent === 'content2' ? 'active' : ''}">
+      <div class="grid grid-cols-2">
+        {#each comics as comic}
+          <div class="card p-2">
+            <div class="card-body items-center rounded-lg shadow-md py-3 px-3">
+              <div class="flex">
+                <a href=""
+                  ><div class="w-40 h-56">
+                    <img class="float-left rounded" src={comic.cover} alt={comic.name} />
+                  </div></a
+                >
+                <div class=" flex flex-col justify-evenly ml-2">
+                  <div class="flex justify-between gap-2">
+                    <div class="flex gap-2">
+                      <span class="font-semibold text-xl">{comic.name}</span>
+                    </div>
+                    <div class="flex">
+                      <div class="flex gap-3 me-2 mb-3">
+                        <div class="flex gap-1 my-auto bg-base-300 rounded px-2">
+                          <svg
+                            data-v-9ba4cb7e=""
+                            data-v-6ebb56e1=""
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 6.35 6.35"
+                            class="icon"
+                            style="color: rgb(0,255,0);"
+                            ><path
+                              fill="currentColor"
+                              d="M4.233 3.175a1.06 1.06 0 0 1-1.058 1.058 1.06 1.06 0 0 1-1.058-1.058 1.06 1.06 0 0 1 1.058-1.058 1.06 1.06 0 0 1 1.058 1.058"
+                            ></path></svg
+                          >
+                          <span class="text-base font">{comic.status}</span>
+                        </div>
+                      </div>
+                      <div
+                        class="flex gap-1 my-auto me-2 mb-3"
+                        on:click={() => deleteCategoryModal.showModal()}
+                      >
+                        <span class="iconify lucide--trash-2 text-2xl"></span>
                       </div>
                     </div>
-                    <div
-                      class="flex gap-1 my-auto me-2 mb-3"
-                      on:click={() => deleteCategoryModal.showModal()}
-                    >
-                      <span class="iconify lucide--trash-2 text-2xl"></span>
+                  </div>
+
+                  <div class="flex justify-between gap-2">
+                    <div class="flex gap-2 mt-1">
+                      <!-- {#each showAll ? chapters.slice(0, 5) : chapters.slice(0, 3) as chapter} -->
+                      {#each comic.tags.slice(0, 3) as tag}
+                        <a class="badge badge-outline">{tag}</a>
+                      {/each}
                     </div>
                   </div>
-                </div>
-
-                <div class="flex justify-between gap-2">
-                  <div class="flex gap-2 mt-1">
-                    <!-- {#each showAll ? chapters.slice(0, 5) : chapters.slice(0, 3) as chapter} -->
-                    {#each comic.tags.slice(0, 3) as tag}
-                      <a class="badge badge-outline">{tag}</a>
-                    {/each}
+                  <div class="flex justify-between gap-3 mt-1">
+                    <div class="flex gap-3">
+                      <h4 class="font-semibold text-l">Chapter: {comic.chapter}</h4>
+                    </div>
                   </div>
-                </div>
-                <div class="flex justify-between gap-3 mt-1">
-                  <div class="flex gap-3">
-                    <h4 class="font-semibold text-l">Chapter: {comic.chapter}</h4>
+                  <div class=" text-sm font-normal">
+                    <span class="block text-base overflow-hidden max-h-20" id="description">
+                      {comic.description}
+                    </span>
                   </div>
-                </div>
-                <div class=" text-sm font-normal">
-                  <span class="block text-base overflow-hidden max-h-20" id="description">
-                    {comic.description}
-                  </span>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      {/each}
+        {/each}
+      </div>
     </div>
   </div>
+
   <div class="flex justify-center pt-2 pb-2">
     <div class="join">
       <button class="join-item btn">

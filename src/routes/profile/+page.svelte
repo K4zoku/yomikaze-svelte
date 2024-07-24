@@ -168,7 +168,10 @@
         </div>
         <div class="divider"></div>
         <div class="flex flex-col gap-2.5 h-80">
-          <h3 class="text-lg font-bold mb-2">Comic I Wrote</h3>
+          <div class="flex">
+            <h3 class="text-lg font-bold mb-2">Comic I Wrote</h3>
+            <span class="iconify lucide--edit mt-1.5 ms-2"></span>
+          </div>
           {#each comics as comic}
             <div class="card">
               <div class="card-body gird items-center rounded-lg shadow-md">
