@@ -1,21 +1,36 @@
 <script lang="ts">
   import '~/app.postcss';
 
-  import Brand from '$components/brand.svelte';
-  import DefaultAvatar from '$components/default-user-avatar.svelte';
   import { version } from '$app/environment';
   import { page } from '$app/stores';
+  import Brand from '$components/brand.svelte';
+  import DefaultAvatar from '$components/default-user-avatar.svelte';
   import Icon from '$components/icon.svelte';
-  import { token, user, preferences } from '~/store';
   import Picture from '$components/picture.svelte';
   import ThemeSwitch from '$components/theme-switch.svelte';
+  import type AuthDataStore from '$models/AuthDataStore';
+  import type Comic from '$models/Comic';
+  import type Profile from '$models/Profile';
+  import { debounce } from '$utils/common';
+  import { onDestroy, onMount, setContext, tick } from 'svelte';
+  import { writable, type Writable } from 'svelte/store';
+  import { preferences } from '~/store';
+  import type { LayoutData } from './$types';
+
+  export let data: LayoutData;
+  const user: Writable<Profile | null> = writable();
+  const token: Writable<string | null> = writable();
+  const isAuthenticated: Writable<boolean> = writable(false);
+	$: user.set(data.user);
+  $: token.set(data.token);
+  $: isAuthenticated.set(data.isAuthenticated);
+  setContext('auth', { user, token, isAuthenticated } as AuthDataStore);
+
+
   let path: string;
   $: path = $page.url.pathname;
 
-  let screenWidth: number;
-  let drawerOpened: boolean = true;
-
-  $: drawerOpened = screenWidth >= 1280; // xl:breakpoint
+  let drawerOpened: boolean = false;
 
   interface InlineSearch {
     focused: boolean;
@@ -43,9 +58,35 @@
         break;
     }
   }
+
+  function handleOnClickOutside(event: MouseEvent) {
+    document.querySelectorAll('details.dropdown[open]').forEach((dropdown) => {
+      if (dropdown instanceof HTMLDetailsElement) {
+        const target = event.target as HTMLElement;
+        if (!dropdown.contains(target)) dropdown.open = false;
+      }
+    });
+  }
+
+  onMount(async () => {
+    await tick();
+    let screenWidth = window.innerWidth;
+    drawerOpened = screenWidth > 1280;
+  });
+
+  async function search() {
+    console.log('searching...');
+  }
+  let searchResults: Comic[] = [];
+  const [debouncedSearch, destroyDebouncedSearch] = debounce<void, void>(search, 500);
+
+  onDestroy(() => {
+    destroyDebouncedSearch();
+  });
 </script>
 
-<svelte:window bind:scrollY on:keydown={onKeyDown} bind:innerWidth={screenWidth} />
+<svelte:window bind:scrollY on:keydown={onKeyDown} on:mousedown={handleOnClickOutside} />
+
 <div
   data-theme={$preferences.theme}
   class="drawer xl:drawer-open"
@@ -59,21 +100,19 @@
     >
       <div
         data-sveltekit-preload-data="hover"
-        class="items-center gap-2 px-4 py-2 flex justify-between transition-opacity duration-200 shrink-0"
+        class="items-center gap-2 px-4 py-2 flex justify-between transition-opacity duration-150 shrink-0"
       >
-        <div class="transition-transform duration-500" class:translate-x-50={!drawerOpened}>
-          <Brand autoHideBrandName={false} />
-        </div>
+        <Brand autoHideBrandName={false} />
+
         <label for="drawer" class="btn btn-circle btn-ghost">
-          <span class="duration-500 iconify lucide--x text-2xl"></span>
+          <span class="iconify lucide--x text-2xl"></span>
         </label>
       </div>
-      <div class="overflow-y-scroll h-full max-h-full scrollbar">
-        <ul class="menu px-4 py-0">
+      <div class="overflow-y-scroll h-full max-h-full">
+        <ul class="menu menu-sm px-4 py-0">
           <li>
             <a href="/" class="font-bold" class:active={path === '/'}>
               <Icon icon="lucide--home" class="text-xl" />
-
               Home
             </a>
           </li>
@@ -163,14 +202,14 @@
         <ul class="menu py-2">
           <li></li>
         </ul>
-        <div class="flex justify-center items-center gap-4">
+        <div class="flex justify-center items-center gap-4 py-2">
           <a
             href="https://facebook.com"
             class="btn btn-sm btn-circle btn-ghost"
             aria-label="Facebook"
             target="_blank"
           >
-            <Icon icon="hugeicons--facebook-02" class="text-xl" />
+            <Icon icon="hugeicons--facebook-02" class="text-lg" />
           </a>
           <a
             href="https://x.com"
@@ -178,7 +217,7 @@
             aria-label="X"
             target="_blank"
           >
-            <Icon icon="hugeicons--new-twitter" class="text-xl" />
+            <Icon icon="hugeicons--new-twitter" class="text-lg" />
           </a>
           <a
             href="mailto:contact@yomikaze.org"
@@ -186,7 +225,7 @@
             aria-label="Mail"
             target="_blank"
           >
-            <Icon icon="lucide--mail" class="text-xl" />
+            <Icon icon="lucide--mail" class="text-lg" />
           </a>
           <a
             href="https://status.yomikaze.org"
@@ -194,10 +233,10 @@
             aria-label="Status"
             target="_blank"
           >
-            <Icon icon="lucide--activity" class="text-xl" />
+            <Icon icon="lucide--activity" class="text-lg" />
           </a>
         </div>
-        <div class="w-full flex flex-col justify-center items-center">
+        <div class="w-full flex flex-col justify-center items-center py-2">
           <div class="text-xs">v{version}</div>
           <div class="text-xs">&copy; YomiKaze {new Date().getFullYear()}</div>
         </div>
@@ -206,7 +245,7 @@
   </div>
   <div class="drawer-content">
     <div
-      class="text-base-content w-drawer-content fixed transition-[background-color,border-color,width,margin] duration-200 top-0 right-0 z-30 flex h-16 justify-center"
+      class="text-base-content w-drawer-content fixed transition-[background-color,border-color,width,margin] duration-100 top-0 right-0 z-30 flex h-16 justify-center"
       class:bg-base-100={scrollY > 0}
       class:border-accent={scrollY > 0}
       class:border-b-2={scrollY > 0}
@@ -216,7 +255,8 @@
     >
       <nav class="navbar container">
         <div class="navbar-start">
-          <div class="gap-4 justify-between items-center transition-opacity duration-200 hidden"
+          <div
+            class="gap-4 justify-between items-center hidden"
             class:flex={!drawerOpened}
             class:hidden={drawerOpened}
           >
@@ -232,7 +272,7 @@
             data-svelte-typeahead=""
             role="combobox"
             aria-haspopup="listbox"
-            class="dropdown transition-[flex] duration-200"
+            class="dropdown transition-[flex] duration-150"
             aria-controls="inline-search-listbox"
             aria-expanded="true"
             id="inline-search-container"
@@ -240,7 +280,7 @@
           >
             <form action="/search">
               <label
-                class="input input-bordered input-sm hidden md:flex items-center gap-2 w-full max-w-full transition-colors duration-200 ease-in-out backdrop-blur"
+                class="input input-bordered input-sm hidden md:flex items-center gap-2 w-full max-w-full transition-colors duration-150 ease-in-out backdrop-blur"
                 id="inline-search-label"
                 for="inline-search"
                 class:input-accent={inlineSearch.focused}
@@ -260,19 +300,17 @@
                   bind:this={inlineSearch.element}
                   on:focus={() => (inlineSearch.focused = true)}
                   on:blur={() => (inlineSearch.focused = false)}
+                  on:input={() => debouncedSearch()}
                 />
                 <div
-                  class="flex-none flex items-center gap-1 transition-opacity duration-200"
+                  class="flex-none flex items-center gap-1 transition-opacity duration-300"
                   class:opacity-0={inlineSearch.focused}
                 >
                   <kbd class="kbd kbd-sm" class:hidden={inlineSearch.focused}>Ctrl</kbd>
                   <kbd class="kbd kbd-sm" class:hidden={inlineSearch.focused}>K</kbd>
                 </div>
                 <div class="flex-none flex items-center">
-                  <Icon
-                    icon="lucide--search"
-                    class="text-lg"
-                  />
+                  <Icon icon="lucide--search" class="text-lg" />
                 </div>
               </label>
               <button class="hidden" type="submit"></button>
@@ -311,10 +349,10 @@
                   {/if}
                 </div>
               </summary>
-              <ul class="menu w-72 shadow bg-base-200 mt-2 dropdown-content rounded-lg">
+              <ul class="menu w-72 shadow bg-base-200 mt-4 dropdown-content rounded-lg">
                 <li>
                   <a
-                    href={$user ? '/profile' : '/login'}
+                    href="/profile"
                     class="rounded-lg p-4 min-h-[0] w-full h-fit flex flex-col gap-2 items-center justify-center"
                   >
                     <div
@@ -386,7 +424,7 @@
                   </li>
                 {/if}
                 <li></li>
-                {#if $user}
+                {#if $isAuthenticated}
                   <li>
                     <a href="/logout" class="text-error hover:bg-error hover:text-base-100">
                       <Icon icon="lucide--log-out" class="text-xl" />
@@ -396,11 +434,11 @@
                 {:else}
                   <li>
                     <div class="grid grid-cols-2 gap-2 !bg-transparent">
-                      <a href="/login" class="btn btn-ghost btn-sm btn-block">
+                      <a href="/login" class="btn btn-ghost btn-sm btn-block active:btn-accent">
                         <Icon icon="lucide--log-in" class="text-xl" />
                         Login
                       </a>
-                      <a href="/register" class="btn btn-ghost btn-sm btn-block">
+                      <a href="/register" class="btn btn-ghost btn-sm btn-block !active:btn-accent">
                         <Icon icon="lucide--user-plus" class="text-xl" />
                         Register
                       </a>
@@ -443,12 +481,12 @@
         </div>
       </nav>
     </div>
-    <div
-      class="absolute transition-[background-color,border-color,width,margin] duration-200 top-0 right-0 w-drawer-content"
+    <main
+      class="absolute transition-[background-color,border-color,width,margin] duration-100 top-0 right-0 w-drawer-content"
       class:w-full={!drawerOpened}
       class:w-drawer-content={drawerOpened}
     >
       <slot />
-    </div>
+    </main>
   </div>
 </div>

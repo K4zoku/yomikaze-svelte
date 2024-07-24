@@ -5,12 +5,9 @@ import type { PageServerLoad } from "../$types";
 const ALLOWED_ROLES = ['Super', 'Administrator', 'Publisher'];
 
 export const load : PageServerLoad = (async ({ cookies }) => {
-   const token: string | false = await getToken(cookies).catch(() => false);
-   if (!token) {
-      throw error(401, 'You are not logged in');
-   }
-   if (await hasRoles(token, ALLOWED_ROLES)) {
-      throw error(403, 'Forbidden');
+   const token: string = await getToken(cookies);
+   if (!await hasRoles(token, ALLOWED_ROLES)) {
+      throw error(403, 'You do not have permission to access this page');
    }
    return {};
 }) satisfies PageServerLoad;

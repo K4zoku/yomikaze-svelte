@@ -26,5 +26,8 @@ export default interface Comic extends Model {
 }
 
 export enum ComicStatus {
-    OnGoing, Complete, Hiatus, Cancelled
+    OnGoing = 'OnGoing', 
+    Completed = 'Completed', 
+    Hiatus = 'Hiatus', 
+    Cancelled = 'Cancelled'
 }

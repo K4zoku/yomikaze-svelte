@@ -35,10 +35,12 @@
 }
 
 .drawer-side > .drawer-overlay {
-  transition-duration: 200ms;
+  transition-delay: 20ms;
+  transition-duration: 100ms;
 }
 .drawer-side > *:not(.drawer-overlay) {
-  transition-duration: 200ms;
+  transition-delay: 20ms;
+  transition-duration: 100ms;
 }
 
 .w-drawer {
@@ -58,9 +60,21 @@
   @apply min-w-full;
 }
 
-::-webkit-scrollbar-button:single-button {
-  @apply hidden;
+
+.overflow-x-scroll {
+  @apply overflow-x-auto;
+  @apply scrollbar-thumb-rounded-full;
+  @apply scrollbar-track-rounded-full;
+  @apply scrollbar-thin;
 }
+
+.overflow-y-scroll {
+  @apply overflow-y-auto;
+  @apply scrollbar-thumb-rounded-full;
+  @apply scrollbar-track-rounded-full;
+  @apply scrollbar-thin;
+}
+
 
 @screen xl {
   .w-drawer-content {
@@ -78,4 +92,22 @@
 
 .aspect-cover {
   aspect-ratio: 11/16;
+}
+
+.btn-ghost.btn-disabled {
+  @apply bg-transparent;
+  @apply border-transparent;
+  @apply text-base-300;
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
 }

@@ -31,8 +31,10 @@ export async function getComics(options:GetComicsOptions) : Promise<PagedResult<
             url.searchParams.set(pascalCaseKey, value);
         }
     }
-    let response = await http.get(url.href);
-    return response.data as PagedResult<Comic>;
+    const response = await http.get(url.href);
+    const data = response.data as PagedResult<Comic>;
+    data.results = data.results.map(normalizeComic);
+    return data;
 }
 
 export async function getPopularComics() : Promise<Comic[]> {

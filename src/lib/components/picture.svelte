@@ -61,7 +61,8 @@
 {:catch}
   <slot name="error">
     <picture class={$$props.class ? $$props.class : ''} data-src={src}>
-      <img class={imgClass} src="/images/default.svg" alt="" />
+      <source class={imgClass} src="/images/broken-image.svg" type="image/svg+xml" />
+      <img class={imgClass} src="/images/broken-image@2x.png" alt="" />
     </picture>
   </slot>
 {/await}

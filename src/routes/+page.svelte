@@ -1,69 +1,19 @@
 <script lang="ts">
-  import Carousel from 'svelte-carousel';
-  import type { PageData } from './$types';
-  import PopularComicItem from '$components/popular-comic-item.svelte';
-  import Picture from '$components/picture.svelte';
-  import Time from 'svelte-time/Time.svelte';
   import Icon from '$components/icon.svelte';
+  import Picture from '$components/picture.svelte';
+  import RecentComicsCarosel from '$components/yomikaze/home/recent-comics.svelte';
+  import PopularComics from '$components/yomikaze/home/popular/popular-comics.svelte';
   import { getLatestChapter } from '$utils/comic-utils';
-  import { onMount, tick } from 'svelte';
+  import Time from 'svelte-time/Time.svelte';
+  import type { PageData } from './$types';
 
   export let data: PageData;
   let { popular, latest, recent } = data;
-
-  interface CarouselData {
-    goToPrev: () => void;
-    goToNext: () => void;
-    currentPageIndex: number;
-  }
-
-  let popularCarousel: CarouselData = {
-    goToNext: () => {},
-    goToPrev: () => {},
-    currentPageIndex: 0
-  };
-
-  function handleOnPopularWheel(event: WheelEvent) {
-    const target = event.target as HTMLElement;
-    if (event.deltaY === 0) return;
-    let depth = 3;
-    let elem = target;
-    do {
-      if (elem.scrollHeight > elem.clientHeight || elem.scrollWidth > elem.clientWidth) {
-        return;
-      }
-      if (!elem.parentElement) {
-        break;
-      }
-      elem = elem.parentElement;
-    } while (elem && depth--);
-
-    event.preventDefault();
-    (event.deltaY > 0 ? popularCarousel.goToNext : popularCarousel.goToPrev)();
-  }
-
-  let recentContainer: HTMLDivElement;
-  let accumulatedDelta = 0;
-  async function handleOnRecentWheel(event: WheelEvent) {
-    if (event.deltaY === 0) return;
-    event.preventDefault();
-    await tick();
-    accumulatedDelta += event.deltaY;
-  }
-  onMount(() => {
-    setInterval(() => {
-      if (accumulatedDelta === 0) return;
-      const delta = accumulatedDelta;
-      accumulatedDelta = 0;
-      recentContainer.scrollTo({
-        left: recentContainer.scrollLeft + delta,
-        behavior: 'smooth'
-      });
-    }, 100);
-  });
 </script>
-
-<section id="popular" on:wheel={handleOnPopularWheel}>
+<svelte:head>
+    <title>Yomikaze</title> 
+</svelte:head>
+<section id="popular">
   {#await popular}
     <div class="w-full h-112 min-h-112 max-h-112 select-none relative z-0">
       <div class="w-full h-full bg-base-300"></div>
@@ -99,64 +49,8 @@
         </div>
       </div>
     </div>
-  {:then popComics}
-    <Carousel
-      swiping={true}
-      autoplay
-      autoplayDuration={5000}
-      pauseOnFocus
-      dots={false}
-      bind:goToPrev={popularCarousel.goToPrev}
-      bind:goToNext={popularCarousel.goToNext}
-      on:pageChange={(event) => (popularCarousel.currentPageIndex = event.detail)}
-    >
-      {#each popComics as comic (comic.id)}
-        <PopularComicItem {comic}></PopularComicItem>
-      {/each}
-      <div slot="prev" class="absolute z-10 w-full top-16">
-        <div class="container">
-          <h2 class="font-bold text-2xl">Popular Comics</h2>
-        </div>
-      </div>
-      <div slot="next" class="absolute bottom-14 right-8 z-10">
-        <div class="hidden md:flex gap-4 items-center justify-center">
-          <span
-            class="shrink-0 font-bold text-lg"
-            class:text-accent={!popularCarousel.currentPageIndex}
-            >No.{popularCarousel.currentPageIndex + 1}</span
-          >
-          <div class="flex gap-2">
-            <button
-              class="btn btn-circle btn-sm btn-ghost"
-              on:click={() => popularCarousel.goToPrev()}
-            >
-              <span class="iconify lucide--chevron-left font-extrabold text-2xl"></span>
-            </button>
-            <button
-              class="btn btn-circle btn-sm btn-ghost"
-              on:click={() => popularCarousel.goToNext()}
-            >
-              <span class="iconify lucide--chevron-right font-extrabold text-2xl"></span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </Carousel>
-    <div class="flex gap-2 md:hidden items-center justify-between p-2">
-      <button class="btn btn-circle btn-sm" on:click={() => popularCarousel.goToPrev()}>
-        <span class="iconify lucide--chevron-left font-extrabold text-2xl"></span>
-      </button>
-      <div class="grow btn btn-circle btn-sm no-animation">
-        <span class="text-xs">
-          <span class:text-accent={!popularCarousel.currentPageIndex}
-            >{popularCarousel.currentPageIndex + 1}
-          </span>/{popComics.length}
-        </span>
-      </div>
-      <button class="btn btn-circle btn-sm" on:click={() => popularCarousel.goToNext()}>
-        <span class="iconify lucide--chevron-right font-extrabold text-2xl"></span>
-      </button>
-    </div>
+  {:then comics}
+    <PopularComics {comics} />
   {/await}
 </section>
 <div class="container mt-4 flex flex-col gap-12 pb-8">
@@ -210,9 +104,7 @@
                   class="bg-base-100/80 hover:bg-base-100 rounded-lg shadow-md hover:shadow-lg transition duration-300 p-2 gap-2 w-full max-w-full"
                 >
                   <div class="flex gap-2 w-full max-w-full h-24">
-                    <div
-                      class="shrink-0 h-24 aspect-cover"
-                    >
+                    <div class="shrink-0 h-24 aspect-cover">
                       <Picture
                         src={comic.cover}
                         class="h-24 aspect-cover shrink-0"
@@ -233,9 +125,7 @@
                           class="justify-start text-sm">Chapter {chapter.number + 1}</a
                         >
                       {:catch}
-                        <a href="/comics/{comic.id}/" class="justify-start text-sm"
-                          >No chapters yet</a
-                        >
+                        <span class="justify-start text-sm italic">No chapters yet</span>
                       {/await}
                       <div class="flex justify-between text-sm gap-2 font-normal max-w-full w-full">
                         <span class="flex gap-1 items-center w-full min-w-[0]">
@@ -295,24 +185,7 @@
         {/each}
       </div>
     {:then comics}
-      <div
-        class="overflow-x-scroll max-w-full w-full flex gap-6 snap-x"
-        bind:this={recentContainer}
-        on:wheel={handleOnRecentWheel}
-      >
-        {#each comics as comic (comic.id)}
-          <a href="/comics/{comic.id}" class="flex flex-col gap-2 items-center snap-start p-2">
-            <Picture
-              src={comic.cover}
-              class="h-48 w-32 aspect-cover rounded-md shadow-md hover:shadow-lg hover:scale-105 transition duration-300"
-              imgClass="rounded-md shadow w-full h-full object-cover object-center"
-            />
-            <span class="text-sm font-bold text-center max-w-full text-ellipsis line-clamp-2"
-              >{comic.name}</span
-            >
-          </a>
-        {/each}
-      </div>
+      <RecentComicsCarosel {comics} />
     {/await}
   </section>
 </div>

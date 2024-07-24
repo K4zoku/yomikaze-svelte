@@ -1,24 +1,20 @@
 <script lang="ts">
-    import { token, user } from '~/store.js';
     import { goto } from '$app/navigation';
+    import { delay } from '$utils/common.js';
     import { onMount } from 'svelte';
 
     export let data;
-    const { returnUrl, profile } = data;
-    const t = data.token;
+    const { returnUrl } = data;
 
     onMount(async () => {
-        token.set(t);
-        user.set(profile);
-        await goto(returnUrl ?? '/');
+        if (returnUrl) {
+            await goto(returnUrl, { invalidateAll: true }).catch(() => goto('/', { invalidateAll: true }));
+        }
+        await delay(2000);
+        await goto('/', { invalidateAll: true });
     });
 </script>
 
-<div class="container max-h-screen h-screen flex items-center justify-center">
-    <div class="flex flex-col items-center justify-center">
-        <div class="text-2xl font-bold">Logging in...</div>
-        <div class="mt-4">
-            <a href="/">Click here if you are not redirected</a>
-        </div>
-    </div>
+<div class="container h-screen w-full flex items-center justify-center">
+    <div class="loading loading-lg loading-ring text-success"></div>
 </div>

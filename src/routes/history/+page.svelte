@@ -1,8 +1,10 @@
 <script lang="ts">
-  
+    import Sublayout from "$components/yomikaze/sublayout.svelte";
+    const pageName = "History";
 </script>
+<svelte:head>
+    <title>{pageName}</title> 
+</svelte:head>
+<Sublayout {pageName}>
 
-<div class="container">
-    <h1>History</h1>
-    <p>History page</p>
-</div>
+</Sublayout>

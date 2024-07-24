@@ -1,17 +1,17 @@
 <script lang="ts">
-  import { token, user, isAuthenticated } from '~/store';
-
-  import { onMount, tick } from 'svelte';
   import { goto } from '$app/navigation';
+  import Icon from '$components/icon.svelte';
+  import { PUBLIC_BASE_URL } from '$env/static/public';
   import type Login from '$models/Login.js';
   import { login } from '$utils/auth-utils.js';
-  import { PUBLIC_BASE_URL } from '$env/static/public';
-  import Icon from '$components/icon.svelte';
+  import { getContext, onMount, tick } from 'svelte';
 
-  import type { AxiosError } from 'axios';
+  import type AuthDataStore from '$models/AuthDataStore.js';
   import type Problem from '$models/ProblemResponse.js';
+  import type { AxiosError } from 'axios';
 
   export let data;
+  const { isAuthenticated } = getContext('auth') as AuthDataStore;
   const { returnUrl, error } = data;
   enum errorsMap {
     invalid_token = 'Invalid credentials',
@@ -39,20 +39,26 @@
     } as Login
   };
 
-  function validateUserName() {
+  async function validateUserName() {
     const { username } = form.values;
     const { errors } = form;
     if (!username) {
+      console.log('username is required');
       errors.username = 'Username is required';
+      return false;
+    }
+    if (username.length < 3) {
+      errors.username = 'Username must be at least 3 characters';
       return false;
     }
     errors.username = '';
     return true;
   }
 
-  function validatePassword() {
+  async function validatePassword() {
     const { password } = form.values;
     const { errors } = form;
+    await tick();
     if (!password) {
       errors.password = 'Password is required';
       return false;
@@ -67,10 +73,12 @@
 
   async function handleSubmit() {
     loggingIn = true;
-    if (validateUserName() && validatePassword()) {
+    if ((await validateUserName()) && (await validatePassword())) {
       try {
         let response = await login(form.values);
-        await goto(`/login/success?returnUrl=${encodeURIComponent(returnUrl || '/')}&token=${response.token}`);
+        await goto(
+          `/login/success?returnUrl=${encodeURIComponent(returnUrl || '/')}&token=${response.token}`
+        );
       } catch (error) {
         const axiosError = error as AxiosError;
         const { response } = axiosError;
@@ -116,169 +124,177 @@
           break;
       }
     }
+    if ($isAuthenticated) {
+      goto('/');
+    }
   });
 </script>
-{#if $token}
- <div class="container flex flex-col items-center justify-center h-screen">
+
+{#if $isAuthenticated}
+  <div class="container flex flex-col items-center justify-center h-screen">
     <h2 class="text-4xl font-bold">You are already logged in</h2>
     <div class="mt-6 italic text-2xl text-neutral flex items-center justify-center gap-2">
-        <span>Redirecting you to the home page</span>
-        <span class="loading loading-md loading-dots"></span>
+      <span>Redirecting you to the home page</span>
+      <span class="loading loading-md loading-dots"></span>
     </div>
     <a href="/" class="link link-accent mt-4">Click here if you are not redirected</a>
- </div>
+  </div>
 {:else}
-<section class="container pt-16 h-screen flex items-center justify-start">
-  <!-- Background image container -->
+  <section class="container pt-16 h-screen flex items-center justify-start">
+    <!-- Background image container -->
 
-  <object
-    data="/images/mascot_tanuki.svg"
-    type="image/svg+xml"
-    aria-label="Tanuki"
-    class="object-contain w-128 h-128"
-  />
+    <object
+      data="/images/mascot_tanuki.svg"
+      type="image/svg+xml"
+      aria-label="Tanuki"
+      class="object-contain w-128 h-128"
+    />
 
-  <!-- Form container -->
+    <!-- Form container -->
 
-  <form
-    on:submit|preventDefault={handleSubmit}
-    class=" bg-base-200 rounded-lg shadow-lg w-full max-w-md p-7 shrink-0"
-  >
-    <div class="flex flex-col items-center justify-center">
-      <p class="text-2xl font-semibold">Login</p>
-    </div>
-    {#each form.errors._ as error}
-      <div role="alert" class="alert alert-error">
-        <Icon icon="lucide--circle-alert" class="text-lg" />
-        <span>{error}</span>
+    <form
+      on:submit|preventDefault={handleSubmit}
+      class=" bg-base-200 rounded-lg shadow-lg w-full max-w-md p-7 shrink-0"
+    >
+      <div class="flex flex-col items-center justify-center">
+        <p class="text-2xl font-semibold">Login</p>
       </div>
-    {/each}
-    <!-- username input -->
-    <label class="form-control">
-      <div class="label">
-        <span class="label-text">Username</span>
-      </div>
-      <div
-        class="input input-bordered flex items-center gap-2 invalid:input-error invalid:required:input-error"
-        class:input-error={!!form.errors.username}
-      >
-        <Icon icon="lucide--user" class="text-lg" />
-        <input
-          type="text"
-          class="grow"
-          placeholder="Enter your username"
-          required
-          bind:value={form.values.username}
-          on:change={validateUserName}
-          on:input={validateUserName}
-          disabled={loggingIn}
-        />
-      </div>
-
-      <div class="label">
-        <span class="label-text-alt text-error">
-          {form.errors.username}
-        </span>
-      </div>
-    </label>
-    <!-- Password input -->
-    <label class="form-control">
-      <div class="label">
-        <span class="label-text">Password</span>
-      </div>
-      <div
-        class="input input-bordered flex items-center gap-2 invalid:input-error"
-        class:input-error={!!form.errors.password}
-      >
-        <Icon icon="lucide--key" class="text-lg" />
-        {#if showPassword}
+      {#each form.errors._ as error}
+        <div role="alert" class="alert alert-error">
+          <Icon icon="lucide--circle-alert" class="text-lg" />
+          <span>{error}</span>
+        </div>
+      {/each}
+      <!-- username input -->
+      <label class="form-control">
+        <div class="label">
+          <span class="label-text">Username</span>
+        </div>
+        <div
+          class="input input-bordered flex items-center gap-2 invalid:input-error invalid:required:input-error"
+          class:input-error={!!form.errors.username}
+        >
+          <Icon icon="lucide--user" class="text-lg" />
           <input
             type="text"
             class="grow"
-            placeholder="Enter your password"
+            placeholder="Enter your username"
             required
-            bind:value={form.values.password}
-            on:change={validatePassword}
-            on:input={validatePassword}
+            bind:value={form.values.username}
+            on:change={validateUserName}
+            on:input={validateUserName}
             disabled={loggingIn}
           />
-        {:else}
-          <input
-            type="password"
-            class="grow"
-            placeholder="Enter your password"
-            required
-            bind:value={form.values.password}
-            on:change={validatePassword}
-            on:input={validatePassword}
-            disabled={loggingIn}
-          />
-        {/if}
-        <button
-          type="button"
-          class="flex items-center justify-center"
-          on:click={() => (showPassword = !showPassword)}
+        </div>
+
+        <div class="label">
+          <span class="label-text-alt text-error">
+            {form.errors.username}
+          </span>
+        </div>
+      </label>
+      <!-- Password input -->
+      <label class="form-control">
+        <div class="label">
+          <span class="label-text">Password</span>
+        </div>
+        <div
+          class="input input-bordered flex items-center gap-2 invalid:input-error"
+          class:input-error={!!form.errors.password}
         >
+          <Icon icon="lucide--key" class="text-lg" />
           {#if showPassword}
-            <Icon icon="lucide--eye-off" class="text-xl" />
+            <input
+              type="text"
+              class="grow"
+              placeholder="Enter your password"
+              required
+              bind:value={form.values.password}
+              on:change={validatePassword}
+              on:input={validatePassword}
+              disabled={loggingIn}
+            />
           {:else}
-            <Icon icon="lucide--eye" class="text-xl" />
+            <input
+              type="password"
+              class="grow"
+              placeholder="Enter your password"
+              required
+              bind:value={form.values.password}
+              on:change={validatePassword}
+              on:input={validatePassword}
+              disabled={loggingIn}
+            />
           {/if}
-        </button>
-      </div>
+          <button
+            type="button"
+            class="flex items-center justify-center"
+            on:click={() => (showPassword = !showPassword)}
+          >
+            {#if showPassword}
+              <Icon icon="lucide--eye-off" class="text-xl" />
+            {:else}
+              <Icon icon="lucide--eye" class="text-xl" />
+            {/if}
+          </button>
+        </div>
 
-      <div class="label">
-        <span class="label-text-alt text-error">
-          {form.errors.password}
-        </span>
-      </div>
-    </label>
+        <div class="label">
+          <span class="label-text-alt text-error">
+            {form.errors.password}
+          </span>
+        </div>
+      </label>
 
-    <!-- Remember me and forgot password -->
-    <div class="flex items-center justify-end w-full pb-4">
-      <!-- <div class="form-control">
+      <!-- Remember me and forgot password -->
+      <div class="flex items-center justify-end w-full pb-4">
+        <!-- <div class="form-control">
         <label class="label cursor-pointer flex gap-2">
           <span class="label-text">Remember me</span>
           <input type="checkbox" checked class="checkbox checkbox-sm" />
         </label>
       </div> -->
-      <a href="/password/reset" class="link link-accent text-sm link-hover">Forgot password?</a>
-    </div>
+        <a href="/password/reset" class="link link-accent text-sm link-hover">Forgot password?</a>
+      </div>
 
-    <!-- Login button -->
-    <div class="flex flex-col items-center py-2">
-      <button type="submit" class="btn btn-md btn-wide btn-accent flex gap-2" disabled={loggingIn}>
-        {#if loggingIn}
-          <div class="loading loading-dots"></div>
-          Logging in
-        {:else}
-          Login
-        {/if}
-      </button>
+      <!-- Login button -->
+      <div class="flex flex-col items-center py-2">
+        <button
+          type="submit"
+          class="btn btn-md btn-wide btn-accent flex gap-2"
+          disabled={loggingIn}
+        >
+          {#if loggingIn}
+            <div class="loading loading-dots"></div>
+            Logging in
+          {:else}
+            Login
+          {/if}
+        </button>
 
-      <div class="divider w-64 mx-auto my-2 text-xs">Or</div>
+        <div class="divider w-64 mx-auto my-2 text-xs">Or</div>
 
-      <!-- Login with Google button -->
-      <a
-        href="https://api.yomikaze.org/authentication/login/external/Google?returnUrl={buildGoogleReturnUrl()}"
-        type="button"
-        class="btn btn-md btn-wide btn-outline mx-auto"
-        class:btn-disabled={loggingIn}
-      >
-        <object
-          aria-label="Google"
-          data="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg"
-          type="image/svg+xml"
-        />
-        Login with Google
-      </a>
-    </div>
+        <!-- Login with Google button -->
+        <a
+          href="https://api.yomikaze.org/authentication/login/external/Google?returnUrl={buildGoogleReturnUrl()}"
+          type="button"
+          class="btn btn-md btn-wide btn-outline mx-auto"
+          class:btn-disabled={loggingIn}
+        >
+          <object
+            aria-label="Google"
+            data="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg"
+            type="image/svg+xml"
+          />
+          Login with Google
+        </a>
+      </div>
 
-    <!-- Register link -->
-    <div class="flex flex-col text-center mt-4 text-sm">
-      <span class="text-sm">Don't have an account?</span>
-      <a href="/register" class="link link-accent link-hover">Register Now</a>
-    </div>
-  </form>
-</section>
+      <!-- Register link -->
+      <div class="flex flex-col text-center mt-4 text-sm">
+        <span class="text-sm">Don't have an account?</span>
+        <a href="/register" class="link link-accent link-hover">Register Now</a>
+      </div>
+    </form>
+  </section>
 {/if}
