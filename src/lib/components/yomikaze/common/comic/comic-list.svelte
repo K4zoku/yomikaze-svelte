@@ -7,7 +7,8 @@
   import { ComicStatus } from '$models/Comic';
   import type PagedResult from '$models/PagedResult';
   import type PaginationModel from '$models/Pagination';
-  import { tick } from 'svelte';
+  import { tick, type ComponentType } from 'svelte';
+    import ComicCardDetails from './comic-card-details.svelte';
 
   export const initialData: PagedResult<Comic> | null = null;
   export let loadFn: (pagination: PaginationModel) => Promise<PagedResult<Comic>>;
@@ -41,26 +42,34 @@
     task = loadFn({ page: currentPage }).then(middleware);
   }
 
-  const statusIcon: { [key: string]: string } = {
-    [ComicStatus.OnGoing]: 'fluent--presence-busy-16-filled',
-    [ComicStatus.Completed]: 'fluent--presence-available-16-filled',
-    [ComicStatus.Cancelled]: 'fluent--presence-dnd-16-filled',
-    [ComicStatus.Hiatus]: 'fluent--presence-away-16-filled'
-  };
-  const statusIconColor: { [key: string]: string } = {
-    [ComicStatus.OnGoing]: 'text-success',
-    [ComicStatus.Completed]: 'text-success',
-    [ComicStatus.Cancelled]: 'text-error',
-    [ComicStatus.Hiatus]: 'text-warning'
-  };
-
   const layouts: { [key: string]: string } = {
     list: 'lucide--layout-list',
     col: 'lucide--columns-2',
     grid: 'lucide--layout-grid'
   };
 
+  const containerClasses: { [key: string]: string } = {
+    list: 'flex flex-col',
+    col: 'grid grid-cols-1 md:grid-cols-2',
+    grid: 'grid grid-cols-6 md:grid-cols-3'
+  };
+
   let layout: string = 'list';
+
+  let comicLayout: { [key: string]: { component: ComponentType, props: any } } = {
+    list: {
+      component: ComicCardDetails,
+      props: {}
+    },
+    col: {
+      component: ComicCardDetails,
+      props: {}
+    },
+    grid: {
+      component: ComicCard, 
+      props: { size: 'full' }
+    }
+  };
 </script>
 
 <div class={$$props.class ? $$props.class : ''}>
@@ -85,60 +94,14 @@
     </div>
   {:then paged}
     <div
-      class="min-h-128 h-fit gap-2 flex-col"
+      class="min-h-128 h-fit gap-4 flex-col"
       class:flex={paged.totals == 0 || layout === 'list'}
       class:grid={paged.totals > 0 && (layout === 'grid' || layout === 'col')}
       class:grid-cols-2={layout === 'col'}
-      class:grid-cols-8={layout === 'grid'}
+      class:grid-cols-6={layout === 'grid'}
     >
       {#each paged.results as comic (comic.id)}
-        {#if layout === 'list' || layout === 'col'}
-          <a
-            href="/comics/{comic.id}"
-            class="flex items-center gap-4 rounded-lg shadow-md p-3 h-56"
-          >
-            <Picture
-              src={comic.cover}
-              class="h-full aspect-cover rounded-md shadow-md hover:shadow-lg hover:scale-105 transition duration-300 shrink-0"
-              imgClass="rounded-md shadow w-full h-full object-cover object-center"
-            />
-            <div class="grow flex flex-col gap-2 h-full">
-              <div class="flex justify-between shrink-0">
-                <div class="flex flex-col items-start justify-between">
-                  <h4 class="text-xl font-bold mb-0 grow w-full line-clamp-2 text-ellipsis">
-                    {comic.name}
-                  </h4>
-                  <span class="text-sm mb-0 shrink-0">{comic.authors.join(', ')}</span>
-                </div>
-                <div class="flex items-center justify-center gap-2">
-                  <div
-                    class="flex items-center justify-center gap-1 bg-base-300 px-2 py-1 select-none"
-                  >
-                    <Icon
-                      icon={statusIcon[comic.status]}
-                      class="text-sm {statusIconColor[comic.status]}"
-                    />
-                    <span class="text-xs">{comic.status}</span>
-                  </div>
-                  <slot name="actions" />
-                </div>
-              </div>
-              <hr class="border-1 m-0" />
-              <div class="flex justify-between">
-                <div class="flex gap-2 mt-4 mb-3">
-                  {#each comic.tags as tag (tag.id)}
-                    <a class="badge badge-outline" href="/search?includes={tag.id}">{tag.name}</a>
-                  {/each}
-                </div>
-              </div>
-              <div class="text-sm overflow-y-scroll h-full grow">
-                <span class="text-base">{comic.description} </span>
-              </div>
-            </div>
-          </a>
-        {:else if layout === 'grid'}
-          <ComicCard {comic} />
-        {/if}
+        <svelte:component this={comicLayout[layout].component} {...comicLayout[layout].props} comic={comic} />
       {:else}
         <div class="flex items-center justify-center h-full w-full bg-base-200 py-4">
           <span class="text-lg">

@@ -6,7 +6,11 @@ module.exports = {
   theme: {
     extend: {
       scale: {
-        flip: '-1'
+        flip: '-1',
+        101: '1.01',
+        102: '1.02',
+        103: '1.03',
+        104: '1.04',
       },
       spacing: {
         '112': '28rem',
@@ -65,7 +69,16 @@ module.exports = {
           info: '#73D0FF',
           success: '#87D96C',
           warning: '#FFD173',
-          error: '#FF6666'
+          error: '#FF6666',
+          "--rounded-box": "1rem", // border radius rounded-box utility class, used in card and other large boxes
+          "--rounded-btn": "0.25rem", // border radius rounded-btn utility class, used in buttons and similar element
+          "--rounded-badge": "1.9rem", // border radius rounded-badge utility class, used in badges and similar
+          "--animation-btn": "0.25s", // duration of animation when you click on button
+          "--animation-input": "0.2s", // duration of animation for inputs like checkbox, toggle, radio, etc
+          "--btn-focus-scale": "0.95", // scale transform of button when you focus on it
+          "--border-btn": "1px", // border width of buttons
+          "--tab-border": "1px", // border width of tabs
+          "--tab-radius": "0.5rem", // border radius of tabs
         },
         'ayu-dark': {
           primary: '#39BAE6',
@@ -78,7 +91,16 @@ module.exports = {
           info: '#59C2FF',
           success: '#7FD962',
           warning: '#FFB454',
-          error: '#D95757'
+          error: '#D95757',
+          "--rounded-box": "1rem", // border radius rounded-box utility class, used in card and other large boxes
+          "--rounded-btn": "0.25rem", // border radius rounded-btn utility class, used in buttons and similar element
+          "--rounded-badge": "1.9rem", // border radius rounded-badge utility class, used in badges and similar
+          "--animation-btn": "0.25s", // duration of animation when you click on button
+          "--animation-input": "0.2s", // duration of animation for inputs like checkbox, toggle, radio, etc
+          "--btn-focus-scale": "0.95", // scale transform of button when you focus on it
+          "--border-btn": "1px", // border width of buttons
+          "--tab-border": "1px", // border width of tabs
+          "--tab-radius": "0.5rem", // border radius of tabs
         }
       }
     ]

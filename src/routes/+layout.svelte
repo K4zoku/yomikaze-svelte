@@ -16,16 +16,16 @@
   import { writable, type Writable } from 'svelte/store';
   import { preferences } from '~/store';
   import type { LayoutData } from './$types';
+  import http from '$utils/http';
 
   export let data: LayoutData;
   const user: Writable<Profile | null> = writable();
   const token: Writable<string | null> = writable();
   const isAuthenticated: Writable<boolean> = writable(false);
-	$: user.set(data.user);
+  $: user.set(data.user);
   $: token.set(data.token);
   $: isAuthenticated.set(data.isAuthenticated);
   setContext('auth', { user, token, isAuthenticated } as AuthDataStore);
-
 
   let path: string;
   $: path = $page.url.pathname;
@@ -35,6 +35,7 @@
   interface InlineSearch {
     focused: boolean;
     element: HTMLInputElement | undefined;
+    value?: string;
   }
   let inlineSearch: InlineSearch = {
     focused: false,
@@ -54,7 +55,7 @@
         }
         break;
       case 'Escape':
-        if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+        if (inlineSearch.focused) inlineSearch.element?.blur();
         break;
     }
   }
@@ -75,7 +76,12 @@
   });
 
   async function search() {
-    console.log('searching...');
+    if (!inlineSearch.value) {
+      searchResults = [];
+      return;
+    }
+    const response = await http.get(`/comics?name=${inlineSearch.value}&size=5`);
+    searchResults = response.data.results;
   }
   let searchResults: Comic[] = [];
   const [debouncedSearch, destroyDebouncedSearch] = debounce<void, void>(search, 500);
@@ -151,7 +157,7 @@
                 <li>
                   <a href="/updates" class:active={path.startsWith('/updates')}> Latest Updates </a>
                 </li>
-                <li>
+                <li data-sveltekit-reload>
                   <a href="/comics/random"> Random </a>
                 </li>
               </ul>
@@ -269,7 +275,6 @@
         </div>
         <div class="navbar-end gap-4">
           <div
-            data-svelte-typeahead=""
             role="combobox"
             aria-haspopup="listbox"
             class="dropdown transition-[flex] duration-150"
@@ -278,43 +283,85 @@
             id="inline-search-container"
             class:grow={inlineSearch.focused}
           >
-            <form action="/search">
-              <label
-                class="input input-bordered input-sm hidden md:flex items-center gap-2 w-full max-w-full transition-colors duration-150 ease-in-out backdrop-blur"
-                id="inline-search-label"
-                for="inline-search"
-                class:input-accent={inlineSearch.focused}
-                class:bg-opacity-50={!inlineSearch.focused}
-              >
-                <input
-                  name="name"
-                  type="search"
-                  placeholder="Search…"
-                  autocomplete="off"
-                  spellcheck="true"
-                  aria-autocomplete="list"
-                  aria-controls="inline-search-listbox"
-                  aria-labelledby="inline-search-label"
-                  id="inline-search"
-                  class="grow"
-                  bind:this={inlineSearch.element}
-                  on:focus={() => (inlineSearch.focused = true)}
-                  on:blur={() => (inlineSearch.focused = false)}
-                  on:input={() => debouncedSearch()}
-                />
-                <div
-                  class="flex-none flex items-center gap-1 transition-opacity duration-300"
-                  class:opacity-0={inlineSearch.focused}
+            <div class="dropdown dropdown-end w-full" class:dropdown-open={inlineSearch.focused}>
+              <form action="/search">
+                <label
+                  class="input input-bordered input-sm hidden md:flex items-center gap-2 w-full max-w-full transition-colors duration-150 ease-in-out backdrop-blur"
+                  id="inline-search-label"
+                  for="inline-search"
+                  class:input-accent={inlineSearch.focused}
+                  class:bg-opacity-50={!inlineSearch.focused}
                 >
-                  <kbd class="kbd kbd-sm" class:hidden={inlineSearch.focused}>Ctrl</kbd>
-                  <kbd class="kbd kbd-sm" class:hidden={inlineSearch.focused}>K</kbd>
-                </div>
-                <div class="flex-none flex items-center">
-                  <Icon icon="lucide--search" class="text-lg" />
-                </div>
-              </label>
-              <button class="hidden" type="submit"></button>
-            </form>
+                  <input
+                    name="name"
+                    type="search"
+                    placeholder="Search…"
+                    autocomplete="off"
+                    spellcheck="true"
+                    aria-autocomplete="list"
+                    aria-controls="inline-search-listbox"
+                    aria-labelledby="inline-search-label"
+                    id="inline-search"
+                    class="grow"
+                    bind:value={inlineSearch.value}
+                    bind:this={inlineSearch.element}
+                    on:focus={() => (inlineSearch.focused = true)}
+                    on:blur={() => (inlineSearch.focused = false)}
+                    on:input={() => debouncedSearch()}
+                  />
+                  <div
+                    class="flex-none flex items-center gap-1 transition-opacity duration-300"
+                    class:opacity-0={inlineSearch.focused}
+                  >
+                    <kbd class="kbd kbd-sm" class:hidden={inlineSearch.focused}>Ctrl</kbd>
+                    <kbd class="kbd kbd-sm" class:hidden={inlineSearch.focused}>K</kbd>
+                  </div>
+                  <div class="flex-none flex items-center">
+                    <Icon icon="lucide--search" class="text-lg" />
+                  </div>
+                </label>
+                <button class="hidden" type="submit"></button>
+              </form>
+              <div
+                class="dropdown-content mt-4 w-full max-h-96 overflow-y-scroll bg-base-200 rounded shadow-lg"
+              >
+                <ul id="inline-search-listbox" role="listbox" aria-label="Search Results" class="flex flex-col gap-2 px-2 pt-2" data-sveltekit-reload>
+                  {#each searchResults as result, index (result.id)}
+                    <li
+                      role="option"
+                      aria-selected={index === 0}
+                    >
+                      <a href={`/comics/${result.id}`} class="flex items-center max-w-full gap-2 p-2 bg-base-100/50 hover:bg-accent/50 hover:text-accent-content shadow-sm hover:shadow transition duration-200 rounded" >
+                        <Picture
+                          src={result.cover}
+                          useCdn={true}
+                          alt="Cover"
+                          class="w-12 h-16 aspect-cover bg-base-200 rounded-lg shrink-0"
+                          imgClass="rounded object-cover w-full h-full"
+                        />
+                        <div class="flex flex-col gap-1 justify-between">
+                          <div class="text-lg font-bold text-ellipsis max-h-full line-clamp-2 grow">
+                            {result.name}
+                          </div>
+                          <div class="text-sm shrink-0">{result.authors.join(', ')}</div>
+                        </div>
+                      </a>
+                    </li>
+                  {:else}
+                    <li class="flex items-center p-4">
+                      {inlineSearch.value ? 'No results found' : 'Start typing to search...'}
+                    </li>
+                  {/each}
+                  {#if searchResults.length > 0}
+                  <li class="flex items-center p-4">
+                    <a href="/search?name={inlineSearch.value ?? ''}" class="btn btn-sm btn-block">
+                      View all results
+                    </a>
+                  </li>
+                  {/if}
+                </ul>
+              </div>
+            </div>
           </div>
           <div class="flex gap-4 items-center pe-2">
             {#if !!$token}
@@ -323,7 +370,7 @@
                   <Icon icon="lucide--bell" class="text-2xl" />
                 </summary>
                 <div
-                  class="dropdown-content bg-base-100 mt-2 rounded-box z-[1] w-80 min-h-16 p-2 shadow flex flex-col justify-center items-center"
+                  class="dropdown-content bg-base-100 mt-2 rounded z-[1] w-80 min-h-16 p-2 shadow flex flex-col justify-center items-center"
                 >
                   <div></div>
                 </div>
@@ -349,11 +396,11 @@
                   {/if}
                 </div>
               </summary>
-              <ul class="menu w-72 shadow bg-base-200 mt-4 dropdown-content rounded-lg">
+              <ul class="menu w-72 shadow bg-base-200 mt-4 dropdown-content rounded">
                 <li>
                   <a
                     href="/profile"
-                    class="rounded-lg p-4 min-h-[0] w-full h-fit flex flex-col gap-2 items-center justify-center"
+                    class="rounded p-4 min-h-[0] w-full h-fit flex flex-col gap-2 items-center justify-center"
                   >
                     <div
                       class="ring-2 ring-offset-2 ring-neutral w-12 h-12 rounded-full bg-base-100"
