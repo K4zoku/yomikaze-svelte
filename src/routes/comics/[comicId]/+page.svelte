@@ -657,7 +657,7 @@
                     </div>
                     {#if comment.replies}
                       <div class="ml-12 mt-4">
-                        {#each comment.replies as reply}
+                        {#each comment.replies as reply (reply.id)}
                           <div
                             class="flex flex-col border-2 rounded-lg border-accent-content p-4 mt-3"
                           >

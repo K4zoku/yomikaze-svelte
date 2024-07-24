@@ -133,11 +133,9 @@
 			console.log('Response:', response);
 
 			if (response.status === 201) {
-				alert('Comic created successfully!');
+				
 				goto('/'); // Redirect to homepage or another page
-			} else {
-				alert('Failed to create comic.');
-			}
+			} 
 		} catch (error) {
 			console.error('Error:', error);
 			alert('An error occurred while creating the comic.');
@@ -292,10 +290,10 @@
 							{/if}
 						</div>
 					</div>
-					<div class="flex flex-col mt-8 gap-2">
+					<!-- <div class="flex flex-col mt-8 gap-2">
 						<span class="text-base-content font-medium text-xl">Publication Date</span>
 						<input type="date" placeholder="Any" class="input input-bordered w-full max-w-xs" />
-					</div>
+					</div> -->
 				</div>
 			</div>
 		</div>
