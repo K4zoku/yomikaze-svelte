@@ -6,7 +6,7 @@ export default interface Chapter extends Model {
   comicId: string;
   number: number;
   name: string;
-  pages: number;
+  pages: Array<string>;
   price: number;
   isRead: boolean;
   readonly isUnlocked: boolean;

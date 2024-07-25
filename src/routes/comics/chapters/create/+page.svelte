@@ -5,6 +5,7 @@
   import { writable } from 'svelte/store';
   import { onMount } from 'svelte';
   import type Chapter from '$models/Chapter';
+  import type { AxiosError } from 'axios';
   const scrollToSection = () => {
     document.getElementById(targetId).scrollIntoView({ behavior: 'smooth' });
   };
@@ -28,7 +29,6 @@
   };
   let chapterData: Chapter = {
     number: 0,
-    originalLanguage: '',
     name: '',
     pages: [],
     price: 0
@@ -46,12 +46,12 @@
     }
   }
   async function createChapter(comicId, chapterData) {
-    let response = await http.post(`/comics/68638295025815553/chapters`, chapterData);
-    if (response.status === 201) {
-      console.log(response.data);
-    } else {
-      console.log(response.status, response.data);
-    }
+      await http.post(`/comics/68638295025815553/chapters`, chapterData)
+      .then(response=>{
+        alert("create successfully!")
+      })
+      .catch(error=>alert("Create fail!"))
+   
   }
   // Xử lý sự kiện khi người dùng chọn tệp hình ảnh
   async function handleFileUpload(event: Event) {
@@ -107,7 +107,9 @@
 <div class="flex justify-center">
   <div class="ml-10 w-9/12 aspect-[20/6]">
     <div class="h-20"></div>
-    <button class="btn btn-block bg-orange-500 hover:bg-orange-600"><p class="text-white">Make sure to read the guidelines!</p></button>
+    <button class="btn btn-block bg-orange-500 hover:bg-orange-600"
+      ><p class="text-white">Make sure to read the guidelines!</p></button
+    >
     <div class="mt-10">
       <p class="text-xl font-bold">Details</p>
     </div>
@@ -165,9 +167,7 @@
         <SortableList class="contents" animation={150}>
           <!-- Vòng lặp để hiển thị các hình ảnh đã tải lên -->
           {#each images as imgUrl}
-            <div
-              class=" indicator min-w-40 min-h-52 w-40 h-52 shadow bg-base-200"
-            >
+            <div class=" indicator min-w-40 min-h-52 w-40 h-52 shadow bg-base-200">
               <span class=" indicator-item indicator-end">
                 <button
                   class="btn btn-xs btn-circle btn-error"
