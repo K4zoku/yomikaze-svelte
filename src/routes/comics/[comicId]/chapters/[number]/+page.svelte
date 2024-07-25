@@ -142,6 +142,9 @@
         </select>
       </div>
     </div>
+    <div>
+      <button>Comment</button>
+    </div>
   </aside>
   <div class="h-screen">
     <svelte:component this={readingModes[buttonText].component} bind:pages={chapter.pages} bind:active={active}/>
