@@ -4,36 +4,14 @@
   import { onMount } from 'svelte';
 
   let cover = 'https://i.yomikaze.org';
-  // let comics = [
-  // 	{
-  // 		cover: '../banner.jpg',
-  // 		title: 'One Piece',
-  // 		authors: ['Kishimoto Masashi', 'Oda'],
-  // 		genres: ['Action', 'Adventure'],
-  // 		rating: '16',
-  // 		bookmark: '22',
-  // 		comment: '46',
-  // 		description: 'Description of Story 1'
-  // 	},
-  // 	{
-  // 		// cover: 'link_to_cover_image_2',
-  // 		title: 'Kimetsu no Yaiba',
-  // 		authors: ['Kishimoto Masashi'],
-  // 		genres: ['ACtion', 'Medical', 'Drama'],
-  // 		rating: '16',
-  // 		bookmark: '22',
-  // 		comment: '46',
-  // 		description: 'Description of Story 2'
-  // 	}
-  // ];
   let comics = [];
+  let comicToDelete = null;
+  let comicName = '';
   let totals = 0;
-
- 
 
   const getComics = async () => {
     try {
-      const response = await http.get('/management');
+      const response = await http.get('/comics');
       if (response.status === 200) {
         console.log('Comics retrieved successfully:', response.data.results);
         return {
@@ -63,18 +41,17 @@
   const deleteComic = async (key) => {
     try {
       const response = await http.delete(`/comics/${key}`);
-      if (response.status === 200) {
-        comics = comics.filter(comic => comic.id !== key);
-        
-      } else {
-        console.error('Unexpected response status:', response.status);
-      }
+      comics = comics.filter((comic) => comic.id !== key);
     } catch (error) {
       if (error.response) {
         console.error('API error:', error.response.data);
       } else {
         console.error('Error:', error.message);
       }
+    } finally {
+      comicToDelete = null;
+      comicName = '';
+      document.getElementById('delete_modal').close();
     }
   };
 
@@ -92,8 +69,14 @@
     if (window.history.length > 1) {
       window.history.back();
     } else {
-      goto('/'); // Điều hướng về trang chủ nếu không có lịch sử
+      goto('/');
     }
+  }
+
+  function openDeleteModal(comic) {
+    comicToDelete = comic;
+    comicName = comic.name;
+    document.getElementById('delete_modal').showModal();
   }
 </script>
 
@@ -117,23 +100,22 @@
 
   <div class="mt-5 mb-10 flex flex-col gap-3 mx-auto w-11/12">
     {#each comics as comic (comic.id)}
-      <div class="card ">
+      <div class="card hover:shadow-lg transition duration-300">
         <div class="card-body p-3 bg-base-100 rounded-lg drop-shadow-lg h-44">
           <div class="flex gap-1">
-            <a href=""
-              ><div class="w-24 h-32">
-                <picture class="w-24 h-32">
-                  <source class="w-24 h-32 object-cover " srcset={cover + comic.cover} />
-                  <img class="float-left" src="https://placehold.co/84x120" alt="" />
-                </picture>
-              </div></a
-            >
+            <a href="/comics/{comic.id}" class="w-28 h-36">
+              <picture class="w-24 h-32 float-left">
+                <source class="w-24 h-32 object-cover" srcset={cover + comic.cover} />
+                <img class="float-left" src="https://placehold.co/84x120" alt="" />
+              </picture>
+            </a>
 
-            <div class="flex-grow flex flex-col justify-evenly ml-2 ">
-              <div class="flex justify-between ">
+            <div class="flex-grow flex flex-col justify-evenly ml-2">
+              <div class="flex justify-between">
                 <div class="flex gap-3 items-center">
-                  <span class="font-bold text-lg max-w-xl">{comic.name}</span>
-                  <span class="font-normal text text-lg text-center max-w-30 overflow-hidden max-h-14"
+                  <a href="/comics/{comic.id}" class="font-bold text-lg max-w-xl">{comic.name}</a>
+                  <span
+                    class="font-normal text text-lg text-center max-w-30 overflow-hidden max-h-14"
                     >{comic.authors}</span
                   >
                 </div>
@@ -172,14 +154,11 @@
                     >
                     <span class="text-base font-semibold">{comic.status}</span>
                   </div>
-                  <div class="dropdown dropdown-bottom dropdown-left flex items-center">
-                    <div tabindex="0" role="button" class="btn btn-sm text-base">
+                  <details class="dropdown dropdown-bottom dropdown-left flex items-center">
+                    <summary class="btn btn-sm btn-circle text-base">
                       <span class="iconify lucide--ellipsis-vertical text-xl"></span>
-                    </div>
-                    <ul
-                      tabindex="0"
-                      class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow"
-                    >
+                    </summary>
+                    <ul class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
                       <li>
                         <a
                           ><span class="iconify lucide--pencil text-xl"></span><span
@@ -188,20 +167,24 @@
                         </a>
                       </li>
                       <li>
-                        <button on:click={() => deleteComic(comic.id)}
+                        <button on:click={() => openDeleteModal(comic)}>
+                          <span class="iconify lucide--trash-2 text-xl"></span>
+                          <span class="text-base font-medium">Delete</span>
+                        </button>
+                        <!-- <button on:click={() => deleteComic(comic.id)}
                           ><span class="iconify lucide--trash-2 text-xl"></span><span
                             class="text-base font-medium">Delete</span
                           ></button
-                        >
+                        > -->
                       </li>
                     </ul>
-                  </div>
+                  </details>
                 </div>
               </div>
 
               <div class="flex gap-1 items-center py-2 border-t-2">
-                {#each comic.tags.filter(tag => tag.category.name === 'Genre') as genreTag}
-                  <span class="badge badge-outline">{genreTag.name}</span>
+                {#each comic.tags as tag}
+                  <span class="badge badge-outline">{tag.name}</span>
                 {/each}
               </div>
 
@@ -215,3 +198,21 @@
     {/each}
   </div>
 </div>
+
+<dialog id="delete_modal" class="modal">
+  <div class="modal-box">
+    <h3 class="text-xl font-bold">Are you sure you want to delete this comic?</h3>
+    <p class="py-4 ">Comic: <strong>{comicName}</strong></p>
+    <div class="modal-action">
+      <button
+        class="btn btn-error btn-sm"
+        on:click={() => {
+          deleteComic(comicToDelete.id);
+        }}>Confirm</button
+      >
+      <form method="dialog">
+        <button class="btn btn-sm">Cancel</button>
+      </form>
+    </div>
+  </div>
+</dialog>
