@@ -1,9 +1,12 @@
 <script lang="ts">
   import Carousel from 'svelte-carousel';
+  import LongStripMode from './long-strip-mode.svelte';
+  import SinglePageMode from './single-page-mode.svelte';
   export let data;
   let { chapter, chapters, comic } = data;
   let active = false;
   let currentIndex = 0;
+
   interface CarouselData {
     goToPrev: () => void;
     goToNext: () => void;
@@ -33,6 +36,15 @@
   const goToPrevPage = () => {};
 
   const goToNextPage = () => {};
+
+  const readingModes = {
+    'Single Page': {
+      component: SinglePageMode
+    },
+    'Long Strip': {
+      component: LongStripMode
+    }
+  };
 </script>
 
 <div class="h-16"></div>
@@ -132,25 +144,7 @@
     </div>
   </aside>
   <div class="h-screen">
-    {#if buttonText === 'Long Strip'}
-      <div class="flex flex-col gap-5 transition-all duration-500 h-3/5" class:shifted={active}>
-        {#each chapter.pages as image, index}
-          <div class="max-h-full lg:max-w-2xl max-w-full">
-            <img class="" src={image} alt={`${index + 1}`} />
-          </div>
-        {/each}
-      </div>
-    {/if}
-    {#if buttonText === 'Single Page'}
-      <div class="transition-all duration-500 h-3/5" class:shifted={active}>
-          {#each chapter.pages as image, index (index)}
-            <div class="max-h-full lg:max-w-2xl max-w-full">
-              <img class="" src={image} alt={`${index + 1}`} />
-            </div>
-          {/each}
-        <!-- <div class="my-carousel-progress-bar absolute"></div> -->
-      </div>
-    {/if}
+    <svelte:component this={readingModes[buttonText].component} bind:pages={chapter.pages} bind:active={active}/>
   </div>
 </div>
 
