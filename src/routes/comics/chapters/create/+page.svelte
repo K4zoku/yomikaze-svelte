@@ -5,17 +5,20 @@
   import { writable } from 'svelte/store';
   import { onMount } from 'svelte';
   import type Chapter from '$models/Chapter';
+  const scrollToSection = () => {
+    document.getElementById(targetId).scrollIntoView({ behavior: 'smooth' });
+  };
   let images: Array<string | ArrayBuffer | null> = [
-    '/images/comics/67466676832157697/chapters/1/001.jpeg',
-    '/images/comics/67466676832157697/chapters/1/002.jpeg',
-    '/images/comics/67466676832157697/chapters/1/003.jpeg',
-    '/images/comics/67466676832157697/chapters/1/004.jpeg',
-    '/images/comics/67466676832157697/chapters/1/005.jpeg',
-    '/images/comics/67466676832157697/chapters/1/006.jpeg',
-    '/images/comics/67466676832157697/chapters/1/007.jpeg',
-    '/images/comics/67466676832157697/chapters/1/008.jpeg',
-    '/images/comics/67466676832157697/chapters/1/009.jpeg',
-    '/images/comics/67466676832157697/chapters/1/010.jpeg'
+    // '/images/comics/67466676832157697/chapters/1/001.jpeg',
+    // '/images/comics/67466676832157697/chapters/1/002.jpeg',
+    // '/images/comics/67466676832157697/chapters/1/003.jpeg',
+    // '/images/comics/67466676832157697/chapters/1/004.jpeg',
+    // '/images/comics/67466676832157697/chapters/1/005.jpeg',
+    // '/images/comics/67466676832157697/chapters/1/006.jpeg',
+    // '/images/comics/67466676832157697/chapters/1/007.jpeg',
+    // '/images/comics/67466676832157697/chapters/1/008.jpeg',
+    // '/images/comics/67466676832157697/chapters/1/009.jpeg',
+    // '/images/comics/67466676832157697/chapters/1/010.jpeg'
   ]; // Mảng để lưu trữ các URL của các hình ảnh đã tải lên
   let imageUrl: string;
   let imageData = {
@@ -105,7 +108,7 @@
   <div class="ml-10 w-9/12 aspect-[20/6]">
     <div class="h-20"></div>
     <button class="btn btn-block bg-orange-500 hover:bg-orange-600"><p class="text-white">Make sure to read the guidelines!</p></button>
-    <div class="">
+    <div class="mt-10">
       <p class="text-xl font-bold">Details</p>
     </div>
     <div class="bg-base-200 flex">
@@ -158,12 +161,12 @@
           class="h-14 w-full bg-gray-200 focus:outline-none focus:ring-2 focus:ring-warning mt-3 custom-input"
         />
       </div>
-      <div class="mt-10 grid grid-cols-4 gap-4">
+      <div class="mt-10 grid grid-cols-5 gap-4">
         <SortableList class="contents" animation={150}>
           <!-- Vòng lặp để hiển thị các hình ảnh đã tải lên -->
           {#each images as imgUrl}
             <div
-              class=" indicator min-w-40 min-h-52 w-40 h-52 shadow bg-base-200 flex justify-center"
+              class=" indicator min-w-40 min-h-52 w-40 h-52 shadow bg-base-200"
             >
               <span class=" indicator-item indicator-end">
                 <button
@@ -193,7 +196,7 @@
               <img
                 src={'https://i.yomikaze.org' + imgUrl}
                 alt="Uploaded Image"
-                class="max-w-full max-h-full object-contain"
+                class="w-full h-full object-contain"
               />
             </div>
           {/each}

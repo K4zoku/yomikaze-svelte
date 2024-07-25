@@ -24,7 +24,7 @@ export function normalizeComic(comic: Comic) : Comic {
     return comic;
 }
 
-function trySetBaseUrl(url: string) : string {
+export function trySetBaseUrl(url: string) : string {
     let result: URL;
     try {
         result = new URL(url);

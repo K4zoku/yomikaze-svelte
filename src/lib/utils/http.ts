@@ -6,10 +6,7 @@ const http = axios.create({
   baseURL: PUBLIC_API_BASE_URL ?? 'https://api.yomikaze.org/',
   headers: {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-  },
-  validateStatus: function (status) {
-    return status < 500;
+    Authorization: `Bearer ${token}`
   }
 });
 
