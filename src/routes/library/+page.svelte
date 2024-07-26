@@ -15,6 +15,7 @@
   import { tick } from 'svelte';
   import type { PageData } from './$types';
   import CategoryManage from './category-manage.svelte';
+    import { persistent } from '@furudean/svelte-persistent-store';
 
   export let data: PageData;
   const pageName = 'Library';
@@ -24,6 +25,23 @@
   const { token } = data;
   const libraryManagement = new LibraryManagement(token);
   
+  let categoriesOrders = persistent({
+    key: 'categories_orders',
+    start_value: [] as string[],
+    storage_type: 'localStorage'
+  });
+
+  if ($categoriesOrders.length !== 0) {
+    categories = categories.sort((a, b) => {
+      const aIndex = $categoriesOrders.indexOf(a.id);
+      const bIndex = $categoriesOrders.indexOf(b.id);
+      return aIndex - bIndex;
+    });
+  }
+
+  $: categoriesOrders.set(categories.map((c) => c.id));
+  
+
   let emptyMessage: string;
   $: {
     emptyMessage = search.name
@@ -80,6 +98,8 @@
       search.page = 1;
       search.name = null;
       search.orderBy = null;
+      sortType = false;
+      sortOrder = false;
       const url = new URL(location.href);
       appendQueryParams(url.searchParams, search, true);
       goto(url.toString());
@@ -96,15 +116,17 @@
     LibraryEntrySearchOrderBy.NameDesc,
     LibraryEntrySearchOrderBy.CreationTime,
     LibraryEntrySearchOrderBy.CreationTimeDesc
-  ]
+  ];
 
   function updateSort() {
-    const sort = sortMapping[+sortType << 1 | +sortOrder];
+    const sort = sortMapping[(+sortType << 1) | +sortOrder];
     search.orderBy = sort;
     updateSearch();
   }
 
   let openCategoryManagementModal: () => void;
+
+  const tabClass = 'tab flex items-center justify-center gap-1 snap-start min-w-28 text-ellipsis overflow-hidden line-clamp-1';
 </script>
 
 <Sublayout {pageName}>
@@ -114,8 +136,9 @@
         <a
           href="?tab=all"
           data-tab="all"
-          class="tab flex items-center justify-center gap-1 snap-start min-w-28"
+          class="{tabClass}"
           class:tab-active={tab === 'all'}
+          draggable="false"
           on:click={handleOnClickTab}
         >
           All
@@ -123,8 +146,9 @@
         <a
           href="?tab=default"
           data-tab="default"
-          class="tab flex items-center justify-center gap-1 snap-start min-w-28"
+          class="{tabClass}"
           class:tab-active={tab === 'default'}
+          draggable="false"
           on:click={handleOnClickTab}
         >
           Default
@@ -134,9 +158,10 @@
             <a
               href="?tab={category.name}"
               data-tab={category.name}
-              class="tab snap-start min-w-28 text-ellipsis overflow-hidden line-clamp-1"
+              class="{tabClass}"
               title={category.name}
               class:tab-active={tab === category.name || tab === category.id}
+              draggable="false"
               on:click={handleOnClickTab}
             >
               {category.name}
@@ -150,15 +175,16 @@
     </button>
   </div>
 
-  <ComicList loadFn={loadComics} bind:reload={reload} bind:emptyMessage>
-    <div slot="loading"></div>
-    <div class="flex grow w-full justify-between gap-2" slot="header">
+  <ComicList loadFn={loadComics} bind:reload bind:emptyMessage>
+    <div class="flex w-full mt-6 py-1" slot="header">
+      <div class="text-xl font-semibold">
+        {entries.totals
+          ? `${entries.totals} ${entries.totals > 1 ? 'comics' : 'comic'}`
+          : 'No comics here...'}
+      </div>
+    </div>
+    <div class="flex grow w-full justify-between gap-2" slot="controls">
       <div class="flex gap-2">
-        <div class="text-xl font-semibold">
-          {entries.totals
-            ? `${entries.totals} ${entries.totals > 1 ? 'comics' : 'comic'}`
-            : 'No comics here...'}
-        </div>
         <div class="flex items-center gap-1">
           <Swap bind:active={sortType} on:change={() => updateSort()}>
             <span slot="off">
@@ -166,10 +192,16 @@
             </span>
             <span slot="on">
               <span class="text-neutral">Name</span> | <span class="text-accent">Date Added</span>
-          </Swap>
-          <Swap rotate={true} itemsClass="flex items-center" bind:active={sortOrder} on:change={() => updateSort()}>
-            <Icon icon="lucide--sort-asc" class="text-xl" slot="off"/>
-            <Icon icon="lucide--sort-desc" class="text-xl" slot="on"/>
+            </span></Swap
+          >
+          <Swap
+            rotate={true}
+            itemsClass="flex items-center"
+            bind:active={sortOrder}
+            on:change={() => updateSort()}
+          >
+            <Icon icon="lucide--sort-asc" class="text-xl" slot="off" />
+            <Icon icon="lucide--sort-desc" class="text-xl" slot="on" />
           </Swap>
         </div>
       </div>
@@ -178,16 +210,10 @@
           <label
             class="join-item z-10 input input-bordered focus:input-accent input-sm flex items-center gap-2 pr-4 w-73"
           >
-            <input
-              type="text"
-              class="grow-0"
-              placeholder="Search"
-              bind:value={search.name}
-            />
+            <input type="text" class="grow-0" placeholder="Search" bind:value={search.name} />
             <span class="iconify lucide--search text-lg"></span>
           </label>
-          <button class="hidden" type="submit">
-          </button>
+          <button class="hidden" type="submit"> </button>
         </form>
       </div>
     </div>

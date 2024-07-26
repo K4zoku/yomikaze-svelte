@@ -323,7 +323,7 @@
                 </label>
                 <button class="hidden" type="submit"></button>
               </form>
-              <div
+              <div role="dialog"
                 class="dropdown-content mt-4 w-full max-h-96 overflow-y-scroll bg-base-200 rounded shadow-lg"
                 on:mouseenter={() => (searchResultsHovering = true)}
                 on:mouseleave={() => (searchResultsHovering = false)}

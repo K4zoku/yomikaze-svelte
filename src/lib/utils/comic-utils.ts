@@ -10,8 +10,9 @@ const CDN_BASE_URL = PUBLIC_CDN_BASE_URL ?? "https://i.yomikaze.org";
 
 export interface GetComicsOptions extends Pagination {
     name?: string; // search by name
-    author?: string; // search by author
+    authors?: string[]; // search by author
     publisher?: string; // search by publisher
+    publisherId?: string; // search by publisher id
     status?: string | ComicStatus; // search by status
     includeTags?: Array<string>; // search by tags
     inclusionMode?: "and" | "or"; // search by tags

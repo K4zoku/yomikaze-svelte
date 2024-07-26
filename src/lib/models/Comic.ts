@@ -10,7 +10,7 @@ export default interface Comic extends Model {
     banner?: string,
     publicationDate?: string | Date,
     authors: Array<string>
-    status: string | ComicStatus,
+    status: ComicStatus | ComicStatus.Cancelled | ComicStatus.Completed | ComicStatus.Hiatus | ComicStatus.OnGoing,
     tags: Array<Tag>,
     publisher: Profile,
     tagIds?: Array<string | bigint>,

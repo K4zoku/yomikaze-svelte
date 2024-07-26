@@ -65,17 +65,20 @@
     {#if !!error}
       <div class="bg-error text-error-content rounded py-2 px-4 flex items-center gap-2 mt-2 mb-4">
         <Icon icon="lucide--alert-circle" class="text-lg" />
-        Test error
+        <div class="text-sm">{error}</div>
       </div>
     {/if}
-    <span class="iconify lucide--alert-circle text-4xl text-error"></span>
-    <h3 class="text-lg font-bold">
-      Are you sure you want to delete category
-      <span class="italic font-bold">
-        `{model?.name ?? 'Unknown'}`
-      </span>
-      ?
+    <h3 class="text-lg font-bold mb-2">
+      Are you sure you want to delete category?
     </h3>
+    <h5 class="font-medium mb-1">
+      Category
+    </h5>
+    <span class="font-normal bg-base-200 rounded px-2 py-1">{model?.name}</span>
+    <hr class="border-1 my-2" />
+    <p class="text-sm italic">
+      This action cannot be undone. All comics in this category will be moved to the default category.
+    </p>
     <div class="modal-action">
       <button type="button" class="btn btn-sm btn-error" on:click={submit} >
         Confirm

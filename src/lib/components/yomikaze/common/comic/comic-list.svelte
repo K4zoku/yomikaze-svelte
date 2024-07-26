@@ -8,7 +8,7 @@
   import { tick, type ComponentType } from 'svelte';
   import ComicCardDetails from './comic-card-details.svelte';
 
-  export const initialData: PagedResult<Comic> | null = null;
+  export let initialData: PagedResult<Comic> | null = null;
   export let loadFn: (pagination: PaginationModel) => Promise<PagedResult<Comic>>;
   export let currentPage = 1;
 
@@ -20,6 +20,7 @@
   let totalPages = 0;
   let task: Promise<PagedResult<Comic>> = init().then(middleware);
   let comics: Comic[] = [];
+  let totals = 0;
 
   async function init() {
     if (!initialData) {
@@ -32,6 +33,7 @@
     await tick();
     comics = paged.results;
     totalPages = paged.totalPages;
+    totals = paged.totals;
     currentPage = paged.currentPage;
     return paged;
   }
@@ -69,7 +71,16 @@
 </script>
 
 <div class={$$props.class ? $$props.class : ''}>
-  <div class="flex flex-row-reverse justify-between gap-2 my-4">
+  <slot name="header">
+    <div class="flex w-full py-1">
+      <div class="text-xl font-semibold">
+        {totals
+          ? `${totals} ${totals > 1 ? 'comics' : 'comic'}`
+          : 'No comics here...'}
+      </div>
+    </div>
+  </slot>
+  <div class="flex flex-row-reverse justify-between gap-2 py-1 mb-2">
     <div class="join">
       {#each Object.keys(layouts) as key (key)}
         <button
@@ -82,7 +93,7 @@
         </button>
       {/each}
     </div>
-    <slot name="header" {currentLayout}></slot>
+    <slot name="controls" {currentLayout}></slot>
   </div>
   <div
     class="gap-4 flex-col"

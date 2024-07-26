@@ -146,7 +146,17 @@ input[type=number] {
   -moz-appearance: textfield;
 }
 
+.tabs-boxed > .tab:not(.tab-active) {
+  @apply hover:!bg-base-300/80;
+}
+
 .tabs-boxed > .tab-active {
   @apply !bg-accent;
   @apply font-bold;
+  @apply shadow-md;
+}
+
+.input:focus-within, .select:focus-within, .textarea:focus-within {
+  @apply border-none;
+  @apply outline-2 outline-offset-0;
 }

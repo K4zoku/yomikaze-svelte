@@ -3,7 +3,7 @@
   import type LibraryCategory from '$models/LibraryCategory';
   import type { LibraryManagement } from '$utils/library-utils';
   import { onMount, tick } from 'svelte';
-  import Sortable from 'sortablejs';
+  import Sortable, { type SortableEvent } from 'sortablejs';
 
   import CreateOrUpdateCategory from './create-or-update-category.svelte';
   import DeleteCategory from './delete-category.svelte';
@@ -16,7 +16,7 @@
     categoryManagementModal.showModal();
   }
 
-  let openCreateModal: () => void;
+  let openCreateModal: () => Promise<void>;
   let model: LibraryCategory | LibraryCategoryCreate;
   let editMode: boolean;
   let handleOnModalSuccess = async (event: CustomEvent<LibraryCategory>) => {
@@ -44,11 +44,10 @@
   onMount(() => {
     new Sortable(sortableList, {
       animation: 150,
-      ghostClass: 'opacity-50',
-      handle: '.handle',
+      ghostClass: 'bg-accent-100/50',
       dataIdAttr: 'data-id',
-      onEnd: async (event: { oldIndex: number; newIndex: number }) => {
-        const { oldIndex, newIndex } = event;
+      onEnd: async ({oldIndex, newIndex}: SortableEvent) => {
+        if (oldIndex === undefined || newIndex === undefined) return;
         const categoriesCopy = [...categories];
         const [removed] = categoriesCopy.splice(oldIndex, 1);
         categoriesCopy.splice(newIndex, 0, removed);
@@ -82,25 +81,18 @@
     <h3 class="text-lg font-bold mb-2">Category Management</h3>
     <div class="flex justify-between items-center py-2">
       <p class="text-sm italic">
-        Drag and drop to
-        <span
-          class="cursor-help underline decoration-from-font decoration-dotted underline-offset-1 tooltip tooltip-warning"
-          data-tip="Saving order is not implemented yet"
-        >
-          reorder
-        </span>
+        Drag and drop to reorder
       </p>
-      <div class="tooltip tooltip-left" data-tip="Add new category">
-        <button
-          class="btn btn-sm"
-          on:click={() => {
-            editMode = false;
-            openCreateModal();
-          }}
-        >
-          <Icon icon="lucide--square-plus" class="text-xl" /> Create category
-        </button>
-      </div>
+      <button
+        class="btn btn-sm"
+        on:click={() => {
+          editMode = false;
+          model = {name: ''};
+          openCreateModal();
+        }}
+      >
+        <Icon icon="lucide--square-plus" class="text-xl" /> Create category
+      </button>
     </div>
     <div bind:this={sortableList} class="flex flex-col gap-2 w-full items-center">
       {#each categories as category (category.id)}
