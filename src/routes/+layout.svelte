@@ -12,25 +12,31 @@
   import type Comic from '$models/Comic';
   import type Profile from '$models/Profile';
   import { debounce } from '$utils/common';
-  import { onDestroy, onMount, setContext, tick } from 'svelte';
+  import { onDestroy, setContext } from 'svelte';
   import { writable, type Writable } from 'svelte/store';
-  import { preferences } from '~/store';
-  import type { LayoutData } from './$types';
+
   import http from '$utils/http';
+  import type { LayoutData } from './$types';
 
   export let data: LayoutData;
   const user: Writable<Profile | null> = writable();
   const token: Writable<string | null> = writable();
   const isAuthenticated: Writable<boolean> = writable(false);
+  const preferences = data.preferences;
   $: user.set(data.user);
   $: token.set(data.token);
   $: isAuthenticated.set(data.isAuthenticated);
   setContext('auth', { user, token, isAuthenticated } as AuthDataStore);
+  if (localStorage.getItem('token')) {
+    token.set(localStorage.getItem('token'));
+  }
+
+
 
   let path: string;
   $: path = $page.url.pathname;
 
-  let drawerOpened: boolean = false;
+  let drawerOpened: boolean = data.drawerOpened;
 
   interface InlineSearch {
     focused: boolean;
@@ -69,23 +75,18 @@
     });
   }
 
-  onMount(async () => {
-    await tick();
-    let screenWidth = window.innerWidth;
-    drawerOpened = screenWidth > 1280;
-  });
-
   async function search() {
     if (!inlineSearch.value) {
-      searchResults = [];
+      searchResults = Promise.resolve([]);
       return;
     }
-    const response = await http.get(`/comics?name=${inlineSearch.value}&size=5`);
-    searchResults = response.data.results;
+    searchResults = http
+      .get(`/comics?name=${inlineSearch.value}&size=5`)
+      .then((res) => res.data.results);
   }
-  let searchResults: Comic[] = [];
-  const [debouncedSearch, destroyDebouncedSearch] = debounce<void, void>(search, 500);
-
+  let searchResults: Promise<Comic[]> = Promise.reject();
+  const [debouncedSearch, destroyDebouncedSearch] = debounce<void, void>(search, 300);
+  let searchResultsHovering: boolean = false;
   onDestroy(() => {
     destroyDebouncedSearch();
   });
@@ -115,7 +116,7 @@
         </label>
       </div>
       <div class="overflow-y-scroll h-full max-h-full">
-        <ul class="menu menu-sm px-4 py-0">
+        <ul class="menu px-4 py-0">
           <li>
             <a href="/" class="font-bold" class:active={path === '/'}>
               <Icon icon="lucide--home" class="text-xl" />
@@ -142,20 +143,20 @@
             </details>
           </li>
           <li>
-            <details id="titles" open>
+            <details id="comics" open>
               <summary class="group font-bold">
                 <Icon icon="lucide--book-open" class="text-xl" />
-                Titles
+                Comics
               </summary>
               <ul class="menu">
                 <li>
-                  <a href="/search" class:active={path.startsWith('/search')}> Advanced Search </a>
+                  <a href="/search" class:active={path === '/search'}> Advanced Search </a>
                 </li>
                 <li>
-                  <a href="/recents" class:active={path.startsWith('/recents')}> Recently Added </a>
+                  <a href="/recents" class:active={path === '/recents'}> Recently Added </a>
                 </li>
                 <li>
-                  <a href="/updates" class:active={path.startsWith('/updates')}> Latest Updates </a>
+                  <a href="/updates" class:active={path === '/updates'}> Latest Updates </a>
                 </li>
                 <li data-sveltekit-reload>
                   <a href="/comics/random"> Random </a>
@@ -171,31 +172,31 @@
               </summary>
               <ul class="menu">
                 <li>
-                  <a href="/shop" class:active={path.startsWith('/shop')}> Coins Shop </a>
+                  <a href="/shop" class:active={path === '/shop'}> Coins Shop </a>
                 </li>
                 <li>
-                  <a href="/widrawal" class:active={path.startsWith('/widrawal')}> Withdrawal </a>
+                  <a href="/widrawal" class:active={path === '/widrawal'}> Withdrawal </a>
                 </li>
               </ul>
             </details>
           </li>
           <li>
-            <details id="transactions" open>
+            <details id="yomikaze" open>
               <summary class="group font-bold">
                 <Icon icon="lucide--pin" class="text-xl" />
                 Yomikaze
               </summary>
               <ul class="menu">
                 <li>
-                  <a href="/about-us" class:active={path.startsWith('/about-us')}> About Us </a>
+                  <a href="/about-us" class:active={path === '/about-us'}> About Us </a>
                 </li>
                 <li>
-                  <a href="/privacy-policy" class:active={path.startsWith('/privacy-policy')}>
+                  <a href="/privacy-policy" class:active={path === '/privacy-policy'}>
                     Privacy Policy
                   </a>
                 </li>
                 <li>
-                  <a href="/term-of-service" class:active={path.startsWith('/term-of-service')}>
+                  <a href="/term-of-service" class:active={path === '/term-of-service'}>
                     Terms of Service
                   </a>
                 </li>
@@ -306,7 +307,7 @@
                     bind:value={inlineSearch.value}
                     bind:this={inlineSearch.element}
                     on:focus={() => (inlineSearch.focused = true)}
-                    on:blur={() => (inlineSearch.focused = false)}
+                    on:blur={() => searchResultsHovering || (inlineSearch.focused = false)}
                     on:input={() => debouncedSearch()}
                   />
                   <div
@@ -324,41 +325,66 @@
               </form>
               <div
                 class="dropdown-content mt-4 w-full max-h-96 overflow-y-scroll bg-base-200 rounded shadow-lg"
+                on:mouseenter={() => (searchResultsHovering = true)}
+                on:mouseleave={() => (searchResultsHovering = false)}
               >
-                <ul id="inline-search-listbox" role="listbox" aria-label="Search Results" class="flex flex-col gap-2 px-2 pt-2" data-sveltekit-reload>
-                  {#each searchResults as result, index (result.id)}
-                    <li
-                      role="option"
-                      aria-selected={index === 0}
-                    >
-                      <a href={`/comics/${result.id}`} class="flex items-center max-w-full gap-2 p-2 bg-base-100/50 hover:bg-accent/50 hover:text-accent-content shadow-sm hover:shadow transition duration-200 rounded" >
-                        <Picture
-                          src={result.cover}
-                          useCdn={true}
-                          alt="Cover"
-                          class="w-12 h-16 aspect-cover bg-base-200 rounded-lg shrink-0"
-                          imgClass="rounded object-cover w-full h-full"
-                        />
-                        <div class="flex flex-col gap-1 justify-between">
-                          <div class="text-lg font-bold text-ellipsis max-h-full line-clamp-2 grow">
-                            {result.name}
+                <ul
+                  id="inline-search-listbox"
+                  role="listbox"
+                  aria-label="Search Results"
+                  class="flex flex-col gap-2 p-2"
+                  data-sveltekit-reload
+                >
+                  {#await searchResults}
+                    {#each { length: 5 } as _}
+                      <li>
+                        <div class="flex items-center max-w-full gap-2 p-2 bg-base-100 h-fit shadow-sm">
+                          <div class="w-12 h-16 aspect-cover rounded-lg shrink-0 skeleton"></div>
+                          <div class="flex flex-col grow w-full gap-1 justify-between">
+                            <div class="h-4 w-4/5 skeleton"></div>
+                            <div class="h-4 w-24 skeleton"></div>
                           </div>
-                          <div class="text-sm shrink-0">{result.authors.join(', ')}</div>
                         </div>
-                      </a>
-                    </li>
-                  {:else}
-                    <li class="flex items-center p-4">
-                      {inlineSearch.value ? 'No results found' : 'Start typing to search...'}
-                    </li>
-                  {/each}
-                  {#if searchResults.length > 0}
-                  <li class="flex items-center p-4">
-                    <a href="/search?name={inlineSearch.value ?? ''}" class="btn btn-sm btn-block">
-                      View all results
-                    </a>
-                  </li>
-                  {/if}
+                      </li>
+                    {/each}
+                  {:then comics}
+                    {#each comics as comic, index (comic.id)}
+                      <li role="option" aria-selected={index === 0}>
+                        <a
+                          href={`/comics/${comic.id}`}
+                          class="flex items-center max-w-full gap-2 p-2 bg-base-100/50 hover:bg-accent/50 hover:text-accent-content shadow-sm hover:shadow transition duration-200 rounded"
+                        >
+                          <Picture
+                            src={comic.cover}
+                            useCdn={true}
+                            alt="Cover"
+                            class="w-fit h-20 aspect-cover bg-base-200 rounded-lg shrink-0"
+                            imgClass="rounded object-cover w-full h-full"
+                          />
+                          <div class="flex flex-col gap-1 justify-between">
+                            <div class="text-lg font-bold text-ellipsis max-h-full line-clamp-2 grow">
+                              {comic.name}
+                            </div>
+                            <div class="text-sm shrink-0">{comic.authors.join(', ')}</div>
+                          </div>
+                        </a>
+                      </li>
+                    {:else}
+                      <li class="flex items-center p-4">No results found</li>
+                    {/each}
+                    {#if comics.length > 0}
+                      <li class="flex items-center p-4">
+                        <a
+                          href="/search?name={inlineSearch.value ?? ''}"
+                          class="btn btn-sm btn-block flex items-center justify-center gap-2"
+                        >
+                          View all results <Icon icon="lucide--external-link" class="text-lg" />
+                        </a>
+                      </li>
+                    {/if}
+                  {:catch}
+                    <li class="flex items-center p-4">Start typing to search</li>
+                  {/await}
                 </ul>
               </div>
             </div>

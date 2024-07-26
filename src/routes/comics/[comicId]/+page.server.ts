@@ -1,14 +1,12 @@
-import type Comic from "$models/Comic.js";
-import http from "$utils/http";
+import { getAndVerifyToken } from "$utils/auth-server-utils.js";
+import { getComic } from "$utils/comic-utils.js";
 import { error } from '@sveltejs/kit';
 
-export async function load  ({ params }) {
+export async function load  ({ params, cookies }) {
+    const token = await getAndVerifyToken(cookies).catch(() => undefined);
     const comicId = params.comicId;
-    const comic = await http.get(`/comics/${comicId}`)
-        .then(response => response.data as Comic)
-        .catch(e => {
-            throw error(e.response.status, e.response.statusText);
-        });
+    const comic = await getComic(comicId, token)
+        .catch(e => { throw error(e.response.status, e.response.statusText); });
     return {
         comicId,
         comic

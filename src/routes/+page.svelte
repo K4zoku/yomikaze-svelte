@@ -1,18 +1,19 @@
 <script lang="ts">
   import Icon from '$components/icon.svelte';
   import Picture from '$components/picture.svelte';
-  import RecentComicsCarosel from '$components/yomikaze/home/recent-comics.svelte';
   import PopularComics from '$components/yomikaze/home/popular/popular-comics.svelte';
-  import { getLatestChapter } from '$utils/comic-utils';
+  import RecentComicsCarosel from '$components/yomikaze/home/recent-comics.svelte';
   import Time from 'svelte-time/Time.svelte';
   import type { PageData } from './$types';
 
   export let data: PageData;
   let { popular, latest, recent } = data;
 </script>
+
 <svelte:head>
-    <title>Yomikaze</title> 
+  <title>Yomikaze</title>
 </svelte:head>
+
 <section id="popular">
   {#await popular}
     <div class="w-full h-112 min-h-112 max-h-112 select-none relative z-0">
@@ -117,7 +118,7 @@
                       >
                         {comic.name}
                       </h3>
-                      {#await getLatestChapter(comic.id)}
+                      {#await comic.chapter}
                         <span class="loading loading-xs loading-bars"></span>
                       {:then chapter}
                         <a
@@ -143,6 +144,8 @@
                               <a href="/search?Author={author}" class="font-normal italic"
                                 >{author}</a
                               >
+                            {:else}
+                              <span class="font-normal italic">Unknown author</span>
                             {/each}
                           </span>
                         </span>

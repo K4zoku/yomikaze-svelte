@@ -1,13 +1,17 @@
 <script lang="ts">
-  // import SideBar from '../Side-Bar/+page.svelte';
-  import { goto } from '$app/navigation';
+    import Icon from "$components/icon.svelte";
+import type AuthDataStore from "$models/AuthDataStore";
+    import { getContext } from "svelte";
 
-  let role_modal: HTMLDialogElement;
-  let report_modal: HTMLDialogElement;
+  let roleRequestModal: HTMLDialogElement;
+  let reportModal: HTMLDialogElement;
+  let deleteCategoryModal: HTMLDialogElement;
+  let createCategoryModal:HTMLDialogElement;
 
-  function handleClick() {
-    // goto('/'); // Điều hướng về trang chủ nếu không có lịch sử
-  }
+  let { user } = getContext("auth") as AuthDataStore;
+
+
+  
 
   let comics = [
     {
@@ -24,7 +28,7 @@
   ];
 
   let profileData = {
-    avatar: 'https://i.yomikaze.org/images/misc/72649494579240960.webp',
+    avatar: 'https://i.yomikaze.org/images/misc/73159321495658496.webp',
     banner: 'https://i.yomikaze.org/images/misc/72649699668123648.webp',
     bio: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque ut enim vitae erat iaculis vulputate. Donec id velit diam.',
     name: 'Joysinh',
@@ -35,12 +39,6 @@
     creationTime: '2024-07-19T10:20:37.881Z',
     lastModification: '2024-07-19T10:20:37.881Z'
   };
-
-  let activeContent = 'content1';
-
-  function showContent(content:string) {
-    activeContent = content;
-  }
 </script>
 
 <div class="w-full aspect-[20/6]">
@@ -64,8 +62,9 @@
             <div class="badge badge-outline">{role}</div>
           {/each}
         </div>
-        <span class="flex text-l font-medium">{profileData.balance} 
-          <svg class="ms-1" xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18M7 6h1v4"/><path d="m16.71 13.88l.7.71l-2.82 2.82"/></g></svg>
+        <span class="flex text-l font-medium"
+          >{profileData.balance}
+          <span class="iconify lucide--coins"></span>
         </span>
       </div>
     </div>
@@ -74,45 +73,22 @@
 <div class="container">
   <div class="flex ms-8 gap-4">
     <div class="flex flex-col mt-12 gap-2 w-1/6">
-      <button on:click={handleClick} class="btn btn-outline btn-warning w-full">
-        <svg class="text-warning" xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24"
-          ><g
-            fill="none"
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            ><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path
-              d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"
-            /></g
-          ></svg
-        >
+      <a href="/profile/edit" class="btn btn-outline btn-warning w-full">
+        <span class="iconify lucide--edit text-xl"></span>
         Edit Profile
-      </button>
-      <button class="btn btn-outline btn-warning w-full" on:click={() => report_modal.showModal()}>
+      </a>
+      <button class="btn btn-outline btn-warning w-full" on:click={() => reportModal.showModal()}>
         <!-- badge-alert -->
-        <svg class="text-warning" xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24"
-          ><path
-            fill="none"
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M3.85 8.62a4 4 0 0 1 4.78-4.77a4 4 0 0 1 6.74 0a4 4 0 0 1 4.78 4.78a4 4 0 0 1 0 6.74a4 4 0 0 1-4.77 4.78a4 4 0 0 1-6.75 0a4 4 0 0 1-4.78-4.77a4 4 0 0 1 0-6.76M12 8v4m0 4h.01"
-          /></svg
-        >
+        <span class="iconify lucide--alert-circle text-xl"></span>
         Report User
       </button>
-      <dialog id="report_modal" bind:this={report_modal} class="modal">
+      <dialog bind:this={reportModal} class="modal">
         <div class="modal-box">
           <h3 class="text-lg font-bold mb-4">Report User</h3>
           <div class="flex items-center mb-4">
             <div class="avatar">
               <div class="w-12 rounded-full">
-                <img
-                  alt=""
-                  src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg"
-                />
+                <img alt="" src={profileData.avatar} />
               </div>
             </div>
             <span class="ml-4 text-base font-medium">{profileData.name}</span>
@@ -142,32 +118,18 @@
           </div>
         </div>
       </dialog>
-      <button class="btn btn-outline btn-warning w-full" on:click={() => role_modal.showModal()}>
+      <button class="btn btn-outline btn-warning w-full" on:click={() => roleRequestModal.showModal()}>
         <!-- user-round-check -->
-        <svg class="text-warning" xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24"
-          ><g
-            fill="none"
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            ><path d="M2 21a8 8 0 0 1 13.292-6" /><circle cx="10" cy="8" r="5" /><path
-              d="m16 19l2 2l4-4"
-            /></g
-          ></svg
-        >
+        <span class="iconify lucide--user-round-check text-xl"></span>
         Change Role
       </button>
-      <dialog id="role_modal" bind:this={role_modal} class="modal">
+      <dialog bind:this={roleRequestModal} class="modal">
         <div class="modal-box">
           <h3 class="text-lg font-bold">Change Role</h3>
           <h5 class="font-medium">User</h5>
           <div class="avatar">
             <div class="w-12 rounded-full mt-3">
-              <img
-                alt=""
-                src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg"
-              />
+              <img alt="" src={profileData.avatar} />
             </div>
             <span class="mt-6 ms-5">{profileData.name}</span>
           </div>
@@ -187,56 +149,19 @@
       </dialog>
     </div>
     <div class="w-3/4">
-      <div class="flex justify-end">
-        <button
-          on:click={() => showContent('content1')}
-          class="rounded-l-lg px-3 py-3 btn-outline btn-warning border"
-          ><svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 24 24"
-            ><path
-              fill="none"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"
-            /></svg
-          ></button
-        >
-        <button
-          on:click={() => showContent('content2')}
-          class="rounded-r-lg px-3 py-3 btn-outline btn-warning border"
-          ><svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 24 24"
-            ><g
-              fill="none"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              ><rect width="20" height="6" x="2" y="4" rx="2" /><rect
-                width="20"
-                height="6"
-                x="2"
-                y="14"
-                rx="2"
-              /></g
-            ></svg
-          ></button
-        >
-      </div>
-      <div class="content {activeContent === 'content1' ? 'active' : ''}">
-        <div class="grid gap-3">
-          <div class="">
-            
+        <div class="grid gap-3 mt-12">
+          <div class="flex">
+            <h3 class="text-lg font-bold">Bio</h3>
+            <span class="iconify lucide--edit mt-1.5 ms-2"></span>
           </div>
-          <div class="">
-            <h3 class="text-lg font-bold mb-2">Bio</h3>
-            <p class="text-base">{profileData.bio}</p>
-          </div>
+          <p class="text-base">{profileData.bio}</p>
         </div>
-      </div>
-      <div class="content {activeContent === 'content2' ? 'active' : ''}">
+        <div class="divider"></div>
         <div class="flex flex-col gap-2.5 h-80">
-          <h3 class="text-lg font-bold mb-2">Comic I Wrote</h3>
+          <div class="flex">
+            <h3 class="text-lg font-bold mb-2">Comic I Wrote</h3>
+            <span class="iconify lucide--edit mt-1.5 ms-2"></span>
+          </div>
           {#each comics as comic}
             <div class="card">
               <div class="card-body gird items-center rounded-lg shadow-md">
@@ -272,14 +197,36 @@
                             >
                             <span class="text-base font">{comic.status}</span>
                           </div>
+                          <details class="dropdown dropdown-left">
+                            <summary class="btn btn-sm btn-circle">
+                              <Icon icon="lucide--more-vertical" class="text-xl"/>
+                            </summary>
+                            <ul
+                              class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow"
+                            >
+                              <li>
+                                <button on:click={() => {createCategoryModal.showModal()}}>
+                                  <span class="flex iconify lucide--edit text-xl"></span>
+                                  <span>Edit Comic</span>
+                                </button>
+                              </li>
+                              <li>
+                                <button on:click={() => {deleteCategoryModal.showModal()}}>
+                                  <span class="flex iconify lucide--trash-2 text-xl"></span>
+                                  <span>Delete Comic</span>
+                                </button>
+                              </li>
+                            </ul>
+                          </details>
                         </div>
                       </div>
                       <div class="divider custom-divider"></div>
+                      <hr class="border-1 m-0" />
 
                       <div class="flex gap-2 mt-4 mb-3">
                         <!-- {#each showAll ? chapters.slice(0, 5) : chapters.slice(0, 3) as chapter} -->
                         {#each comic.tags as tag}
-                          <span class="badge badge-outline">{tag}</span>
+                          <a href="/comics?includes={tag}" class="badge badge-outline">{tag}</a>
                         {/each}
                       </div>
                       <div class=" text-sm font-normal">
@@ -292,10 +239,43 @@
             </div>
           {/each}
         </div>
-      </div>
     </div>
   </div>
 </div>
+
+ <!-- DIALOG CREATE PERSONAL CATEGORY -->
+ <dialog bind:this={createCategoryModal} class="modal">
+  <div class="modal-box flex flex-col items-center text-center">
+    <h3 class="text-lg font-bold">Create new personal category</h3>
+    <h5 class="mb-2">Name for personal category</h5>
+    <input
+      type="text"
+      placeholder="Type here"
+      class="input input-bordered w-full max-w-xs"
+    />
+    <div class="modal-action">
+      <form method="dialog">
+        <button class="btn btn-outline btn-success">Create</button>
+
+        <button class="btn">Close</button>
+      </form>
+    </div>
+  </div>
+</dialog>
+
+<!-- DIALOG DELETE COMIC -->
+<dialog bind:this={deleteCategoryModal} class="modal">
+  <div class="modal-box flex flex-col items-center text-center">
+    <span class="iconify lucide--alert-circle text-4xl text-error"></span>
+    <h3 class="text-lg font-bold">Are you sure you want to Delete Comic?</h3>
+    <div class="modal-action">
+      <form method="dialog">
+        <button class="btn btn-outline btn-error">Delete</button>
+        <button class="btn">Close</button>
+      </form>
+    </div>
+  </div>
+</dialog>
 
 <style>
   .custom-divider {
@@ -303,11 +283,5 @@
     width: calc(100% - 2rem);
     margin: 0 auto;
     background-color: #e2e8f0;
-  }
-  .content {
-    display: none;
-  }
-  .content.active {
-    display: block;
   }
 </style>

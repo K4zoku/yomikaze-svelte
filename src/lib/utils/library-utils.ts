@@ -30,7 +30,7 @@ export class LibraryManagement {
 
     async getCategories(pagination?: Pagination): Promise<PagedResult<LibraryCategory>> {
         const url = new URL(CATEGORIES_ENDPOINT, BASE_URL);
-        appendQueryParams(url, pagination);
+        appendQueryParams(url.searchParams, pagination);
         const response = await this.http.get(url.toString());
         return response.data;
     }
@@ -38,14 +38,14 @@ export class LibraryManagement {
     async getEntriesByCategory(categoryId?: string, search?: LibraryEntrySearch): Promise<PagedResult<LibraryEntry>> {
         categoryId = categoryId ?? 'default'; // get uncategorized by default
         const url = new URL(`${LIBRARY_ENDPOINT}/category/${categoryId}`, BASE_URL);
-        appendQueryParams(url, search);
+        appendQueryParams(url.searchParams, search);
         const response = await this.http.get(url.toString());
         return response.data;
     }
 
     async getAllEntries(search?: LibraryEntrySearch): Promise<PagedResult<LibraryEntry>> {
         const url = new URL(LIBRARY_ENDPOINT, BASE_URL);
-        appendQueryParams(url, search);
+        appendQueryParams(url.searchParams, search);
         const response = await this.http.get(url.toString());
         return response.data;
     }

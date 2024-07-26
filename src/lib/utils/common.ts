@@ -20,20 +20,22 @@ export function debounce<A = unknown, R = void>(fn: (args?: A) => R, ms: number 
   return [debouncedFn, teardown];
 }
 
-export function appendQueryParams(url: URL, params?: { [key: string]: any }): URL {
+export function appendQueryParams(searchParams: URLSearchParams, params?: { [key: string]: any }, autoRemoveNull: boolean = false): URLSearchParams {
   if (!params) {
-    return url;
+    return searchParams;
   }
   for (const key in params) {
     if (typeof params[key] === 'string') {
-      url.searchParams.set(key, params[key]);
+      searchParams.set(key, params[key]);
     } else if (Array.isArray(params[key])) {
       for (const value of params[key]) {
         if (typeof value === 'string') {
-          url.searchParams.append(key, value);
+          searchParams.append(key, value);
         }
       }
+    } else if (autoRemoveNull && params[key] === null) {
+      searchParams.delete(key);
     }
   }
-  return url;
+  return searchParams;
 }
