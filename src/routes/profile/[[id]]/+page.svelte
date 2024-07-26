@@ -206,14 +206,11 @@
             <hr class="border-1 my-4" />
             <div class="mb-4">
               <label for="report-reason" class="block mb-2 font-medium">Reason</label>
-              <select id="report-reason" class="select select-bordered w-2/3 select-sm">
-                <option value="">Copyright infringement</option>
-                <option value="">Violation of website rules</option>
-                <option value="">Disruptive behavior</option>
+              <select id="report-reason" class="select select-bordered w-2/3 select-sm mb-4">
+                <option value="">Offensive bio/avatar/banner</option>
+                <option value="">Spambot</option>
+                <option value="">Other</option>
               </select>
-            </div>
-            <div class="mb-6">
-              <label for="report-description" class="block mb-2 font-medium">Description</label>
               <textarea
                 id="report-description"
                 class="textarea textarea-bordered w-full resize-none"
@@ -222,9 +219,9 @@
               ></textarea>
             </div>
             <div class="modal-action">
+              <button type="submit" class="btn btn-sm btn-accent">Send Report</button>
               <form method="dialog" class="flex space-x-2">
-                <button type="submit" class="btn">Report</button>
-                <button type="submit" class="btn">Close</button>
+                <button class="btn btn-sm">Close</button>
               </form>
             </div>
           </div>
