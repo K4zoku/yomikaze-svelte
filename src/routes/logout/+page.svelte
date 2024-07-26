@@ -2,7 +2,7 @@
     import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
     onMount(async () => {
-        goto('/', { invalidateAll: true });
+        await goto('/', { invalidateAll: true });
     });
 </script>
 
