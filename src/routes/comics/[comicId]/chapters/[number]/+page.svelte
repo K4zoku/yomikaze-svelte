@@ -45,8 +45,10 @@
       component: LongStripMode
     }
   };
+  let scrollY : number;
+  let allImgLocation =[]
 </script>
-
+<svelte:window bind:scrollY/>
 <div class="h-16"></div>
 <div class="flex justify-center h-screen relative">
   <button class="fixed top-15 right-0 btn btn-circle btn-ghost" on:click={toggleSidebar}>
