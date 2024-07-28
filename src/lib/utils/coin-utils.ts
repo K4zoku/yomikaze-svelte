@@ -10,7 +10,7 @@ const COIN_ENDPOINT = '/coin-pricing';
 
 export async function getCoin(pagination?: Pagination): Promise<PagedResult<CoinPricing>> {
   const url = new URL(COIN_ENDPOINT, BASE_URL);
-  appendQueryParams(url, pagination);
+  appendQueryParams(url.searchParams, pagination);
   const response = await http.get(url.toString());
   return response.data;
 }

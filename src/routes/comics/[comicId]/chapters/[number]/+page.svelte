@@ -49,18 +49,18 @@
   <div class="h-16"></div>
   <div class="flex justify-center h-screen relative">
     <button class="fixed top-15 right-0 btn btn-circle btn-ghost" on:click={toggleSidebar}>
-      <span class="duration-500 iconify lucide--bar-chart text-2xl transform rotate-90 scale-flip"
+      <span class="duration-150 iconify lucide--bar-chart text-2xl transform rotate-90 scale-flip"
       ></span>
     </button>
     <aside class:active class="pt-2">
       <div class="flex justify-between pr-2">
         <button class="btn btn-circle btn-ghost" on:click={toggleSidebar}>
           {#if active}
-            <span class="duration-500 iconify lucide--x text-2xl"></span>
+            <span class="duration-150 iconify lucide--x text-2xl"></span>
           {/if}
         </button>
         <button class="btn btn-circle btn-ghost">
-          <span class="duration-500 iconify lucide--flag text-2xl"></span>
+          <span class="duration-150 iconify lucide--flag text-2xl"></span>
         </button>
       </div>
       <div class="pl-4 pr-4">
