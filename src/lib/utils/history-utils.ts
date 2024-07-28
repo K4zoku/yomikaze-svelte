@@ -10,7 +10,7 @@ import { appendQueryParams } from "./common";
 const BASE_URL = PUBLIC_API_BASE_URL ?? 'https://api.yomikaze.org/';
 const HISTORY_ENDPOINT = '/history';
 
-export class HistoryManagement {
+export default class HistoryManagement {
     private http: AxiosInstance;
 
     constructor(private token: string) {
@@ -39,6 +39,9 @@ export class HistoryManagement {
 
     async deleteHistory(key: number): Promise<void> {
         await this.http.delete(`${HISTORY_ENDPOINT}/${key}`);
+    }
+    async deleteAllHistory(): Promise<void> {
+        await this.http.delete(`${HISTORY_ENDPOINT}`);
     }
     
 }
