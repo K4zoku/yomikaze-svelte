@@ -7,6 +7,7 @@
   import type { AxiosError } from 'axios';
   import type Problem from '$models/ProblemResponse.js';
   import DefaultAvatar from '$components/default-user-avatar.svelte';
+    import Time from 'svelte-time/Time.svelte';
 
   let comicReports: Array<ComicReport> = [];
   let cover = 'https://i.yomikaze.org';
@@ -253,8 +254,8 @@
                   </div>
                 </div>
               </td>
-              <td class="min-w-16 max-w-26">{report.creationTime}</td>
-              <!-- <td><Time timestamp={report.creationTime} relative/></td> -->
+              <!-- <td class="min-w-16 max-w-26">{report.creationTime}</td> -->
+              <td><Time timestamp={report.creationTime} relative/></td>
               <td> {report.reporter.name}</td>
               <td>{report.description}</td>
               <td>
