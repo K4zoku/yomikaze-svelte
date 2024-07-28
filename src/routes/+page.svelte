@@ -59,7 +59,7 @@
     <div class="flex justify-between items-center">
       <h2 class="font-bold text-2xl">Latest Updates</h2>
       <div class="tooltip" data-tip="View all">
-        <a href="/comics" class="btn btn-circle btn-ghost">
+        <a href="/updates" class="btn btn-circle btn-ghost">
           <Icon icon="lucide--arrow-right" class="text-2xl" />
         </a>
       </div>
@@ -168,7 +168,7 @@
     <div class="flex justify-between items-center">
       <h2 class="font-bold text-2xl">Recently Added</h2>
       <div class="tooltip" data-tip="View all">
-        <a href="/comics" class="btn btn-circle btn-ghost">
+        <a href="/recents" class="btn btn-circle btn-ghost">
           <Icon icon="lucide--arrow-right" class="text-2xl" />
         </a>
       </div>

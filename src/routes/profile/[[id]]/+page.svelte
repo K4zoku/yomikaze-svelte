@@ -65,7 +65,9 @@
     toasts.update((toasts) => [...toasts, { message, color: 'alert-success', icon: 'lucide--circle-check-big' }]);
   }
 </script>
-
+<svelte:head>
+  <title>Profile - {profile.name}</title>
+</svelte:head>
 <div class="w-full h-56 min-h-56 max-h-56 select-none relative z-0 mb-16">
   <Picture
     src={profile.banner}

@@ -3,6 +3,7 @@
   import { onMount } from 'svelte';
   import Sublayout from '$components/yomikaze/sublayout.svelte';
   import HistoryManagement from '$utils/history-utils';
+    import Picture from '$components/picture.svelte';
 
   export let data;
   let statOfDeleteButton : boolean;
@@ -59,7 +60,7 @@
     </div>
   </dialog>
   {#if statOfDeleteButton}
-  <button class="self-center btn btn-square btn-error" onclick="my_modal_1.showModal()">
+  <button class="btn btn-error flex gap-2" onclick="my_modal_1.showModal()">
     <span class="iconify lucide--trash-2 text-xl"></span>
     <p>Clear all history</p>  
   </button>
@@ -70,13 +71,7 @@
     <div class="container ml-20 mx-auto ">
       {#each historyData as data}
         <div class="bg-base-200 flex mb-4 p-2 rounded-lg shadow-md">
-          <div class="img-c">
-            <img
-              class="rounded-md shadow w-full h-full object-contain"
-              src={`https://i.yomikaze.org${data.comic.cover}`}
-              alt={data.comic.name}
-            />
-          </div>
+          <Picture src={data.comic.cover} useCdn={true} class="w-20 h-fit aspect-cover" imgClass="rounded-md shadow object-contain w-full h-full"></Picture>
           <div class="flex-1 ml-4">
             <div class="grid grid-flow-col justify-stretch border-b border-black/30">
               <div class="flex flex-col gap-1">
@@ -125,10 +120,3 @@
       {/each}
     </div>
 </Sublayout>
-
-<style>
-  .img-c {
-    height: 120px;
-    width: 80px;
-  }
-</style>
