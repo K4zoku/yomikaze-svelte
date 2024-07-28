@@ -817,7 +817,7 @@
         </select>
       </div>
     </div>
-    <div class="flex gap-6 items-center justify-around">
+    <div class="flex gap-6 items-center justify-center">
       <!-- text stroke -->
       <div class="flex items-center gap-1">
         <Icon icon="lucide--type-outline" class="text-2xl shrink-0" />

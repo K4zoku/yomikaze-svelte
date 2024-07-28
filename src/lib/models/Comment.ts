@@ -3,7 +3,7 @@ import type Profile from "./Profile";
 
 export default interface Comment extends Model {
     content: string;
-    readonly profile: Profile;
+    readonly author: Profile;
     readonly authorId: string;
     readonly replyToId: string;
 }
