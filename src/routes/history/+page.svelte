@@ -4,6 +4,8 @@
   import Sublayout from '$components/yomikaze/sublayout.svelte';
   import HistoryManagement from '$utils/history-utils';
     import Picture from '$components/picture.svelte';
+    import ComicStatus from '$components/yomikaze/common/comic/comic-status.svelte';
+    import Time from 'svelte-time/Time.svelte';
 
   export let data;
   let statOfDeleteButton : boolean;
@@ -71,45 +73,53 @@
     <div class="container ml-20 mx-auto ">
       {#each historyData as data}
         <div class="bg-base-200 flex mb-4 p-2 rounded-lg shadow-md">
-          <Picture src={data.comic.cover} useCdn={true} class="w-20 h-fit aspect-cover" imgClass="rounded-md shadow object-contain w-full h-full"></Picture>
+          <Picture src={data.comic.cover} useCdn={true} class="h-36 w-fit aspect-cover" imgClass="rounded-md shadow object-contain w-full h-full"></Picture>
           <div class="flex-1 ml-4">
-            <div class="grid grid-flow-col justify-stretch border-b border-black/30">
-              <div class="flex flex-col gap-1">
-                <p class="font-bold text">{data.comic.name}</p>
-                <p class="text-xs">{data.comic.authors.join(', ')}</p>
+            <div class="flex flex-col gap">
+              <div class="flex justify-between items-center w-full">
+                <p class="font-bold text-xl">{data.comic.name}</p>
+               
+                 <div class="flex">
+                  <ComicStatus status={data.comic.status}></ComicStatus>
+                  <button
+                    class="self-center btn btn-square btn-sm"
+                    on:click={() => deleteHistoryRecord(data.id)}
+                  >
+                    <span class="iconify lucide--trash-2 text-xl"></span>
+                  </button>
+                 </div>
               </div>
-              <div class="flex justify-end gap-4">
-                <p class="text-xs self-center">{data.comic.status}</p>
-                <button
-                  class="self-center btn btn-square btn-sm"
-                  on:click={() => deleteHistoryRecord(data.id)}
-                >
-                  <span class="iconify lucide--trash-2 text-xl"></span>
-                </button>
+              <div class="flex">
+                  <p class="text-sm">{data.comic.authors.join(', ')}</p>
               </div>
             </div>
+            <hr class="border my-2">
             <div class="bg-base-200">
               <div>
-                <a href="">
+                <a href="/comics/{data.comic.id}/chapters/{data.chapter.number}">
                   <div class="flex mb-2 mt-2 h-14 hover:bg-neutral-300 p-1 justify-between">
-                    <p class="text-xs font-bold">Ch.{data.chapter.number} - {data.chapter.name}</p>
-                    <div class="grid grid-cols-2 gap-2">
-                      <div class="flex gap-2">
-                        <span class="iconify lucide--clock text-xl"></span>
-                        <p class="text-xs">Time</p>
+                    <p class="text-base font-bold">Ch.{data.chapter.number} - {data.chapter.name}</p>
+                    <div class="flex gap-2 items-center">
+                      <div class="flex flex-col gap-2">
+                        <div class="flex gap-1 items-center">
+                          <span class="iconify lucide--clock text-xl"></span>
+                          <Time timestamp={data.creationTime} relative></Time>
+                        </div>
+                        <div class="flex gap-1 items-center">
+                          <span class="iconify lucide--user text-xl"></span>
+                          <p class="text-sm">{data.comic.publisher.name}</p>
+                        </div>
                       </div>
-                      <div class="flex w-16 ml-10 gap-2">
+                     <div class="flex flex-col items-start gap-2">
+                      <div class="flex gap-1 items-center">
                         <span class="iconify lucide--eye text-xl"></span>
-                        <p class="text-xs">{data.chapter.views}</p>
+                        <p class="text-sm">{data.chapter.views}</p>
                       </div>
-                      <div class="flex gap-2">
-                        <span class="iconify lucide--user text-xl"></span>
-                        <p class="text-xs">{data.comic.publisher.name}</p>
-                      </div>
-                      <div class="flex w-16 ml-10 gap-2">
+                      <div class="flex gap-1 items-center">
                         <span class="iconify lucide--message-square text-xl"></span>
-                        <p class="text-xs">{data.chapter.totalComments}</p>
+                        <p class="text-sm">{data.chapter.totalComments}</p>
                       </div>
+                     </div>
                     </div>
                   </div>
                 </a>
