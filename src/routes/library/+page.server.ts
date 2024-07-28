@@ -47,9 +47,7 @@ export const load: PageServerLoad = (async ({ cookies, url }) => {
             break;
         default: {
             const categoryId = categories.find(c => c.name === tab)?.id;
-            if (!categoryId) {
-                throw error(404, 'Category not found');
-            }
+            if (!categoryId) { tab = 'default'; }
             entries = await libraryManagement.getEntriesByCategory(categoryId, search);
             break;
         }

@@ -19,13 +19,16 @@
   let openCreateModal: () => Promise<void>;
   let model: LibraryCategory | LibraryCategoryCreate;
   let editMode: boolean;
-  let handleOnModalSuccess = async (event: CustomEvent<LibraryCategory>) => {
-    let model = event.detail;
-    const index = categories.findIndex((c) => c.name === model.name);
-    if (index !== -1) categories[index] = model as LibraryCategory;
-    else categories.push(model as LibraryCategory);
+
+  const handleCreateSuccess = (event: CustomEvent<LibraryCategory>) => {
+    categories.push(event.detail);
     categories = [...categories]; // force update
-    await tick();
+  };
+
+  const handleEditSuccess = (event: CustomEvent<LibraryCategory>) => {
+    const index = categories.findIndex((c) => c.id === event.detail.id);
+    if (index !== -1) categories[index] = event.detail;
+    categories = [...categories]; // force update
   };
 
   let openDeleteModal: () => void;
@@ -64,7 +67,8 @@
   bind:open={openCreateModal}
   bind:model
   bind:editMode
-  on:success={handleOnModalSuccess}
+  on:create={handleCreateSuccess}
+  on:edit={handleEditSuccess}
 />
 <DeleteCategory
   {libraryManagement}
@@ -110,7 +114,7 @@
               on:click={() => {
                 editMode = true;
                 model = category;
-                openCreateModal();
+                tick().then(() => openCreateModal());
               }}
             >
               <Icon icon="lucide--edit" class="text-xl" />

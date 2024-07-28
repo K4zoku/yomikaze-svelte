@@ -41,14 +41,16 @@
     try {
       if (editMode) {
         const data = { ...model, name } as LibraryCategory;
-        model = await libraryManagement.updateCategory(data);
+        await libraryManagement.updateCategory(data);
+        model = {...data};
         addToast('Category saved');
+        dispatch('edit', model as LibraryCategory);
       } else {
         const data = { ...model, name } as LibraryCategoryCreate;
         model = await libraryManagement.createCategory(data);
         addToast('Category created successfully');
+        dispatch('create', model);
       }
-      dispatch('success', model);
     } catch (e) {
       const { response } = e as AxiosError;
       if (response) {
