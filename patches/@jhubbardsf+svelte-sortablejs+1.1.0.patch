@@ -10,3 +10,19 @@ index 2fdbf19..5b8f1a9 100644
  // Svelte Library Variables
  let list;
  let sortable;
+diff --git a/node_modules/@jhubbardsf/svelte-sortablejs/package.json b/node_modules/@jhubbardsf/svelte-sortablejs/package.json
+index 1c3b69d..018d2d4 100644
+--- a/node_modules/@jhubbardsf/svelte-sortablejs/package.json
++++ b/node_modules/@jhubbardsf/svelte-sortablejs/package.json
+@@ -54,7 +54,9 @@
+   "exports": {
+     "./package.json": "./package.json",
+     "./SortableList.svelte": "./SortableList.svelte",
+-    ".": "./index.js"
++    ".": {
++      "svelte": "./index.js"
++    }
+   },
+   "svelte": "./index.js"
+ }
+\ No newline at end of file

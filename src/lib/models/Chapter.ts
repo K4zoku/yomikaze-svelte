@@ -1,12 +1,12 @@
 import type Model from './Model';
 
 export default interface Chapter extends Model {
-  readonly view: number;
+  readonly views: number;
   readonly hasLock: boolean;
   comicId: string;
   number: number;
   name: string;
-  pages: number;
+  pages: string[];
   price: number;
   isRead: boolean;
   readonly isUnlocked: boolean;
