@@ -5,6 +5,6 @@ export const load : PageServerLoad = (async ({ cookies }) => {
     const token = await getToken(cookies);
     
     return {
-        
+        token
     };
 }) satisfies PageServerLoad;
