@@ -2,12 +2,14 @@
   import http from '$lib/utils/http';
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
+    import type Comic from '$models/Comic';
 
   let cover = 'https://i.yomikaze.org';
-  let comics = [];
+  let comics: Array<Comic> = [];
   let comicToDelete = null;
   let comicName = '';
   let totals = 0;
+  let deleteModal;
 
   const getComics = async () => {
     try {
@@ -38,7 +40,7 @@
     }
   };
 
-  const deleteComic = async (key) => {
+  const deleteComic = async (key: string) => {
     try {
       const response = await http.delete(`/comics/${key}`);
       comics = comics.filter((comic) => comic.id !== key);
@@ -51,7 +53,7 @@
     } finally {
       comicToDelete = null;
       comicName = '';
-      document.getElementById('delete_modal').close();
+      deleteModal.close();
     }
   };
 
@@ -76,7 +78,7 @@
   function openDeleteModal(comic) {
     comicToDelete = comic;
     comicName = comic.name;
-    document.getElementById('delete_modal').showModal();
+    deleteModal.showModal();
   }
 </script>
 
@@ -154,7 +156,7 @@
                     >
                     <span class="text-base font-semibold">{comic.status}</span>
                   </div>
-                  <details class="dropdown dropdown-bottom dropdown-left flex items-center">
+                  <details class="dropdown dropdown-bottom dropdown-left flex items-center my-auto">
                     <summary class="btn btn-sm btn-circle text-base">
                       <span class="iconify lucide--ellipsis-vertical text-xl"></span>
                     </summary>
@@ -171,11 +173,6 @@
                           <span class="iconify lucide--trash-2 text-xl"></span>
                           <span class="text-base font-medium">Delete</span>
                         </button>
-                        <!-- <button on:click={() => deleteComic(comic.id)}
-                          ><span class="iconify lucide--trash-2 text-xl"></span><span
-                            class="text-base font-medium">Delete</span
-                          ></button
-                        > -->
                       </li>
                     </ul>
                   </details>

@@ -201,37 +201,37 @@
 
 <div class=" mt-20">
   {#if loading}
-  <div class="  w-11/12 mx-auto">
-    <div class=" float-left mr-4">
-      <div class="skeleton w-52 h-72 shrink-0"></div>
-    </div>
-    <div class="flex-grow flex flex-col justify-evenly gap-10">
-      <div class="flex flex-col gap-3">
-        <div class="skeleton h-10 w-full"></div>
-        <div class="skeleton h-10 w-56"></div>
+    <div class="  w-11/12 mx-auto">
+      <div class=" float-left mr-4">
+        <div class="skeleton w-52 h-72 shrink-0"></div>
       </div>
-      <div class="skeleton h-4 w-96"></div>
+      <div class="flex-grow flex flex-col justify-evenly gap-10">
+        <div class="flex flex-col gap-3">
+          <div class="skeleton h-10 w-full"></div>
+          <div class="skeleton h-10 w-56"></div>
+        </div>
+        <div class="skeleton h-4 w-96"></div>
+      </div>
+      <div class="flex gap-3 mt-3">
+        <div class="skeleton h-10 w-32"></div>
+        <div class="skeleton h-10 w-24"></div>
+        <div class="skeleton h-10 w-20"></div>
+        <div class="skeleton h-10 w-28"></div>
+      </div>
+      <div class="flex gap-3 mt-3">
+        <div class="skeleton h-4 w-10"></div>
+        <div class="skeleton h-4 w-10"></div>
+        <div class="skeleton h-4 w-10"></div>
+        <div class="skeleton h-4 w-10"></div>
+        <div class="skeleton h-6 w-32"></div>
+      </div>
+      <div class="flex gap-3 mt-3">
+        <div class="skeleton h-4 w-10"></div>
+        <div class="skeleton h-4 w-10"></div>
+        <div class="skeleton h-4 w-10"></div>
+      </div>
+      <div class="skeleton h-32 w-full mt-10"></div>
     </div>
-    <div class="flex gap-3 mt-3">
-      <div class="skeleton h-10 w-32"></div>
-      <div class="skeleton h-10 w-24"></div>
-      <div class="skeleton h-10 w-20"></div>
-      <div class="skeleton h-10 w-28"></div>
-    </div>
-    <div class="flex gap-3 mt-3">
-      <div class="skeleton h-4 w-10"></div>
-      <div class="skeleton h-4 w-10"></div>
-      <div class="skeleton h-4 w-10"></div>
-      <div class="skeleton h-4 w-10"></div>
-      <div class="skeleton h-6 w-32"></div>
-    </div>
-    <div class="flex gap-3 mt-3">
-      <div class="skeleton h-4 w-10"></div>
-      <div class="skeleton h-4 w-10"></div>
-      <div class="skeleton h-4 w-10"></div>
-    </div>
-    <div class="skeleton h-32 w-full mt-10"></div>
-  </div>
   {:else}
     <div class=" w-full h-96 border-2 brightness-50 items-center">
       <picture>
