@@ -50,7 +50,7 @@
   </script>
   
   <svelte:window on:scroll={handleScroll} bind:scrollY />
-  <div class="transition-all duration-500 h-screen" class:shifted={active}>
+  <div class="transition-margin duration-150 h-screen" class:shifted={active}>
     {#each pageElements as page, index (index)}
       <div class="h-full" bind:this={page.element}>
         <img class="object-contain max-h-full max-w-full" src={page.url} alt={`${index + 1}`} />
@@ -62,14 +62,13 @@
     min="0"
     max={pageElements.length -1}
     bind:value
-    on:change={handleChange}
-    class="range range-accent fixed bottom-2 w-96"
+    on:input={handleChange}
+    class="range range-accent fixed bottom-2 w-full"
     step="1"
   />
   
   <style>
     .shifted {
-      transition: all 0.15s;
       margin-right: 300px;
     }
   </style>

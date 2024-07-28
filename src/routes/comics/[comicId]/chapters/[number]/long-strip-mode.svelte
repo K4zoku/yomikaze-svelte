@@ -62,7 +62,7 @@
     min="0"
     max={pageElements.length -1}
     bind:value
-    on:change={handleChange}
+    on:input={handleChange}
     class="range range-accent fixed bottom-2 w-96"
     step="1"
   />

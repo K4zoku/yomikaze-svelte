@@ -2,6 +2,7 @@
     import Carousel from 'svelte-carousel';
     import LongStripMode from './long-strip-mode.svelte';
     import SinglePageMode from './single-page-mode.svelte';
+    import { goto } from '$app/navigation';
     export let data;
     let { chapter, chapters, comic } = data;
     let active = false;
@@ -106,9 +107,12 @@
           <div class="grow h-14 flex rounded-md">
             <select
               class="bg-base-200 select select-bordered h-full w-full max-w-xs select-page self-center"
+              on:change={(event) => {
+                if (event.target) goto(event.target.value);
+              }}
             >
-              {#each chapters as listChapter, index}
-                <option>Chapter {index + 1}</option>
+              {#each chapters as chapter, index}
+                <option value="/comics/{chapter.comicId}/chapters/{chapter.number}">Chapter {index + 1}</option>
               {/each}
             </select>
           </div>
@@ -140,9 +144,6 @@
             <option value=""></option>
           </select>
         </div>
-      </div>
-      <div>
-        <button>Comment</button>
       </div>
     </aside>
     <div class="h-screen">
