@@ -14,15 +14,15 @@ export default interface Comic extends Model {
     tags: Array<Tag>,
     publisher: Profile,
     tagIds?: Array<string | bigint>,
-    readonly totalChapters?: number,
-    readonly totalViews?: number,
-    readonly averageRating?: number,
-    readonly totalRatings?: number,
-    readonly totalFollows?: number,
-    readonly totalComments?: number,
-    readonly isFollowing?: boolean,
-    readonly isRated?: boolean,
-    readonly myRating?: number
+    totalChapters?: number,
+    totalViews?: number,
+    averageRating?: number,
+    totalRatings?: number,
+    totalFollows?: number,
+    totalComments?: number,
+    isFollowing?: boolean,
+    isRated?: boolean,
+    myRating?: number
 }
 
 export enum ComicStatus {

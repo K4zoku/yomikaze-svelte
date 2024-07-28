@@ -5,6 +5,7 @@ import type Chapter from "$models/Chapter";
 import type PagedResult from "$models/PagedResult";
 import type Pagination from "$models/Pagination";
 import type { ComicStatus } from "$models/Comic";
+import { appendQueryParams } from "./common";
 
 const CDN_BASE_URL = PUBLIC_CDN_BASE_URL ?? "https://i.yomikaze.org";
 
@@ -78,6 +79,20 @@ export async function getLatestChapter(comicId: string | bigint) : Promise<Chapt
     return data.results[0];    
 }
 
+export async function getChapters(comicId: string | bigint, token?: string, pagination?: Pagination) : Promise<PagedResult<Chapter>> {
+    let url: URL = new URL(`/comics/${comicId}/chapters`, http.defaults.baseURL);
+    if (pagination) {
+        appendQueryParams(url.searchParams, pagination);
+    } else {
+        url.searchParams.set("Pagination", "false");
+    }
+    let response = await http.get(url.pathname + url.search, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined
+    });
+    let data = response.data as PagedResult<Chapter>;
+    return data;
+}
+
 
 export function normalizeComic(comic: Comic) : Comic {
     if (comic.cover) comic.cover = trySetBaseUrl(comic.cover);
@@ -85,13 +100,19 @@ export function normalizeComic(comic: Comic) : Comic {
     return comic;
 }
 
-export function getComic(id: string | bigint, token?: string) : Promise<Comic> {
-    return http.get(`/comics/${id}`, {
+export async function getComic(id: string | bigint, token?: string) : Promise<Comic> {
+    return await http.get(`/comics/${id}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined
-    }).then(response => response.data as Comic);
+    }).then(response => normalizeComic(response.data));
 }
 
-function trySetBaseUrl(url: string) : string {
+export async function rateComic(id: string | bigint, rating: number, token: string) : Promise<void> {
+    await http.put(`/comics/${id}/rate`, { rating }, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+}
+
+export function trySetBaseUrl(url: string) : string {
     let result: URL;
     try {
         result = new URL(url);

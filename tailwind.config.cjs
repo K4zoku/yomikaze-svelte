@@ -23,7 +23,12 @@ module.exports = {
       }
     }
   },
-  plugins: [require('@tailwindcss/typography'), require('tailwind-scrollbar')({ nocompatible: true }), require('daisyui'), addIconSelectors(['lucide', 'hugeicons', 'la', 'fluent'])],
+  plugins: [
+    require('@tailwindcss/typography'), 
+    require('tailwind-scrollbar')({ nocompatible: true }), 
+    require('daisyui'), 
+    addIconSelectors(['lucide', 'hugeicons', 'la', 'fluent', 'majesticons', 'material-symbols'])
+  ],
   daisyui: {
     darkTheme: 'ayu-mirage',
     themes: [

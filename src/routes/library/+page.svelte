@@ -15,7 +15,7 @@
   import { tick } from 'svelte';
   import type { PageData } from './$types';
   import CategoryManage from './category-manage.svelte';
-    import { persistent } from '@furudean/svelte-persistent-store';
+  import { persistent } from '@furudean/svelte-persistent-store';
 
   export let data: PageData;
   const pageName = 'Library';
@@ -24,7 +24,7 @@
   let { tab, entries, search } = data;
   const { token } = data;
   const libraryManagement = new LibraryManagement(token);
-  
+
   let categoriesOrders = persistent({
     key: 'categories_orders',
     start_value: [] as string[],
@@ -40,7 +40,6 @@
   }
 
   $: categoriesOrders.set(categories.map((c) => c.id));
-  
 
   let emptyMessage: string;
   $: {
@@ -126,7 +125,8 @@
 
   let openCategoryManagementModal: () => void;
 
-  const tabClass = 'tab flex items-center justify-center gap-1 snap-start min-w-28 text-ellipsis overflow-hidden line-clamp-1';
+  const tabClass =
+    'tab flex items-center justify-center gap-1 snap-start min-w-28 text-ellipsis overflow-hidden line-clamp-1';
 </script>
 
 <Sublayout {pageName}>
@@ -136,7 +136,7 @@
         <a
           href="?tab=all"
           data-tab="all"
-          class="{tabClass}"
+          class={tabClass}
           class:tab-active={tab === 'all'}
           draggable="false"
           on:click={handleOnClickTab}
@@ -146,7 +146,7 @@
         <a
           href="?tab=default"
           data-tab="default"
-          class="{tabClass}"
+          class={tabClass}
           class:tab-active={tab === 'default'}
           draggable="false"
           on:click={handleOnClickTab}
@@ -158,7 +158,7 @@
             <a
               href="?tab={category.name}"
               data-tab={category.name}
-              class="{tabClass}"
+              class={tabClass}
               title={category.name}
               class:tab-active={tab === category.name || tab === category.id}
               draggable="false"

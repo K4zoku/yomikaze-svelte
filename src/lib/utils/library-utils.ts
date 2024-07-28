@@ -98,4 +98,8 @@ export class LibraryManagement {
         const removed = await this.removeEntryFromCategories(comicId, [categoryId]);
         return removed.length == 1;
     }
+
+    async deleteEntry(comicId: string): Promise<void> {
+        await this.http.delete(`${LIBRARY_ENDPOINT}/${comicId}`);
+    }
 }

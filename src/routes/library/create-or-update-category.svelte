@@ -5,8 +5,7 @@
   import type Problem from '$models/ProblemResponse';
   import type { LibraryManagement } from '$utils/library-utils';
   import type { AxiosError } from 'axios';
-  import { tick } from 'svelte';
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, getContext, tick } from 'svelte';
 
   const dispatch = createEventDispatcher();
 
@@ -43,9 +42,11 @@
       if (editMode) {
         const data = { ...model, name } as LibraryCategory;
         model = await libraryManagement.updateCategory(data);
+        addToast('Category saved');
       } else {
         const data = { ...model, name } as LibraryCategoryCreate;
         model = await libraryManagement.createCategory(data);
+        addToast('Category created successfully');
       }
       dispatch('success', model);
     } catch (e) {
@@ -79,6 +80,13 @@
     sumitting = false;
     await tick();
     close();
+  }
+
+  import type { Writable } from 'svelte/store';
+  import type { ToastProps } from '../+layout.svelte';
+  const toasts = getContext<Writable<ToastProps[]>>('toasts');
+  function addToast(message: string, color: string = 'alert-success') {
+    toasts.update((toasts) => [...toasts, { message, color, icon: 'lucide--circle-check-big' }]);
   }
 
 </script>

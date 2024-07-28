@@ -6,7 +6,10 @@
   import type AuthDataStore from '$models/AuthDataStore';
   import type Pagination from '$models/Pagination.js';
   import { getComics, type GetComicsOptions } from '$utils/comic-utils.js';
-  import { getContext, tick } from 'svelte';
+  import { getContext, tick, type ComponentType } from 'svelte';
+  import Toast from '../../../lib/components/daisyui/toast.svelte';
+    import type { Writable } from 'svelte/store';
+    import type { ToastProps } from '~/routes/+layout.svelte';
 
   let roleRequestModal: HTMLDialogElement;
   let reportModal: HTMLDialogElement;
@@ -52,8 +55,14 @@
     if (event.target instanceof HTMLAnchorElement) {
       if (navigator.clipboard) {
         navigator.clipboard.writeText(event.target.href);
+        addToast('Profile link copied to clipboard!');
       }
     }
+  }
+
+  const toasts = getContext<Writable<ToastProps[]>>('toasts');
+  function addToast(message: string) {
+    toasts.update((toasts) => [...toasts, { message, color: 'alert-success', icon: 'lucide--circle-check-big' }]);
   }
 </script>
 

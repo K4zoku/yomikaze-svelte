@@ -21,7 +21,7 @@
   let editMode: boolean;
   let handleOnModalSuccess = async (event: CustomEvent<LibraryCategory>) => {
     let model = event.detail;
-    const index = categories.findIndex((c) => c.id === model.id);
+    const index = categories.findIndex((c) => c.name === model.name);
     if (index !== -1) categories[index] = model as LibraryCategory;
     else categories.push(model as LibraryCategory);
     categories = [...categories]; // force update

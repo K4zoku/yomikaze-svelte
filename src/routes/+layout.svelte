@@ -1,3 +1,12 @@
+<script context="module" lang="ts">
+  export interface ToastProps {
+    message: string;
+    color?: string;
+    duration?: number;
+    icon?: string;
+  }
+</script>
+
 <script lang="ts">
   import '~/app.postcss';
 
@@ -15,6 +24,7 @@
   import { onDestroy, setContext } from 'svelte';
   import { writable, type Writable } from 'svelte/store';
 
+  import Toast from '$components/daisyui/toast.svelte';
   import http from '$utils/http';
   import type { LayoutData } from './$types';
 
@@ -30,9 +40,9 @@
   if (localStorage.getItem('token')) {
     token.set(localStorage.getItem('token'));
   }
-
-
-
+  
+  const toasts = writable<ToastProps[]>([]);
+  setContext("toasts", toasts);
   let path: string;
   $: path = $page.url.pathname;
 
@@ -158,7 +168,7 @@
                 <li>
                   <a href="/updates" class:active={path === '/updates'}> Latest Updates </a>
                 </li>
-                <li data-sveltekit-reload>
+                <li>
                   <a href="/comics/random"> Random </a>
                 </li>
               </ul>
@@ -560,6 +570,11 @@
       class:w-drawer-content={drawerOpened}
     >
       <slot />
+      <div class="toast toast-end">
+        {#each $toasts as toast}
+          <Toast {...toast} />
+        {/each}
+      </div>
     </main>
   </div>
 </div>
