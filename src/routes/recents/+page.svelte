@@ -4,7 +4,6 @@
   import { getComics } from '$utils/comic-utils';
   import ComicList from '$components/yomikaze/common/comic/comic-list.svelte';
   let pageName = 'Recently Added';
-  let dataOfRecentComic = [];
   async function loadFn(pagination: Pagination) {
     pagination.size = 12;
     return await getComics({...pagination, orderBy:["LastModifiedDesc", "CreationTimeDesc"]});

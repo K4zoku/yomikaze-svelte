@@ -6,12 +6,13 @@
     import Picture from '$components/picture.svelte';
     import ComicStatus from '$components/yomikaze/common/comic/comic-status.svelte';
     import Time from 'svelte-time/Time.svelte';
+    import type HistoryRecord from '$models/HistoryRecord.js';
 
   export let data;
   let statOfDeleteButton : boolean;
   let { token } = data;
   const pageName = 'History';
-  let historyData = [];
+  let historyData:HistoryRecord[] =[];
   let historyManagement = new HistoryManagement(token);
   async function getHistory() {
     const response = await historyManagement.getHistories();
@@ -24,7 +25,7 @@
     
     // await http.get(`/comics/${historyData.comic.id}/chapters/${number}`);
   }
-  async function deleteHistoryRecord(key: number) {
+  async function deleteHistoryRecord(key: string) {
     await historyManagement.deleteHistory(key);
     alert('History record was deleted');
     await getHistory();
@@ -38,6 +39,8 @@
     await getHistory();
    
   });
+
+  let deleteModal : HTMLDialogElement;
 </script>
 
 <svelte:head>
@@ -45,7 +48,7 @@
 </svelte:head>
 <Sublayout {pageName}>
 <div class="flex justify-end mr-6 mb-8">
-  <dialog id="my_modal_1" class="modal">
+  <dialog bind:this={deleteModal} class="modal">
     <div class="modal-box">
       <div class="flex gap-4">
         <span class="iconify lucide--circle-alert text-xl bg-red-500 self-center"></span>
@@ -62,7 +65,7 @@
     </div>
   </dialog>
   {#if statOfDeleteButton}
-  <button class="btn btn-error flex gap-2" onclick="my_modal_1.showModal()">
+  <button class="btn btn-error flex gap-2" on:click={() => deleteModal.showModal()}>
     <span class="iconify lucide--trash-2 text-xl"></span>
     <p>Clear all history</p>  
   </button>
