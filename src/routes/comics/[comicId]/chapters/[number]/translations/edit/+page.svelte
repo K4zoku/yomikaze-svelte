@@ -776,7 +776,11 @@
     </div>
     <div class="flex gap-6 items-center justify-around">
       <!-- text color -->
-      <div class="flex items-center tooltip" data-tip="Text color" class:cursor-not-allowed={currentBox === undefined}>
+      <div
+        class="flex items-center tooltip"
+        data-tip="Text color"
+        class:cursor-not-allowed={currentBox === undefined}
+      >
         <Icon icon="lucide--droplet" class="text-2xl shrink-0" />
         <div
           class:pointer-events-none={currentBox === undefined}
@@ -786,7 +790,11 @@
         </div>
       </div>
       <!-- background color -->
-      <div class="flex items-center tooltip" data-tip="Background color" class:cursor-not-allowed={currentBox === undefined}>
+      <div
+        class="flex items-center tooltip"
+        data-tip="Background color"
+        class:cursor-not-allowed={currentBox === undefined}
+      >
         <Icon icon="lucide--droplet" class="text-2xl shrink-0" />
         <div
           class:pointer-events-none={currentBox === undefined}
@@ -827,7 +835,11 @@
         </select>
       </div>
       <!-- stroke color -->
-      <div class="flex items-center tooltip" data-tip="Stroke color" class:cursor-not-allowed={currentBox === undefined || textFormat.stroke === 0}>
+      <div
+        class="flex items-center tooltip"
+        data-tip="Stroke color"
+        class:cursor-not-allowed={currentBox === undefined || textFormat.stroke === 0}
+      >
         <Icon icon="lucide--droplet" class="text-2xl shrink-0" />
         <div
           class:pointer-events-none={currentBox === undefined || textFormat.stroke === 0}
@@ -839,26 +851,35 @@
     </div>
     <!-- action -->
     <div class="flex mt-4 items-center justify-center">
-      {#await ocrAwaiter}
-        <button class="btn btn-accent btn-disabled btn-block">
-          <span class="loading loading-infinity"></span>
-          Translating...
-        </button>
-      {:then _}
-        {#if currentPage.boxes.length > 0}
-          <div class="tooltip w-full" data-tip="You must clear all boxes to run again">
-            <button class="btn btn-accent btn-disabled btn-block">
+      {#if currentPage}
+        {#await ocrAwaiter}
+          <button class="btn btn-accent btn-disabled btn-block">
+            <span class="loading loading-infinity"></span>
+            Translating...
+          </button>
+        {:then _}
+          {#if currentPage.boxes.length > 0}
+            <div class="tooltip w-full" data-tip="You must clear all boxes to translate again">
+              <button class="btn btn-accent btn-disabled btn-block">
+                <Icon icon="lucide--sparkles" class="text-2xl" />
+                <span>Auto translate (AI)</span>
+              </button>
+            </div>
+          {:else}
+            <button class="btn btn-accent btn-block" on:click={handleTranslateButtonClick}>
               <Icon icon="lucide--sparkles" class="text-2xl" />
               <span>Auto translate (AI)</span>
             </button>
-          </div>
-        {:else}
-          <button class="btn btn-accent btn-block" on:click={handleTranslateButtonClick}>
+          {/if}
+        {/await}
+      {:else}
+        <div class="tooltip w-full" data-tip="You must select a page to translate">
+          <button class="btn btn-accent btn-disabled btn-block">
             <Icon icon="lucide--sparkles" class="text-2xl" />
             <span>Auto translate (AI)</span>
           </button>
-        {/if}
-      {/await}
+        </div>
+      {/if}
     </div>
     <div class="flex items-center mt-4 gap-2">
       <button class="btn btn-primary" on:click={save}>
