@@ -1,12 +1,13 @@
 <script lang="ts">
+  import Icon from '$components/icon.svelte';
   import Sublayout from '$components/yomikaze/sublayout.svelte';
   import { PUBLIC_STRIPE_KEY } from '$env/static/public';
   import type CoinPricing from '$models/CoinPricing';
   import { getCoin } from '$utils/coin-utils';
   import http from '$utils/http';
   import { loadStripe, type Stripe } from '@stripe/stripe-js';
-  import { EmbeddedCheckout } from 'svelte-stripe';
   import { onMount } from 'svelte';
+  import { EmbeddedCheckout } from 'svelte-stripe';
   let pageName = 'Coin Shop';
   async function getCoins(): Promise<CoinPricing[]> {
     const response = await getCoin({ size: 1000 });
@@ -18,10 +19,10 @@
   const { token } = data;
   http.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
-  let stripe: Stripe | null = null;
+  let stripe: Stripe;
 
   onMount(async () => {
-    stripe = await loadStripe(PUBLIC_STRIPE_KEY);
+    stripe = await loadStripe(PUBLIC_STRIPE_KEY) as Stripe;
   });
 
   async function getClientSecret(priceId: string): Promise<string> {
@@ -32,12 +33,11 @@
     return result.data.clientSecret;
   }
 
-  let clientSecret: string = '';
-
+  let checkoutModal: HTMLDialogElement;
+  let selectedPriceId: string;
   function handleClick(priceId: string) {
-    getClientSecret(priceId).then((clientSecret) => {
-      clientSecret = clientSecret;
-    });
+    selectedPriceId = priceId;
+    checkoutModal.showModal();
   }
 </script>
 
@@ -46,12 +46,12 @@
 </svelte:head>
 <Sublayout {pageName}>
   <div class="h-screen container">
-    {#await getCoins() then data}
+    {#await getCoins() then pricings}
       <div class="flex flex-col items-center justify-center text-center">
         <div class="flex flex-col gap-2 w-full items-center mt-5">
           <div class="grid grid-cols-3 justify-center gap-10 mt-10 mb-5">
-            {#each data as coinData}
-              <button on:click={() => handleClick(coinData.id)}>
+            {#each pricings as pricing}
+              <button on:click={() => handleClick(pricing.id)}>
                 <div
                   class="w-52 h-64 flex flex-col border-2 bg-base-300/50 drop-shadow-lg rounded-md btn"
                 >
@@ -59,12 +59,12 @@
                     <span class="iconify la--coins text-8xl text-warning"></span>
                   </div>
                   <div class="flex justify-center absolute bottom-14 self-center">
-                    <span class="text-xl font-semibold self-center">{coinData.amount}</span>
+                    <span class="text-xl font-semibold self-center">{pricing.amount}</span>
                   </div>
                   <div
                     class="w-28 h-6 flex justify-center border-2 rounded-lg border-success self-center absolute bottom-4"
                   >
-                    <h1 class="text-base self-center">${coinData.price}</h1>
+                    <h1 class="text-base self-center">${pricing.price}</h1>
                   </div>
                 </div>
               </button>
@@ -73,10 +73,32 @@
         </div>
       </div>
     {/await}
+
+    <dialog class="modal" bind:this={checkoutModal}>
+      <div class="modal-box">
+        <form method="dialog">
+          <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
+            <Icon icon="lucide--x" class="text-lg" />
+          </button>
+        </form>
+          {#await getClientSecret(selectedPriceId)}
+            <div class="flex items-center justify-center h-64">
+              <div class="loading loading-lg loading-ring">
+              </div>
+            </div>
+          {:then clientSecret}
+            <EmbeddedCheckout {stripe} {clientSecret} />
+          {:catch error}
+            <div class="flex items-center justify-center h-64">
+              <div class="flex gap-2 items-center">
+                <Icon icon="lucide--alert-circle" class="text-4xl text-error" />
+                <span class="text-xl text-error">
+                  {error.message || 'An error occurred'}
+                </span>
+              </div>
+            </div>
+          {/await}
+      </div>
+    </dialog>
   </div>
-  {#if stripe && clientSecret}
-    <EmbeddedCheckout {stripe} {clientSecret} />
-  {:else}
-    <div>Loading...</div>
-  {/if}
 </Sublayout>
