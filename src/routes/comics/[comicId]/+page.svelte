@@ -211,13 +211,13 @@
                 </summary>
                 <ul class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                   <li>
-                    <a href="./create">
+                    <a href="/comics/{comicId}/chapters/create">
                       <Icon icon="lucide--file-plus" class="text-xl" />
                       Create Chapter
                     </a>
                   </li>
                   <li>
-                    <a href="./edit">
+                    <a href="/comics/{comicId}">
                       <Icon icon="lucide--edit" class="text-xl" />
                       Edit Comic
                     </a>
