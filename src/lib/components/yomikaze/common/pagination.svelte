@@ -14,8 +14,8 @@
   let rightDots: boolean;
   let mid: number[];
 
-  $: leftDots = currentPage >= 3 && totalPages > 5;
-  $: rightDots = currentPage <= totalPages - 4 && totalPages > 5;
+  $: leftDots = currentPage > 4 && totalPages > 5;
+  $: rightDots = currentPage < totalPages - 3 && totalPages > 5;
   $: mid =
     totalPages === 5
       ? [2, 3, 4]

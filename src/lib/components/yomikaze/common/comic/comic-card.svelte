@@ -40,7 +40,7 @@
     </div>
   {:else}
     <span
-      class="self-start text-sm font-semibold text-left max-w-full text-ellipsis line-clamp-2 h-8 shrink-0"
+      class="self-start text-sm font-semibold text-left max-w-full text-ellipsis line-clamp-2 h-fit shrink-0"
     >
       {comic.name}
     </span>

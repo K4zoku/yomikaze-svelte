@@ -8,6 +8,8 @@
   let tagsContainer: HTMLDivElement;
   let accumulatedDelta = 0;
   function handleOnWheel(event: WheelEvent) {
+    if (event.deltaY === 0) return;
+    event.preventDefault();
     accumulatedDelta += event.deltaY / 2;
   }
   onMount(() => {
@@ -52,7 +54,7 @@
           </div>
           <div
             bind:this={tagsContainer}
-            on:wheel|preventDefault={handleOnWheel}
+            on:wheel={handleOnWheel}
             class="hidden sm:flex grow md:grow-0 gap-2 py-2 max-w-full overflow-x-scroll shrink-0"
           >
             {#each comic.tags as tag}

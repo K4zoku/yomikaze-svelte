@@ -1,5 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import Swap from '$components/daisyui/actions/swap.svelte';
+  import Icon from '$components/icon.svelte';
   import ComicList from '$components/yomikaze/common/comic/comic-list.svelte';
   import Sublayout from '$components/yomikaze/sublayout.svelte';
   import type Comic from '$models/Comic';
@@ -8,10 +10,12 @@
   import type PagedResult from '$models/PagedResult';
   import type PaginationModel from '$models/Pagination';
   import { normalizeComic } from '$utils/comic-utils';
-  import { appendQueryParams } from '$utils/common';
+  import { appendQueryParams, debounce } from '$utils/common';
   import { LibraryManagement } from '$utils/library-utils';
+  import { tick } from 'svelte';
   import type { PageData } from './$types';
   import CategoryManage from './category-manage.svelte';
+  import { persistent } from '@furudean/svelte-persistent-store';
 
   export let data: PageData;
   const pageName = 'Library';
@@ -21,14 +25,29 @@
   const { token } = data;
   const libraryManagement = new LibraryManagement(token);
 
+  let categoriesOrders = persistent({
+    key: 'categories_orders',
+    start_value: [] as string[],
+    storage_type: 'localStorage'
+  });
+
+  if ($categoriesOrders.length !== 0) {
+    categories = categories.sort((a, b) => {
+      const aIndex = $categoriesOrders.indexOf(a.id);
+      const bIndex = $categoriesOrders.indexOf(b.id);
+      return aIndex - bIndex;
+    });
+  }
+
+  $: categoriesOrders.set(categories.map((c) => c.id));
+
   let emptyMessage: string;
   $: {
     emptyMessage = search.name
       ? 'No comics found with the search term'
       : 'This feels empty... Try adding some comics!';
   }
-  let update = false;
-  $: update = !!search.name || !!search.orderBy ? !update : update;
+  let reload: () => void;
 
   async function loadComics(pagination: PaginationModel): Promise<PagedResult<Comic>> {
     search.page = pagination.page;
@@ -57,41 +76,80 @@
     return result;
   }
 
-  let searchInput: HTMLInputElement;
   function updateSearch() {
-    search.name = searchInput.value === '' ? undefined : searchInput.value;
-
-    const url = new URL(window.location.href);
-    appendQueryParams(url, search);
+    search.name = search.name || null;
+    const url = new URL(location.href);
+    appendQueryParams(url.searchParams, search, true);
     goto(url.toString());
+    tick().then(reload);
   }
-  function handleOnEnterPress(event: KeyboardEvent) {
-    if (event.key === 'Enter') {
-      updateSearch();
-    }
-  }
+
+  let [debouncedSearch, destroyDebounce] = debounce<void>(updateSearch, 500);
+
   function handleOnSearchClick() {
     updateSearch();
   }
 
+  async function handleOnClickTab(event: MouseEvent) {
+    if (event.target instanceof HTMLAnchorElement) {
+      const target = event.target as HTMLAnchorElement;
+      tab = target.dataset.tab ?? 'all';
+      search.page = 1;
+      search.name = null;
+      search.orderBy = null;
+      sortType = false;
+      sortOrder = false;
+      const url = new URL(location.href);
+      appendQueryParams(url.searchParams, search, true);
+      goto(url.toString());
+      await tick();
+      reload();
+    }
+  }
+
+  let sortType: boolean = false;
+  let sortOrder: boolean = false;
+
+  const sortMapping = [
+    LibraryEntrySearchOrderBy.Name,
+    LibraryEntrySearchOrderBy.NameDesc,
+    LibraryEntrySearchOrderBy.CreationTime,
+    LibraryEntrySearchOrderBy.CreationTimeDesc
+  ];
+
+  function updateSort() {
+    const sort = sortMapping[(+sortType << 1) | +sortOrder];
+    search.orderBy = sort;
+    updateSearch();
+  }
+
   let openCategoryManagementModal: () => void;
+
+  const tabClass =
+    'tab flex items-center justify-center gap-1 snap-start min-w-28 text-ellipsis overflow-hidden line-clamp-1';
 </script>
 
 <Sublayout {pageName}>
   <div class="flex gap-2 w-full">
     <div class="w-full grow overflow-x-scroll">
-      <div class="tabs tabs-boxed gap-2 p-2 shadow-inner" data-sveltekit-reload>
+      <div class="tabs tabs-boxed gap-2 p-2 shadow-inner">
         <a
           href="?tab=all"
-          class="tab flex items-center justify-center gap-1 snap-start min-w-28"
+          data-tab="all"
+          class={tabClass}
           class:tab-active={tab === 'all'}
+          draggable="false"
+          on:click={handleOnClickTab}
         >
           All
         </a>
         <a
           href="?tab=default"
-          class="tab flex items-center justify-center gap-1 snap-start min-w-28"
+          data-tab="default"
+          class={tabClass}
           class:tab-active={tab === 'default'}
+          draggable="false"
+          on:click={handleOnClickTab}
         >
           Default
         </a>
@@ -99,8 +157,12 @@
           {#each categories as category (category.id)}
             <a
               href="?tab={category.name}"
-              class="tab snap-start min-w-28 text-ellipsis overflow-hidden line-clamp-1"
+              data-tab={category.name}
+              class={tabClass}
+              title={category.name}
               class:tab-active={tab === category.name || tab === category.id}
+              draggable="false"
+              on:click={handleOnClickTab}
             >
               {category.name}
             </a>
@@ -113,59 +175,48 @@
     </button>
   </div>
 
-  <ComicList loadFn={loadComics} bind:update bind:emptyMessage>
-    <div class="flex grow w-full justify-between gap-2" slot="title">
+  <ComicList loadFn={loadComics} bind:reload bind:emptyMessage>
+    <div class="flex w-full mt-6 py-1" slot="header">
       <div class="text-xl font-semibold">
         {entries.totals
-          ? `${entries.totals} ${entries.totals > 1 ? 'titles' : 'title'}`
-          : 'No title'}
+          ? `${entries.totals} ${entries.totals > 1 ? 'comics' : 'comic'}`
+          : 'No comics here...'}
+      </div>
+    </div>
+    <div class="flex grow w-full justify-between gap-2" slot="controls">
+      <div class="flex gap-2">
+        <div class="flex items-center gap-1">
+          <Swap bind:active={sortType} on:change={() => updateSort()}>
+            <span slot="off">
+              <span class="text-accent">Name</span> | <span class="text-neutral">Date Added</span>
+            </span>
+            <span slot="on">
+              <span class="text-neutral">Name</span> | <span class="text-accent">Date Added</span>
+            </span></Swap
+          >
+          <Swap
+            rotate={true}
+            itemsClass="flex items-center"
+            bind:active={sortOrder}
+            on:change={() => updateSort()}
+          >
+            <Icon icon="lucide--sort-asc" class="text-xl" slot="off" />
+            <Icon icon="lucide--sort-desc" class="text-xl" slot="on" />
+          </Swap>
+        </div>
       </div>
       <div class="flex items-center justify-center gap-2">
-        <div class="join">
+        <form on:submit|preventDefault={handleOnSearchClick}>
           <label
-            class="join-item input input-bordered input-sm flex items-center gap-2 pr-4 w-73 border"
+            class="join-item z-10 input input-bordered focus:input-accent input-sm flex items-center gap-2 pr-4 w-73"
           >
-            <input
-              type="text"
-              class="grow-0"
-              placeholder="Search"
-              bind:this={searchInput}
-              on:keypress={handleOnEnterPress}
-            />
+            <input type="text" class="grow-0" placeholder="Search" bind:value={search.name} />
+            <span class="iconify lucide--search text-lg"></span>
           </label>
-          <button class="join-item btn btn-sm" on:click={handleOnSearchClick}>
-            <span class="iconify lucide--search text-2xl"></span>
-          </button>
-        </div>
-        <div class="join">
-          <label for="order" class="join-item btn btn-sm no-animation text-sm">Sort by:</label>
-          <select
-            id="order"
-            class="join-item select select-sm select-bordered"
-            bind:value={search.orderBy}
-          >
-            <option value="">---</option>
-            <option value={LibraryEntrySearchOrderBy.Name}>Name (A-Z)</option>
-            <option value={LibraryEntrySearchOrderBy.NameDesc}>Name (Z-A)</option>
-            <option value={LibraryEntrySearchOrderBy.CreationTime}>Date Added (Newest)</option>
-            <option value={LibraryEntrySearchOrderBy.CreationTimeDesc}>Date Added (Oldest)</option>
-          </select>
-        </div>
+          <button class="hidden" type="submit"> </button>
+        </form>
       </div>
     </div>
   </ComicList>
 </Sublayout>
 <CategoryManage bind:open={openCategoryManagementModal} bind:categories {libraryManagement} />
-<!-- DIALOG DELETE COMIC -->
-<dialog class="modal">
-  <div class="modal-box flex flex-col items-center text-center">
-    <span class="iconify lucide--alert-circle text-4xl text-error"></span>
-    <h3 class="text-lg font-bold">Are you sure you want to Delete Comic?</h3>
-    <div class="modal-action">
-      <form method="dialog">
-        <button class="btn btn-outline btn-error">Delete</button>
-        <button class="btn">Close</button>
-      </form>
-    </div>
-  </div>
-</dialog>

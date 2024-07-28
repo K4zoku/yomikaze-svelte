@@ -10,5 +10,7 @@ export async function load({ url, cookies }) {
     await saveToken(cookies, t).catch(() => {
         throw redirect(302, '/login?error=invalid_token');
     });
-    return { returnUrl };
+    return {
+        returnUrl: returnUrl ?? '/'
+    }
 }

@@ -10,19 +10,19 @@ export default interface Comic extends Model {
     banner?: string,
     publicationDate?: string | Date,
     authors: Array<string>
-    status: string | ComicStatus,
+    status: ComicStatus | ComicStatus.Cancelled | ComicStatus.Completed | ComicStatus.Hiatus | ComicStatus.OnGoing,
     tags: Array<Tag>,
     publisher: Profile,
     tagIds?: Array<string | bigint>,
-    readonly totalChapters?: number,
-    readonly totalViews?: number,
-    readonly averageRating?: number,
-    readonly totalRatings?: number,
-    readonly totalFollows?: number,
-    readonly totalComments?: number,
-    readonly isFollowing?: boolean,
-    readonly isRated?: boolean,
-    readonly myRating?: number
+    totalChapters?: number,
+    totalViews?: number,
+    averageRating?: number,
+    totalRatings?: number,
+    totalFollows?: number,
+    totalComments?: number,
+    isFollowing?: boolean,
+    isRated?: boolean,
+    myRating?: number
 }
 
 export enum ComicStatus {

@@ -5,7 +5,7 @@
   import { getComics } from '$utils/comic-utils';
 
   async function loadComics(pagination: Pagination) {
-    pagination.size = 18;
+    pagination.size = 2;
     return await getComics(pagination);
   }
 
@@ -13,7 +13,7 @@
 
 <Sublayout pageName="Drafts">
   <ComicList loadFn={loadComics}>
-    <div slot="title" class="flex justify-between items-center">
+    <div slot="header" class="flex justify-between items-center">
       <h1 class="text-2xl font-bold">Drafts</h1>
     </div>
   </ComicList>

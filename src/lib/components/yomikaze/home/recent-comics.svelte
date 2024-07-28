@@ -1,78 +1,63 @@
 <script lang="ts">
-  import type Comic from '$models/Comic';
-  import { onMount, tick } from 'svelte';
   import ComicCard from '$components/yomikaze/common/comic/comic-card.svelte';
+  import type Comic from '$models/Comic';
+  import { debounce } from '$utils/common';
+  import { onDestroy, onMount } from 'svelte';
 
   export let comics: Comic[];
 
-  let recentContainer: HTMLDivElement;
-  let recentContainerHovering = false;
+  let container: HTMLDivElement;
+  let hovering = false;
   let accumulatedDelta = 0;
-  let accumulatedItem = 0;
-  async function handleOnRecentWheel(event: WheelEvent) {
+  
+  async function handleOnWheel(event: WheelEvent) {
     if (event.deltaY === 0) return;
     event.preventDefault();
-    await tick();
     accumulatedDelta += event.deltaY;
-    if (accumulatedDelta > 0) {
-      ++accumulatedItem;
-    } else {
-      --accumulatedItem;
-    }
   }
+
+  const autoScroll = () => {
+    if (hovering || accumulatedDelta !== 0) {
+      scheduleAutoScroll(); // reschedule
+      return;
+    }
+    if (container.scrollLeft >= container.scrollWidth - container.clientWidth) {
+      accumulatedDelta = -container.scrollWidth;
+    } else {
+      accumulatedDelta += 200;
+    }
+    scheduleAutoScroll();
+  };
+  let [scheduleAutoScroll, destroyAutoScroll] = debounce<void>(autoScroll, 2000);
+  
+  let scroller: NodeJS.Timeout;
   onMount(() => {
-    setInterval(() => {
+    scroller = setInterval(() => {
       if (accumulatedDelta === 0) return;
-      const delta = accumulatedDelta;
+      container.scrollBy({
+        left: accumulatedDelta,
+        behavior: 'smooth'
+      });
       accumulatedDelta = 0;
-      const scrollLeftMax = recentContainer.scrollWidth - recentContainer.clientWidth;
-      if (delta > 0 && recentContainer.scrollLeft + 1 >= scrollLeftMax) {
-        // scroll down when reaching the end
-        recentContainer.scrollTo({
-          left: 0
-        });
-        return;
-      }
-      if (delta < 0 && recentContainer.scrollLeft <= 0) {
-        // scroll up when reaching the start
-        recentContainer.scrollTo({
-          left: scrollLeftMax
-        });
-        return;
-      }
-
-      recentContainer.scrollBy({
-        left: delta,
-        behavior: 'smooth'
-      });
     }, 100);
+    scheduleAutoScroll();
+  });
 
-    // auto scroll when not hovering
-    setInterval(() => {
-      if (!recentContainer) return;
-      if (recentContainerHovering || accumulatedDelta !== 0) return;
-      if (recentContainer.scrollLeft >= recentContainer.scrollWidth - recentContainer.clientWidth) {
-        recentContainer.scrollTo({
-          left: 0,
-          behavior: 'smooth'
-        });
-        return;
-      }
-      recentContainer.scrollBy({
-        left: 200,
-        behavior: 'smooth'
-      });
-    }, 2000);
+  onDestroy(() => {
+    destroyAutoScroll();
+    clearInterval(scroller);
   });
 </script>
 
 <div
-  class="overflow-x-scroll max-w-full w-full flex gap-6 snap-x scroll-smooth"
-  bind:this={recentContainer}
+  class="overflow-x-scroll max-w-full w-full flex gap-6 snap-x scroll-smooth pb-6 h-fit"
   role="list"
-  on:mouseenter={() => (recentContainerHovering = true)}
-  on:mouseleave={() => (recentContainerHovering = false)}
-  on:wheel={handleOnRecentWheel}
+  bind:this={container}
+  on:wheel={handleOnWheel}
+  on:mouseenter={() => (hovering = true)}
+  on:mouseleave={() => (hovering = false)}
+  on:touchstart={() => (hovering = true)}
+  on:touchend={() => (hovering = false)}
 >
   {#each comics as comic (comic.id)}
     <ComicCard {comic} />

@@ -8,10 +8,10 @@
 
     onMount(async () => {
         if (returnUrl) {
-            await goto(returnUrl, { invalidateAll: true }).catch(() => goto('/', { invalidateAll: true }));
+            await goto(returnUrl, { invalidateAll: true });
+        } else {
+            await goto('/', { invalidateAll: true });
         }
-        await delay(2000);
-        await goto('/', { invalidateAll: true });
     });
 </script>
 

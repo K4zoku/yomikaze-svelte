@@ -14,7 +14,7 @@ export async function isLoggedIn(cookies: Cookies): Promise<boolean> {
     const result = await jose.jwtVerify(token, SECRET)
         .then(() => true)
         .catch(() => {
-            cookies.delete('token', { path: '/' });
+            removeToken(cookies);
             return false;
         });
     return result;
@@ -26,10 +26,10 @@ export async function verifyToken(token: string): Promise<void> {
 
 export async function saveToken(cookies: Cookies, token: string): Promise<void> {
     await jose.jwtVerify(token, SECRET);
-    cookies.set('token', token, { path: '/', maxAge: 60 * 60 * 24 * 30 });
+    cookies.set('token', token, { path: '/', maxAge: 60 * 60 * 24 * 365 * 10 });
 }
 
-export async function removeToken(cookies: Cookies): Promise<void> {
+export function removeToken(cookies: Cookies) {
     cookies.delete('token', { path: '/' });
 }
 

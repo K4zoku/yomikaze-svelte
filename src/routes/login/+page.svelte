@@ -4,11 +4,12 @@
   import { PUBLIC_BASE_URL } from '$env/static/public';
   import type Login from '$models/Login.js';
   import { login } from '$utils/auth-utils.js';
-  import { getContext, onMount, tick } from 'svelte';
+  import { getContext, onDestroy, onMount, tick } from 'svelte';
 
   import type AuthDataStore from '$models/AuthDataStore.js';
   import type Problem from '$models/ProblemResponse.js';
   import type { AxiosError } from 'axios';
+  import { debounce } from '$utils/common.js';
 
   export let data;
   const { isAuthenticated } = getContext('auth') as AuthDataStore;
@@ -39,37 +40,50 @@
     } as Login
   };
 
+  function triggerReactivity() {
+    form = { ...form };
+  }
+
   async function validateUserName() {
     const { username } = form.values;
     const { errors } = form;
+    let validateOk = false;
     if (!username) {
-      console.log('username is required');
       errors.username = 'Username is required';
-      return false;
-    }
-    if (username.length < 3) {
+    } else if (username.length < 3) {
       errors.username = 'Username must be at least 3 characters';
-      return false;
+    } else {
+      validateOk = true;
+      errors.username = '';
     }
-    errors.username = '';
-    return true;
+    triggerReactivity();
+    return validateOk;
   }
+
+  let [debouncedValidateUserName, destroyDebouncedValidateUserName] = debounce<void>(validateUserName, 500);
 
   async function validatePassword() {
     const { password } = form.values;
     const { errors } = form;
-    await tick();
+    let validateOk = false;
     if (!password) {
       errors.password = 'Password is required';
-      return false;
-    }
-    if (password.length < 8) {
+    } else if (password.length < 8) {
       errors.password = 'Password must be at least 8 characters';
-      return false;
+    } else {
+      validateOk = true;
+      errors.password = '';
     }
-    errors.password = '';
-    return true;
+    triggerReactivity();
+    return validateOk;
   }
+
+  let [debouncedValidatePassword, destroyDebouncedValidatePassword] = debounce<void>(validatePassword, 500);
+
+  onDestroy(() => {
+    destroyDebouncedValidateUserName();
+    destroyDebouncedValidatePassword();
+  });
 
   async function handleSubmit() {
     loggingIn = true;
@@ -182,7 +196,7 @@
             required
             bind:value={form.values.username}
             on:change={validateUserName}
-            on:input={validateUserName}
+            on:input={() => debouncedValidateUserName()}
             disabled={loggingIn}
           />
         </div>
@@ -211,7 +225,7 @@
               required
               bind:value={form.values.password}
               on:change={validatePassword}
-              on:input={validatePassword}
+              on:input={() => debouncedValidatePassword()}
               disabled={loggingIn}
             />
           {:else}
@@ -222,7 +236,7 @@
               required
               bind:value={form.values.password}
               on:change={validatePassword}
-              on:input={validatePassword}
+              on:input={() => debouncedValidatePassword()}
               disabled={loggingIn}
             />
           {/if}

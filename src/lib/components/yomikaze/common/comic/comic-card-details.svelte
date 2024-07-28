@@ -2,21 +2,9 @@
   import Icon from '$components/icon.svelte';
   import Picture from '$components/picture.svelte';
   import type Comic from '$models/Comic';
-  import { ComicStatus } from '$models/Comic';
+  import ComicStatus from './comic-status.svelte';
   export let comic: Comic;
 
-  const statusIcon: { [key: string]: string } = {
-    [ComicStatus.OnGoing]: 'fluent--presence-busy-16-filled',
-    [ComicStatus.Completed]: 'fluent--presence-available-16-filled',
-    [ComicStatus.Cancelled]: 'fluent--presence-dnd-16-filled',
-    [ComicStatus.Hiatus]: 'fluent--presence-away-16-filled'
-  };
-  const statusIconColor: { [key: string]: string } = {
-    [ComicStatus.OnGoing]: 'text-success',
-    [ComicStatus.Completed]: 'text-success',
-    [ComicStatus.Cancelled]: 'text-error',
-    [ComicStatus.Hiatus]: 'text-warning'
-  };
 </script>
 
 <a href="/comics/{comic.id}" class="flex items-center gap-4 rounded-lg shadow-md p-3 h-56">
@@ -34,10 +22,7 @@
         <span class="text-sm mb-0 shrink-0">{comic.authors.join(', ')}</span>
       </div>
       <div class="flex items-center justify-center gap-2">
-        <div class="flex items-center justify-center gap-1 bg-base-300 px-2 py-1 select-none">
-          <Icon icon={statusIcon[comic.status]} class="text-sm {statusIconColor[comic.status]}" />
-          <span class="text-xs">{comic.status}</span>
-        </div>
+        <ComicStatus status={comic.status} />
         <slot name="actions" />
       </div>
     </div>
