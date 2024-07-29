@@ -9,7 +9,9 @@
   import DefaultAvatar from '$components/default-user-avatar.svelte';
   import Time from 'svelte-time/Time.svelte';
 
-  export let {token} = data;
+  export let data;
+  let { token } = data;
+  http.defaults.headers.common.Authorization = 'Bearer ' + token;
 
   let comicReports: Array<ComicReport> = [];
   let cover = 'https://i.yomikaze.org';
@@ -22,12 +24,14 @@
 
   let comments: Array<Comment & { editing: boolean; reacted?: boolean }> = [];
   let commentText = '';
+  let replyContent = '';
   const comicChapterId = '68638295025815553';
   const number = '1';
   let commentModal: any;
   let contentErr = '';
   let errorMess = '';
   let error = '';
+  let errorRep = '';
 
   // test comment Chapter
   async function getComments() {
@@ -50,6 +54,7 @@
         error = 'Please enter a comment before posting.';
         return;
       }
+
       const response = await http.post(`/comics/${comicChapterId}/chapters/${number}/comments`, {
         content: commentText
       });
@@ -76,6 +81,82 @@
         errorMess = 'An unknown error occurred';
       }
     }
+  }
+
+  async function postReply(commentId: string) {
+    try {
+      if (replyContent.trim() === '') {
+        errorRep = 'Please enter a reply before posting.';
+        return;
+      }
+
+      await http.post(
+        `/comics/${comicChapterId}/chapters/${number}/comments/${commentId}/replies`,
+        { content: replyContent }
+      );
+      
+      // Cập nhật danh sách bình luận
+      comments = comments.map((comment) => {
+        if (comment.id === commentId) {
+          return { ...comment, replyContent: '', showReplySection: false }; // Xóa nội dung đã gửi và đóng phần phản hồi
+        }
+        return comment;
+      });
+
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      const { response } = axiosError;
+      if (response && response.status === 400) {
+        let data = response.data as Problem;
+        for (let key of Object.keys(data.errors)) {
+          switch (key) {
+            case 'Content':
+              contentErr = data.errors[key].at(0) ?? '';
+              break;
+            default:
+              errorMess = 'An unknown error occurred';
+              break;
+          }
+        }
+      } else {
+        errorMess = 'An unknown error occurred';
+      }
+    }
+  }
+
+  async function getReplies(commentId: string) {
+    try {
+      const response = await http.get(
+        `/comics/${comicChapterId}/chapters/${number}/comments/${commentId}/replies`
+      );
+      const replies = response.data.results;
+
+      // Cập nhật danh sách bình luận với phản hồi
+      comments = comments.map((comment) => {
+        if (comment.id === commentId) {
+          return { ...comment, replies }; // Thêm phản hồi vào bình luận
+        }
+        return comment;
+      });
+    } catch (error) {
+      console.error('Error fetching replies:', error);
+    }
+  }
+
+  // Hàm để toggle phần phản hồi
+  function toggleReplySection(commentId: string) {
+    // Gọi getReplies nếu phần phản hồi chưa được mở và chưa có dữ liệu phản hồi
+    const comment = comments.find((c) => c.id === commentId);
+    if (comment && !comment.showReplySection) {
+      getReplies(commentId);
+    }
+
+    comments = comments.map((comment) => {
+      if (comment.id === commentId) {
+        return { ...comment, showReplySection: !comment.showReplySection }; // Chuyển đổi trạng thái hiển thị phần phản hồi
+      }
+      return comment;
+    });
   }
 
   async function deleteComment(commentId: string | bigint) {
@@ -110,6 +191,7 @@
       comments = comments.map((comment) =>
         comment.id === commentId ? { ...response.data, editing: false } : comment
       );
+      await tick();
     } catch (error) {
       console.error('Failed to edit comment:', error);
     }
@@ -117,23 +199,44 @@
 
   async function reactComment(commentId: string, reactionType: string) {
     try {
+      // Gửi yêu cầu đến API để thêm hoặc gỡ bỏ phản ứng
       const response = await http.post(
         `/comics/${comicChapterId}/chapters/${number}/comments/${commentId}/react`,
-        {
-          type: reactionType
-        }
+        { type: reactionType }
       );
 
-      comments = comments.map((comment) =>
-        comment.id === commentId
-          ? {
-              ...comment,
-              myReaction: response.data.myReaction,
-              reacted: response.data.isReacted !== null,
-              totalLikes: reactionType === 'Like' ? comment.totalLikes + 1 : comment.totalLikes - 1
+      // Lấy thông tin phản hồi từ API
+      const { isReacted, myReaction } = response.data;
+
+      // Cập nhật danh sách comments
+      comments = comments.map((comment) => {
+        if (comment.id === commentId) {
+          // Tính toán số lượng phản ứng mới
+          let newTotalLikes = comment.totalLikes;
+          if (isReacted) {
+            // Nếu phản ứng đã được thêm, cộng thêm
+            if (!comment.reacted) {
+              newTotalLikes += 1;
             }
-          : comment
-      );
+          } else {
+            // Nếu phản ứng bị gỡ bỏ, trừ đi
+            if (comment.reacted) {
+              newTotalLikes -= 1;
+            }
+          }
+
+          return {
+            ...comment,
+            myReaction,
+            reacted: isReacted,
+            totalLikes: newTotalLikes
+          };
+        }
+        return comment;
+      });
+
+      // Đảm bảo giao diện cập nhật sau khi thay đổi dữ liệu
+      await tick();
     } catch (error) {
       console.error('Failed to react to comment:', error);
     }
@@ -308,7 +411,7 @@
           {/each}
         {:else}
           <tr>
-            <td colspan="5" class="text-center text-base-300 italic font-semibold">
+            <td colspan="5" class="text-center text-base-300 italic font-bold">
               <span>No Report Comic.</span></td
             >
           </tr>
@@ -352,7 +455,7 @@
 
 <!-- ToDo Modal Comment Chapter -->
 <dialog id="comment_modal" class="modal" bind:this={commentModal}>
-  <div class="modal-box">
+  <div class="modal-box w-11/12 max-w-5xl">
     <h3 class="text-xl font-bold">Comments for Chapter {number}</h3>
     <form method="dialog">
       <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2 text-xl">✕</button>
@@ -412,17 +515,96 @@
 
                   <div class="flex gap-2 mt-2">
                     <button
-                      class="btn btn-sm btn-square flex  gap-1"
+                      class="btn btn-sm btn-square flex"
                       on:click={() => reactComment(comment.id, 'Like')}
                     >
-                      <p
-                        class="iconify {comment.reacted
-                          ? 'fluent--thumb-like-20-filled'
-                          : 'fluent--thumb-like-16-regular'} text-xl"
-                      ></p> <p>{comment.totalLikes}</p> 
-                   
+                      <div class="flex gap-1">
+                        <p
+                          class="iconify {comment.reacted
+                            ? 'fluent--thumb-like-20-filled'
+                            : 'fluent--thumb-like-16-regular'} text-xl"
+                        ></p>
+                        <p class="flex items-center">{comment.totalLikes}</p>
+                      </div>
                     </button>
-                   
+
+                    <button class="btn btn-sm" on:click={() => toggleReplySection(comment.id)}>
+                      {#if comment.showReplySection}
+                        Hide Replies
+                      {/if}
+                      {#if !comment.showReplySection}
+                        Show Replies
+                      {/if}
+                    </button>
+                  </div>
+
+                  <div class="mt-4"></div>
+                {/if}
+
+                {#if comment.showReplySection}
+                  <!-- Danh sách phản hồi -->
+                  {#if comment.replies && comment.replies.length > 0}
+                    <ul class="ml-4 mt-2">
+                      {#each comment.replies as reply (reply.id)}
+                        <li class="py-4 border-b">
+                          <div class="flex flex-col border-2 rounded-lg border p-2">
+                            <div class="flex justify-between border-b pb-2">
+                              <div class="flex gap-4 items-center">
+                                <div class="avatar">
+                                  <div class="w-6 ring-2 ring-offset-2 ring-neutral rounded-full">
+                                    <DefaultAvatar></DefaultAvatar>
+                                  </div>
+                                </div>
+                                <p class=" leading-none font-medium text-sm">
+                                  {comment.author.name}
+                                </p>
+                              </div>
+
+                              <div class="my-auto flex items-center gap-2">
+                                <p class="text-xs text-gray-500 text-center">
+                                  <Time timestamp={comment.creationTime} relative />
+                                </p>
+                              </div>
+                            </div>
+                            <div class="my-2">
+                              <p>{reply.content}</p>
+                            </div>
+                          </div>
+                        </li>
+                      {/each}
+                    </ul>
+                  {:else}
+                    <p class="text-base italic text-center">No Replies yet.</p>
+                  {/if}
+
+                  <!-- Form phản hồi -->
+                  <div class="mt-4">
+                    <textarea
+                      bind:value={replyContent}
+                      placeholder="Write a reply..."
+                      class="textarea textarea-bordered w-full"
+                    ></textarea>
+                    {#if !!contentErr}
+                      <div class="label">
+                        <span class="label-text text-error font-semibold">{contentErr}</span>
+                      </div>
+                    {:else if !!errorMess}
+                      <div class="label">
+                        <span class="label-text text-error font-semibold">{errorMess}</span>
+                      </div>
+                    {:else if errorRep}
+                      <div class="label">
+                        <span class="label-text text-error font-semibold">{errorRep}</span>
+                      </div>
+                    {/if}
+                    <div class="flex justify-end">
+                      <button
+                        class="btn btn-sm btn-primary mt-2"
+                        on:click={() => postReply(comment.id)}
+                      >
+                        <span class="iconify lucide--send text-xl"></span> Post
+                      </button>
+                    </div>
                   </div>
                 {/if}
               </div>
