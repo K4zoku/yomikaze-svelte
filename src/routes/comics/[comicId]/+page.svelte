@@ -14,11 +14,8 @@
   function ratingInit(elem: HTMLDivElement) {
     const stars = elem.querySelectorAll('input[type="radio"]') as NodeListOf<HTMLInputElement>;
     comic.then((c) => {
-      console.log('My rating: ', c.isRated ? c.myRating : 0);
-      console.log('Average rating: ', c.averageRating);
       let rate = c.isRated ? c.myRating : c.averageRating;
       rate = rate ? Math.round(rate) : 0;
-      console.log('Display Rate: ', rate);
       stars.forEach((star) => {
         const value = parseInt(star.value);
         if (value <= rate) {
@@ -29,7 +26,7 @@
     });
   }
 
-  let postRatingAwaiter: Promise<void> = Promise.resolve();
+  let ratingAwait: Promise<void> = Promise.resolve();
   let totalRatings = 0;
   let averageRating = 0;
   async function postRating(e: Event) {
@@ -44,7 +41,7 @@
       }, 200);
       return;
     }
-    postRatingAwaiter = rateComic(comicId, rating, token)
+    ratingAwait = rateComic(comicId, rating, token)
       .then(async () => {
         const c = await comic;
         if (!c.isRated) {
@@ -270,7 +267,7 @@
               {formatNumber(comic.totalComments ?? 0)}
             </div>
 
-            {#await postRatingAwaiter}
+            {#await ratingAwait}
               <div class="flex gap-1 items-center min-w-[0] w-fit">
                 <span class="loading loading-xs loading-dots"></span>
               </div>
