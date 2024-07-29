@@ -10,3 +10,13 @@ export default interface Comment extends Model {
 export interface ComicComment extends Comment{
     readonly comicId: string;
 }
+export interface ChapterComment extends ComicComment{
+    number: number;
+}
+export interface CommentReaction {
+    type: Reaction;
+}
+export enum Reaction{
+    Like = "Like",
+    Dislike = 'Dislike'
+}
