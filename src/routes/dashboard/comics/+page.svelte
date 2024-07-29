@@ -9,7 +9,7 @@
   let comicToDelete = null;
   let comicName = '';
   let totals = 0;
-  let deleteModal;
+  let deleteModal: any;
 
   const getComics = async () => {
     try {
@@ -162,11 +162,11 @@
                     </summary>
                     <ul class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
                       <li>
-                        <a
+                        <button
                           ><span class="iconify lucide--pencil text-xl"></span><span
                             class="text-base font-medium">Edit</span
                           >
-                        </a>
+                        </button>
                       </li>
                       <li>
                         <button on:click={() => openDeleteModal(comic)}>
@@ -196,7 +196,7 @@
   </div>
 </div>
 
-<dialog id="delete_modal" class="modal">
+<dialog id="delete_modal" bind:this={deleteModal} class="modal">
   <div class="modal-box">
     <h3 class="text-xl font-bold">Are you sure you want to delete this comic?</h3>
     <p class="py-4 ">Comic: <strong>{comicName}</strong></p>
