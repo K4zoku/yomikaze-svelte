@@ -3,10 +3,11 @@
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
     import type Comic from '$models/Comic';
+    import type { AxiosError } from 'axios';
 
   let cover = 'https://i.yomikaze.org';
   let comics: Array<Comic> = [];
-  let comicToDelete = null;
+  let comicToDelete: Comic | null = null;
   let comicName = '';
   let totals = 0;
   let deleteModal: any;

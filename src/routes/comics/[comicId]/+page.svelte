@@ -10,7 +10,7 @@
 
   export let data;
   let { comicId, comic, chapters, tagCategories, token, libraryManager } = data;
-
+  $: ({ comicId, comic, chapters, tagCategories, token, libraryManager } = data)
   function ratingInit(elem: HTMLDivElement) {
     const stars = elem.querySelectorAll('input[type="radio"]') as NodeListOf<HTMLInputElement>;
     comic.then((c) => {

@@ -53,13 +53,13 @@
             {#each pricings as pricing}
               <button on:click={() => handleClick(pricing.id)}>
                 <div
-                  class="w-52 h-64 flex flex-col border-2 bg-base-300/50 drop-shadow-lg rounded-md btn"
+                  class="w-52 h-64 flex flex-col border-2 drop-shadow-lg rounded-md btn no-animation"
                 >
                   <div class="justify-center absolute self-center top-12">
                     <span class="iconify la--coins text-8xl text-warning"></span>
                   </div>
                   <div class="flex justify-center absolute bottom-14 self-center">
-                    <span class="text-xl font-semibold self-center">{pricing.amount}</span>
+                    <span class="text-xl font-semibold self-center">{pricing.amount} Coins</span>
                   </div>
                   <div
                     class="w-28 h-6 flex justify-center border-2 rounded-lg border-success self-center absolute bottom-4"
