@@ -67,7 +67,7 @@
   function updateSearchParams() {
     let params = new URLSearchParams();
     appendQueryParams(params, search);
-    goto(`search/?${params.toString()}`);
+    goto(`/search/?${params.toString()}`, { replaceState: true });
   }
 
   async function loadComics(pagination: Pagination) {
