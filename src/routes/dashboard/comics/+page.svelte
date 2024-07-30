@@ -12,9 +12,13 @@
   let totals = 0;
   let deleteModal: any;
 
-  const getComics = async () => {
+  const getComics = async (size = 1000) => {
     try {
-      const response = await http.get('/comics');
+      const response = await http.get('/comics', {
+        params: {
+          Size: size
+        }
+      });
       if (response.status === 200) {
         console.log('Comics retrieved successfully:', response.data.results);
         return {

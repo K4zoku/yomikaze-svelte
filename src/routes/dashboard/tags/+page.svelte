@@ -1,12 +1,14 @@
 <script lang="ts">
   import http from '$lib/utils/http';
   import { goto } from '$app/navigation';
-  import { onMount, tick } from 'svelte';
+  import { getContext, onMount, tick } from 'svelte';
   import type Tag from '$models/Tag';
   import type TagCategory from '$models/TagCategory';
 
   import type { AxiosError } from 'axios';
   import type Problem from '$models/ProblemResponse.js';
+    import type { Writable } from 'svelte/store';
+    import type { ToastProps } from '~/routes/+layout.svelte';
 
   let tags: Array<Tag> = [];
   let tagToDelete: Tag | null = null;
@@ -152,7 +154,8 @@
         tags[index] = response.data;
       }
 
-      message = 'Tag updated successfully'
+      addToast('Tag updated successfully')
+      // message = 'Tag updated successfully'
       tagToEdit = null;
       tagEditNameInput = '';
       tagEditDescription = '';
@@ -179,6 +182,11 @@
     tagEditNameInput = tag.name;
     tagEditDescription = tag.description;
     editModal.showModal();
+  }
+
+  const toasts = getContext<Writable<ToastProps[]>>('toasts');
+  function addToast(message: string) {
+    toasts.update((toasts) => [...toasts, { message, color: 'alert-success', icon: 'lucide--circle-check-big' }]);
   }
 
   onMount(() => {
@@ -383,10 +391,10 @@
   </div>
 </dialog>
 
-{#if !!message}
+<!-- {#if !!message}
 <div class="toast toast-end">
   <div class="alert alert-success">
     <span>{message}</span>
   </div>
 </div>
-{/if}
+{/if} -->

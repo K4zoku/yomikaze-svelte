@@ -177,7 +177,7 @@
     <div class="flex flex-col gap-2 mt-10">
       <span class="text-2xl font-semibold ml-16">Banner of Comic</span>
       <div
-        class="w-full h-96 border-2 border-accent-content border-dashed flex justify-center cursor-pointer"
+        class="w-full h-96 border-2 border-accent border-dashed flex justify-center cursor-pointer"
         on:click={triggerBannerFileInput}
       >
         {#if bannerImageUrl}
@@ -219,7 +219,7 @@
         <div><span class="text-2xl font-semibold">Cover of Comic</span></div>
         <div class="flex gap-3">
           <div
-            class="w-48 h-64 border-2 border-accent-content border-dashed flex justify-center cursor-pointer"
+            class="w-48 h-64 border-2 border-accent border-dashed flex justify-center cursor-pointer"
             on:click={triggerFileInput}
           >
             {#if imageUrl}
