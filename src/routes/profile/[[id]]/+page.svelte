@@ -1,4 +1,5 @@
 <script lang="ts">
+  import http from '$utils/http';
   import Swap from '$components/daisyui/actions/swap.svelte';
   import Icon from '$components/icon.svelte';
   import Picture from '$components/picture.svelte';
@@ -8,11 +9,19 @@
   import { getComics, type GetComicsOptions } from '$utils/comic-utils.js';
   import { getContext, tick, type ComponentType } from 'svelte';
   import Toast from '../../../lib/components/daisyui/toast.svelte';
-    import type { Writable } from 'svelte/store';
-    import type { ToastProps } from '~/routes/+layout.svelte';
+  import type { Writable } from 'svelte/store';
+  import type { ToastProps } from '~/routes/+layout.svelte';
+  import type { AxiosError } from 'axios';
+  import type Problem from '$models/ProblemResponse';
 
   let roleRequestModal: HTMLDialogElement;
   let reportModal: HTMLDialogElement;
+  let addModal: HTMLDialogElement;
+  let withdrawalAmount = 0;
+  let withdrawalPrice = 0;
+
+  let amountErr = '';
+  let errorMess = '';
 
   export let data;
   let { profile } = data;
@@ -60,11 +69,66 @@
     }
   }
 
+  async function postWithdrawal(amount: number) {
+    try {
+      const response = await http.post(`/withdrawal`, {
+        amount: amount
+        // price: price
+      });
+
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      const { response } = axiosError;
+      if (response && response.status === 400) {
+        let data = response.data as Problem;
+        for (let key of Object.keys(data.errors)) {
+          switch (key) {
+            case 'Amount':
+              amountErr = data.errors[key].at(0) ?? '';
+              break;
+            default:
+              errorMess = 'An unknown error occurred';
+              break;
+          }
+        }
+      } else {
+        errorMess = 'An unknown error occurred';
+      }
+      throw error;
+    }
+  }
+
+  async function handlePostWithdrawal() {
+    amountErr = '';
+    errorMess = '';
+    try {
+      const result = await postWithdrawal(withdrawalAmount);
+      console.log('Withdrawal posted successfully:', result);
+      addToast('Withdrawal request successful');
+      closeAddModal();
+    } catch (error) {
+      console.error('Error posting withdrawal:', error);
+    }
+  }
+
+  function openAddModal() {
+    addModal?.showModal();
+  }
+
+  function closeAddModal() {
+    addModal?.close();
+  }
+
   const toasts = getContext<Writable<ToastProps[]>>('toasts');
   function addToast(message: string) {
-    toasts.update((toasts) => [...toasts, { message, color: 'alert-success', icon: 'lucide--circle-check-big' }]);
+    toasts.update((toasts) => [
+      ...toasts,
+      { message, color: 'alert-success', icon: 'lucide--circle-check-big' }
+    ]);
   }
 </script>
+
 <svelte:head>
   <title>Profile - {profile.name}</title>
 </svelte:head>
@@ -120,7 +184,11 @@
 <div class="container">
   <div class="flex gap-8">
     <div class="flex flex-col mt-12 gap-2 w-1/6 shrink-0">
-      <a href="/profile/{profile.id}" class="btn btn-accent w-full" on:click|preventDefault={handleShareProfile}>
+      <a
+        href="/profile/{profile.id}"
+        class="btn btn-accent w-full"
+        on:click|preventDefault={handleShareProfile}
+      >
         <Icon icon="lucide--share-2" class="text-xl" />
         Share Profile
       </a>
@@ -178,6 +246,59 @@
             </div>
           </div>
         </dialog>
+        <!-- {#if profile.roles.includes('Publisher')} -->
+        <button on:click={openAddModal} class="btn">
+          <Icon icon="lucide--receipt" class="text-xl" /> Request Withdrawal</button
+        >
+        <!--! Modal for Post Withdrawal -->
+        <dialog id="withdrawal_modal" bind:this={addModal} class="modal">
+          <div class="modal-box">
+            <div class="text-start">
+              <h2 class="text-2xl mb-4 font-bold">Withdrawal Request</h2>
+            </div>
+            {#if !!errorMess}
+              <div role="alert" class="alert alert-error max-h-14 p-2">
+                <Icon icon="lucide--circle-x" class="text-xl" />
+                <!-- <span class="iconify  text-xl"></span> -->
+                <span>{errorMess}</span>
+              </div>
+            {/if}
+            <form on:submit|preventDefault={handlePostWithdrawal}>
+              <label class="form-control">
+                <div class="label">
+                  <span class="label-text">Withdrawal Amount</span>
+                </div>
+                <input
+                  type="number"
+                  bind:value={withdrawalAmount}
+                  placeholder="Enter amount to withdraw"
+                  min="0"
+                  class="input input-bordered w-full"
+                />
+              </label>
+              <label class="form-control">
+                <div class="label">
+                  <span class="label-text">Withdrawal Price</span>
+                </div>
+                <input
+                  type="number"
+                  bind:value={withdrawalAmount}
+                  placeholder="Enter amount to withdraw"
+                  min="0"
+                  class="input input-bordered w-full"
+                />
+              </label>
+              {#if !!amountErr}
+                <p class="text-error">{amountErr}</p>
+              {/if}
+              <div class="modal-action">
+                <button type="submit" class="btn btn-success btn-sm">Submit</button>
+                <button type="button" class="btn btn-sm" on:click={closeAddModal}>Cancel</button>
+              </div>
+            </form>
+          </div>
+        </dialog>
+        <!-- {/if} -->
       {:else}
         <button class="btn w-full" on:click={() => reportModal.showModal()}>
           <Icon icon="lucide--flag" class="text-xl" />
