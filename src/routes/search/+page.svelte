@@ -4,10 +4,12 @@
   import Icon from '$components/icon.svelte';
   import ComicList from '$components/yomikaze/common/comic/comic-list.svelte';
   import Sublayout from '$components/yomikaze/sublayout.svelte';
-  import type Pagination from '$models/Pagination.js';
+  import type Pagination from '$models/Pagination';
+  import type Tag from '$models/Tag';
   import { getComics, type GetComicsOptions } from '$utils/comic-utils';
-  import { appendQueryParams } from '$utils/common';
-  import { onMount } from 'svelte';
+  import { appendQueryParams, debounce } from '$utils/common';
+  import type { CategorizedTags, TagCategoryExtended } from '$utils/tag-utils';
+  import { onDestroy, onMount, tick } from 'svelte';
   import { expoInOut } from 'svelte/easing';
   import { slide } from 'svelte/transition';
 
@@ -18,6 +20,8 @@
   let excludeTags: string[] = [];
   let includeTags: string[] = [];
   let orderBy: string = 'Name';
+  let currentPage: number = 1;
+
   const DEFAULT_SEARCH: GetComicsOptions = {
     size: 12,
     orderBy: ['Name'],
@@ -79,24 +83,32 @@
   let reloadSearchResults: () => void;
 
   function onSearch() {
-    console.log('Search:', search);
     search.includeTags = includeTags;
     search.excludeTags = excludeTags;
     search.orderBy = [orderBy];
+    search.page = currentPage = 1;
     updateSearchParams();
     reloadSearchResults();
   }
 
-  function onReset() {
+  async function onReset() {
     search = { ...DEFAULT_SEARCH };
+    orderBy = 'Name';
+    resetTagFilter();
+    await tick();
+  }
+
+  function resetTagFilter() {
     includeTags = [];
     excludeTags = [];
-    orderBy = 'Name';
-    for (let category of Object.values(categories)) {
-      for (let tag of category.tags) {
+    for (const key of Object.keys(categories)) {
+      const category = categories[key];
+      for (const tag of category.tags) {
         tag.searchState = 0;
       }
     }
+    tagSearch = '';
+    categories = categories; // Force update
   }
 
   function isDefault(): boolean {
@@ -166,6 +178,36 @@
   $: includeTags.length, (tagFiltersSummary = getTagFiltersSummary());
   $: excludeTags.length, (tagFiltersSummary = getTagFiltersSummary());
   let tagFiltersOpen: boolean = false;
+
+  let tagSearch: string = '';
+  function getFilteredTagCategories(): CategorizedTags {
+    let result: CategorizedTags = {};
+    if (!tagSearch) return categories;
+    for (let categoryId of Object.keys(categories)) {
+      let category = categories[categoryId];
+      let resultCategory: TagCategoryExtended = { ...category, tags: [] as Tag[] };
+      for (let tag of category.tags) {
+        if (tag.name.toLowerCase().includes(tagSearch.toLowerCase())) {
+          resultCategory.tags.push({ ...tag });
+        }
+      }
+      if (resultCategory.tags.length > 0) {
+        result[categoryId] = resultCategory;
+      }
+    }
+    return result;
+  }
+  let categorizedTags: CategorizedTags = getFilteredTagCategories();
+
+  const [debounceTagSearch, destroyTagSearch] = debounce(
+    () => (categorizedTags = getFilteredTagCategories()),
+    300
+  );
+  onDestroy(() => destroyTagSearch());
+
+  function focusThis(node: HTMLInputElement) {
+    node.focus();
+  }
 </script>
 
 <Sublayout pageName="Advanced Search">
@@ -233,30 +275,49 @@
           <details class="dropdown w-full" bind:open={tagFiltersOpen}>
             <summary
               id="tags"
-              class="flex input input-bordered focus:input-accent bg-base-100 font-normal justify-start tooltip"
+              class="flex input input-bordered focus:input-accent bg-base-100 font-normal justify-start tooltip select-none"
               class:input-accent={tagFiltersOpen}
               data-tip={tagFiltersSummary}
             >
               <div class="w-full h-full flex justify-start items-center">
-                <span class="text-nowrap overflow-hidden text-ellipsis max-w-full">
+                <span class="text-nowrap overflow-hidden text-ellipsis max-w-full select-none">
                   {tagFiltersSummary}
                 </span>
               </div>
             </summary>
             <div
-              class="dropdown-content z-50 bg-base-100 p-4 rounded shadow-lg mt-2 w-192 max-h-96 overflow-y-scroll overflow-x-hidden"
+              class="dropdown-content z-50 bg-base-100 p-4 rounded shadow-lg mt-2 w-192 max-h-96 select-none flex flex-col gap-2"
             >
-              <div class="flex flex-col gap-4">
-                {#each Object.keys(categories).sort() as categoryId (categoryId)}
+              <div class="flex items-center gap-2 w-full py-2 h-fit shrink-0 justify-end">
+                <label
+                  class="input input-bordered input-sm focus-within:input-accent flex items-center gap-1 grow"
+                >
+                  <Icon icon="lucide--tag" class="text-xl shrink-0" />
+                  {#if tagFiltersOpen}
+                    <input
+                      use:focusThis
+                      class="grow"
+                      placeholder="Search tag"
+                      bind:value={tagSearch}
+                      on:input={debounceTagSearch}
+                    />
+                  {/if}
+                </label>
+                <button class="btn btn-sm active:btn-accent shrink-0" on:click={resetTagFilter}>
+                  Reset tag filter
+                </button>
+              </div>
+              <div class="flex flex-col gap-4 overflow-y-scroll overflow-x-hidden max-h-full">
+                {#each Object.keys(categorizedTags).sort() as categoryId (categoryId)}
                   <div class="flex flex-col gap-1 w-full">
                     <div class="flex gap-2 items-center">
                       <h3 id="tc-{categoryId}" class="text-xl font-bold">
-                        {categories[categoryId].name}
+                        {categorizedTags[categoryId].name}
                       </h3>
                       <hr class="border-1 my-4 flex-grow" />
                     </div>
                     <div class="flex gap-1 flex-wrap">
-                      {#each categories[categoryId].tags as tag (tag.id)}
+                      {#each categorizedTags[categoryId].tags as tag (tag.id)}
                         <TriSwap bind:state={tag.searchState}>
                           <span slot="one" class="badge badge-outline badge-neutral">
                             {tag.name}
@@ -294,7 +355,7 @@
                     </div>
                   </div>
                 {:else}
-                  <span class="text-warning">There is no tags</span>
+                  <span class="italic py-2"> No tag matches the search criteria. </span>
                 {/each}
                 <div class="flex flex-col gap-1">
                   <div class="flex gap-2 items-center">
@@ -371,14 +432,14 @@
     </div>
   {/if}
   <div class="w-full mt-2 flex justify-end items-center gap-2">
-    <button type="reset" form="search-form" class="btn">Reset filters</button>
-    <a href="/comics/random" data-sveltekit-reload class="btn">I'm feeling lucky</a>
+    <button type="reset" form="search-form" class="btn active:btn-accent">Reset filters</button>
+    <a href="/comics/random" class="btn active:btn-accent">I'm feeling lucky</a>
     <button type="submit" form="search-form" class="btn btn-accent flex items-center gap-2">
       <Icon icon="lucide--search" class="text-xl" />
       Search
     </button>
   </div>
   <div class="w-full mt-4">
-    <ComicList loadFn={loadComics} bind:reload={reloadSearchResults} />
+    <ComicList loadFn={loadComics} bind:reload={reloadSearchResults} bind:currentPage />
   </div>
 </Sublayout>
