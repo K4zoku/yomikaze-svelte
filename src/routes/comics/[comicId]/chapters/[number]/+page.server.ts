@@ -33,6 +33,7 @@ export async function load({ params, cookies }) {
         chapters,
         comic,
         number,
-        comicId
+        comicId,
+        token
     };
 }
