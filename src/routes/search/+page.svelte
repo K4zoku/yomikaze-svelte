@@ -4,11 +4,11 @@
   import Icon from '$components/icon.svelte';
   import ComicList from '$components/yomikaze/common/comic/comic-list.svelte';
   import Sublayout from '$components/yomikaze/sublayout.svelte';
-  import type Pagination from '$models/Pagination.js';
-    import type Tag from '$models/Tag.js';
+  import type Pagination from '$models/Pagination';
+  import type Tag from '$models/Tag';
   import { getComics, type GetComicsOptions } from '$utils/comic-utils';
   import { appendQueryParams, debounce } from '$utils/common';
-    import type { CategorizedTags, TagCategoryExtended } from '$utils/tag-utils.js';
+  import type { CategorizedTags, TagCategoryExtended } from '$utils/tag-utils';
   import { onDestroy, onMount, tick } from 'svelte';
   import { expoInOut } from 'svelte/easing';
   import { slide } from 'svelte/transition';
@@ -185,10 +185,10 @@
     if (!tagSearch) return categories;
     for (let categoryId of Object.keys(categories)) {
       let category = categories[categoryId];
-      let resultCategory: TagCategoryExtended = {...category, tags: [] as Tag[] };
+      let resultCategory: TagCategoryExtended = { ...category, tags: [] as Tag[] };
       for (let tag of category.tags) {
         if (tag.name.toLowerCase().includes(tagSearch.toLowerCase())) {
-          resultCategory.tags.push({...tag});
+          resultCategory.tags.push({ ...tag });
         }
       }
       if (resultCategory.tags.length > 0) {
@@ -199,8 +199,15 @@
   }
   let categorizedTags: CategorizedTags = getFilteredTagCategories();
 
-  const [debounceTagSearch, destroyTagSearch] = debounce(() => categorizedTags = getFilteredTagCategories(), 300);
+  const [debounceTagSearch, destroyTagSearch] = debounce(
+    () => (categorizedTags = getFilteredTagCategories()),
+    300
+  );
   onDestroy(() => destroyTagSearch());
+
+  function focusThis(node: HTMLInputElement) {
+    node.focus();
+  }
 </script>
 
 <Sublayout pageName="Advanced Search">
@@ -281,14 +288,24 @@
             <div
               class="dropdown-content z-50 bg-base-100 p-4 rounded shadow-lg mt-2 w-192 max-h-96 select-none flex flex-col gap-2"
             >
-              <div class="flex items-center gap-2 w-full py-2 h-fit shrink-0">
-                <label class="input input-bordered input-sm focus-within:input-accent flex items-center gap-1 grow">
+              <div class="flex items-center gap-2 w-full py-2 h-fit shrink-0 justify-end">
+                <label
+                  class="input input-bordered input-sm focus-within:input-accent flex items-center gap-1 grow"
+                >
                   <Icon icon="lucide--tag" class="text-xl shrink-0" />
-                  <input class="grow" placeholder="Search tag" bind:value={tagSearch} on:input={debounceTagSearch}/>
+                  {#if tagFiltersOpen}
+                    <input
+                      use:focusThis
+                      class="grow"
+                      placeholder="Search tag"
+                      bind:value={tagSearch}
+                      on:input={debounceTagSearch}
+                    />
+                  {/if}
                 </label>
                 <button class="btn btn-sm active:btn-accent shrink-0" on:click={resetTagFilter}>
                   Reset tag filter
-                </button> 
+                </button>
               </div>
               <div class="flex flex-col gap-4 overflow-y-scroll overflow-x-hidden max-h-full">
                 {#each Object.keys(categorizedTags).sort() as categoryId (categoryId)}
@@ -338,9 +355,7 @@
                     </div>
                   </div>
                 {:else}
-                  <span class="italic py-2"> 
-                    No tag matches the search criteria.
-                  </span>
+                  <span class="italic py-2"> No tag matches the search criteria. </span>
                 {/each}
                 <div class="flex flex-col gap-1">
                   <div class="flex gap-2 items-center">
@@ -425,6 +440,6 @@
     </button>
   </div>
   <div class="w-full mt-4">
-    <ComicList loadFn={loadComics} bind:reload={reloadSearchResults} bind:currentPage={currentPage} />
+    <ComicList loadFn={loadComics} bind:reload={reloadSearchResults} bind:currentPage />
   </div>
 </Sublayout>
