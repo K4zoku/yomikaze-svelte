@@ -15,18 +15,19 @@
   import type { Writable } from 'svelte/store';
   import type { ToastProps } from '~/routes/+layout.svelte';
 
+  export let data;
+  let { profile } = data;
+  http.defaults.headers.common.Authorization = 'Bearer ' + profile;
+
   let roleRequestModal: HTMLDialogElement;
   let reportModal: HTMLDialogElement;
   let addModal: HTMLDialogElement;
   let withdrawalAmount = 0;
-  let withdrawalPrice = 0;
+  let remainingBalance = 0;
+  let paymentInfomation = '';
 
   let amountErr = '';
   let errorMess = '';
-
-  export let data;
-  let { profile, token } = data;
-  if (token) http.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
   const authStore = getContext<AuthDataStore>('auth');
   const currentUser = authStore?.user;
@@ -71,13 +72,17 @@
     }
   }
 
-  async function postWithdrawal(amount: number) {
+  $: remainingBalance = profile.balance - withdrawalAmount;
+  $: errorMess = remainingBalance < 0 ? 'Insufficient balance' : '';
+
+  async function postWithdrawal(amount: number, payInfo: string) {
     try {
       const response = await http.post(`/withdrawal`, {
-        amount: amount
-        // price: price
+        amount: amount,
+        paymentInfomation: payInfo 
       });
 
+      console.log(response);
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError;
@@ -87,6 +92,9 @@
         for (let key of Object.keys(data.errors)) {
           switch (key) {
             case 'Amount':
+              amountErr = data.errors[key].at(0) ?? '';
+              break;
+              case 'PaymentInformation':
               amountErr = data.errors[key].at(0) ?? '';
               break;
             default:
@@ -104,8 +112,12 @@
   async function handlePostWithdrawal() {
     amountErr = '';
     errorMess = '';
+
+    if (remainingBalance < 0) {
+      return;
+    }
     try {
-      const result = await postWithdrawal(withdrawalAmount);
+      const result = await postWithdrawal(withdrawalAmount, paymentInfomation);
       console.log('Withdrawal posted successfully:', result);
       addToast('Withdrawal request successful');
       closeAddModal();
@@ -171,8 +183,8 @@
             <Picture
               src={profile.avatar}
               alt="Avatar"
-              class="w-full h-full"
-              imgClass="w-full h-full rounded-full"
+              class="w-20 h-20"
+              imgClass="w-20 h-20 rounded-full"
               useCdn={true}
             />
           {:else}
@@ -274,17 +286,20 @@
             <div class="text-start">
               <h2 class="text-2xl mb-4 font-bold">Withdrawal Request</h2>
             </div>
+
             {#if !!errorMess}
               <div role="alert" class="alert alert-error max-h-14 p-2">
                 <Icon icon="lucide--circle-x" class="text-xl" />
-                <!-- <span class="iconify  text-xl"></span> -->
                 <span>{errorMess}</span>
               </div>
             {/if}
+            <div class="shrink-0 flex gap-2 badge badge-outline badge-warning text-warning mt-3">
+              <span class="iconify la--coins text-lg"></span><span>{remainingBalance}</span>
+            </div>
             <form on:submit|preventDefault={handlePostWithdrawal}>
               <label class="form-control">
                 <div class="label">
-                  <span class="label-text">Withdrawal Amount</span>
+                  <span class="label-text">Coin amount</span>
                 </div>
                 <input
                   type="number"
@@ -296,15 +311,28 @@
               </label>
               <label class="form-control">
                 <div class="label">
-                  <span class="label-text">Withdrawal Price</span>
+                  <span class="label-text">Actual amount received</span>
                 </div>
                 <input
-                  type="number"
-                  bind:value={withdrawalAmount}
-                  placeholder="Enter amount to withdraw"
+                  type="text"
+                  value={`${withdrawalAmount * 0.009} $`}
                   min="0"
                   class="input input-bordered w-full"
+                  disabled
                 />
+              </label>
+              <label class="form-control">
+                <div class="label">
+                  <span class="label-text">Payment infomation</span>
+                </div>
+                <textarea
+                id="report-description"
+                bind:value={paymentInfomation}
+                class="textarea textarea-bordered w-full resize-none"
+                placeholder="EX: MBBank 012345678"
+                rows="3"
+              ></textarea>
+            
               </label>
               {#if !!amountErr}
                 <p class="text-error">{amountErr}</p>

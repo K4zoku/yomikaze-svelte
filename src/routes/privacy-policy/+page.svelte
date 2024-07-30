@@ -91,16 +91,4 @@ Security, to protect our and users' rights and property from fraud and illegal a
   </div>
 </div>
 
-<style>
-  .scroll-target::before {
-    @apply block content-[""] h-20 -mt-20;
-  }
 
-  html {
-    @apply scroll-smooth;
-  }
-  .container {
-    max-width: 1200px;
-    margin-top: 2rem;
-  }
-</style>

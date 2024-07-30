@@ -115,16 +115,3 @@ Interfere with or disrupt the service or the servers or networks connected to th
 	</div>
 
 
-<style>
-	.scroll-target::before {
-		@apply block content-[""] h-20 -mt-20;
-	}
-
-	html {
-		@apply scroll-smooth;
-	}
-	.container {
-		max-width: 1200px;
-		margin-top: 2rem;
-	}
-</style>

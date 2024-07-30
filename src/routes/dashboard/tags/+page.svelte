@@ -23,6 +23,7 @@
   let tagDescription: string = '';
   let tagEditNameInput: string = '';
   let tagEditDescription: string = '';
+  let tagEditCateID: string = '';
 
   let tagNameErr = '';
   let categoryErr = '';
@@ -142,6 +143,7 @@
     const payload = [
       { op: 'replace', path: '/name', value: tagEditNameInput },
       { op: 'replace', path: '/description', value: tagEditDescription }
+      { op: 'replace', path: '/categoryId', value: tagEditCateID }
     ];
     console.log('Payload:', JSON.stringify(payload, null, 2));
 
