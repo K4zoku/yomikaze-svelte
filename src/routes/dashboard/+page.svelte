@@ -1,12 +1,11 @@
 <script lang="ts">
   import Icon from '$components/icon.svelte';
+  import Sublayout from '$components/yomikaze/sublayout.svelte';
   import http from '$utils/http';
+  import 'chart.js/auto';
+  import type { ChartData } from 'chart.js/auto';
   import { onMount } from 'svelte';
   import { Line } from 'svelte-chartjs';
-  import 'chart.js/auto';
-  import Sublayout from '$components/yomikaze/sublayout.svelte';
-  import type { ChartData } from 'chart.js/auto';
-  import { slide } from 'svelte/transition';
 
   export let data;
   const { token } = data;
@@ -39,7 +38,7 @@
     outcome: 0
   };
 
-  let comicChart: ChartData | undefined;
+  let comicChart: ChartData<"line", number[]> | undefined;
   onMount(async () => {
     http.defaults.headers.common.Authorization = `Bearer ${token}`;
     const response = await http.get('/statistics');
@@ -170,7 +169,7 @@
         <div class="flex justify-between items-center">
           <div class="flex flex-col">
             <span>Income</span>
-            <span class="text-xl font-semibold text-success">+{statistics.income}$</span>
+            <span class="text-xl font-semibold" class:text-success={statistics.income > 0}>{statistics.income > 0 ? '+' : ''}{statistics.income}$</span>
           </div>
           <div class="rounded flex items-center aspect-square h-full p-1 bg-accent shadow">
             <Icon icon="lucide--diamond-plus" class="text-3xl text-accent-content" />
@@ -185,7 +184,7 @@
         <div class="flex justify-between items-center">
           <div class="flex flex-col">
             <span>Outcome</span>
-            <span class="text-xl font-semibold text-error">-{statistics.outcome}$</span>
+            <span class="text-xl font-semibold" class:text-error={statistics.outcome < 0}>{statistics.outcome}$</span>
           </div>
           <div class="rounded flex items-center aspect-square h-full p-1 bg-accent shadow">
             <Icon icon="lucide--diamond-minus" class="text-3xl text-accent-content" />
@@ -198,7 +197,6 @@
     <h3 class="text-xl font-bold mt-5">Comics Statistics</h3>
     {#if comicChart}
       <div class="w-3/5 self-center">
-        <!-- @ts-ignore -->
         <Line data={comicChart} options={{ responsive: true, maintainAspectRatio: true }} />
       </div>
     {:else}

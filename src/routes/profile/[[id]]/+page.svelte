@@ -1,18 +1,19 @@
 <script lang="ts">
-  import http from '$utils/http';
   import Swap from '$components/daisyui/actions/swap.svelte';
   import Icon from '$components/icon.svelte';
   import Picture from '$components/picture.svelte';
   import ComicList from '$components/yomikaze/common/comic/comic-list.svelte';
+  import ProfileReport from '$components/yomikaze/report/profile-report.svelte';
   import type AuthDataStore from '$models/AuthDataStore';
   import type Pagination from '$models/Pagination.js';
+  import type Problem from '$models/ProblemResponse';
   import { getComics, type GetComicsOptions } from '$utils/comic-utils.js';
-  import { getContext, tick, type ComponentType } from 'svelte';
-  import Toast from '../../../lib/components/daisyui/toast.svelte';
+  import http from '$utils/http';
+  import type { AxiosError } from 'axios';
+  import { getContext, tick } from 'svelte';
+  import Time from 'svelte-time/Time.svelte';
   import type { Writable } from 'svelte/store';
   import type { ToastProps } from '~/routes/+layout.svelte';
-  import type { AxiosError } from 'axios';
-  import type Problem from '$models/ProblemResponse';
 
   let roleRequestModal: HTMLDialogElement;
   let reportModal: HTMLDialogElement;
@@ -24,7 +25,8 @@
   let errorMess = '';
 
   export let data;
-  let { profile } = data;
+  let { profile, token } = data;
+  if (token) http.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
   const authStore = getContext<AuthDataStore>('auth');
   const currentUser = authStore?.user;
@@ -126,6 +128,22 @@
       ...toasts,
       { message, color: 'alert-success', icon: 'lucide--circle-check-big' }
     ]);
+  }
+
+  interface Transaction {
+    creationTime: string;
+    amount: number;
+    description: string;
+    type: string;
+  }
+  let transactions: Transaction[] = [];
+  async function getTransactions() {
+    try {
+      const response = await http.get(`/transactions`);
+      transactions = response.data.results;
+    } catch (error) {
+      console.error('Error getting transactions:', error);
+    }
   }
 </script>
 
@@ -304,60 +322,7 @@
           <Icon icon="lucide--flag" class="text-xl" />
           Report User
         </button>
-        <dialog bind:this={reportModal} class="modal">
-          <div class="modal-box">
-            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-              <Icon icon="lucide--flag" class="text-xl" />
-              Report User
-            </h3>
-            <h5 class="font-medium mb-2">User</h5>
-            <div class="flex gap-4 items-center w-full bg-base-200 h-fit p-4 rounded">
-              <div class="avatar">
-                <div
-                  class="ring-2 ring-offset-2 ring-neutral ring-offset-base-100 w-12 h-12 aspect-square rounded-full bg-base-100"
-                >
-                  {#if profile.avatar}
-                    <Picture
-                      src={profile.avatar}
-                      alt="Avatar"
-                      class="w-full h-full"
-                      imgClass="w-full h-full rounded-full"
-                      useCdn={true}
-                    />
-                  {:else}
-                    <div
-                      class="w-full h-full flex justify-center items-center bg-gray-100 rounded-full"
-                    >
-                      <span class="iconify lucide--user text-4xl !text-base-content"></span>
-                    </div>
-                  {/if}
-                </div>
-              </div>
-              <span class="text-base font-medium">{profile.name}</span>
-            </div>
-            <hr class="border-1 my-4" />
-            <div class="mb-4">
-              <label for="report-reason" class="block mb-2 font-medium">Reason</label>
-              <select id="report-reason" class="select select-bordered w-2/3 select-sm mb-4">
-                <option value="">Offensive bio/avatar/banner</option>
-                <option value="">Spambot</option>
-                <option value="">Other</option>
-              </select>
-              <textarea
-                id="report-description"
-                class="textarea textarea-bordered w-full resize-none"
-                placeholder="Please provide additional details"
-                rows="3"
-              ></textarea>
-            </div>
-            <div class="modal-action">
-              <button type="submit" class="btn btn-sm btn-accent">Send Report</button>
-              <form method="dialog" class="flex space-x-2">
-                <button class="btn btn-sm">Close</button>
-              </form>
-            </div>
-          </div>
-        </dialog>
+        <ProfileReport bind:modal={reportModal} target={profile} {http} />
       {/if}
     </div>
     <div class="w-full">
@@ -374,6 +339,55 @@
           {/if}
         </p>
       </section>
+      {#if isSelf}
+        <section id="transaction" class="my-12">
+          <div class="flex items-baseline gap-4">
+            <h3 class="text-lg font-bold">Transactions</h3>
+            <hr class="border-1 flex-grow" />
+          </div>
+          <div class="w-full max-h-96 overflow-y-scroll">
+            <table class="table w-full table-zebra">
+              <thead class="sticky">
+                <tr>
+                  <th>Time</th>
+                  <th>Amount</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                {#await getTransactions()}
+                  <tr>
+                    <td colspan="4">Loading...</td>
+                  </tr>
+                {:then}
+                  {#each transactions as transaction}
+                    <tr class="hover">
+                      <td>
+                        <Time timestamp={transaction.creationTime} relative />
+                      </td>
+                      <td
+                        class:text-error={transaction.amount < 0}
+                        class:text-success={transaction.amount > 0}
+                      >
+                        {#if transaction.amount > 0}+{/if}{transaction.amount} coins
+                      </td>
+                      <td>
+                        {#if transaction.type === 'UnlockChapter'}
+                          Unlock Chapter {transaction.description.slice(
+                            transaction.description.lastIndexOf('/') + 1
+                          )}
+                        {:else}
+                          {transaction.description}
+                        {/if}
+                      </td>
+                    </tr>
+                  {/each}
+                {/await}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      {/if}
       <section id="uploads" class="flex flex-col">
         <div class="flex items-baseline gap-4">
           <h3 class="text-lg font-bold mb-2">Uploads</h3>
