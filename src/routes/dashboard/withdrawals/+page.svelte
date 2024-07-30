@@ -90,20 +90,18 @@
   <table class="table">
     <thead>
       <tr class="text-base font-semibold">
-        <th>Amount</th>
-        <th>Price</th>
         <th>User Name</th>
-        <th>Creation Time</th>
+        <th>Amount</th>
+        <th>Payment</th>
+        <th>Payment Information</th>
+        <th>Request Date</th>
         <th>Status</th>
-        <th>Action</th>
       </tr>
     </thead>
     <tbody>
       <tr>
         {#if withdrawals.length > 0}
           {#each withdrawals as withdrawal}
-            <td>{withdrawal.amount}</td>
-            <td>Price</td>
             <td>
               <a href="/profile/{withdrawal.profile.id}">
                 <Picture
@@ -116,16 +114,11 @@
                 {withdrawal.profile.name}</a
               >
             </td>
+            <td>{withdrawal.amount}</td>
+            <td>{withdrawal.amount * 0.009}$</td>
             <td><Time timestamp={withdrawal.creationTime} relative /> </td>
             <td>{withdrawal.status}</td>
-            <td class="flex gap-2"
-              ><button class="btn btn-sm btn-circle"
-                ><Icon icon="lucide--square-pen" class="text-xl" /></button
-              >
-              <button class="btn btn-sm btn-circle"
-                ><Icon icon="lucide--trash-2" class="text-xl" /></button
-              >
-            </td>
+            <td class="flex gap-2"> </td>
           {/each}
         {:else}
           <td colspan="6" class="text-center font-semibold italic">No withdrawals request.</td>
