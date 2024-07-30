@@ -1,12 +1,17 @@
-import type Chapter from '$models/Chapter';
-import type Comic from '$models/Comic';
-import { trySetBaseUrl } from '$utils/comic-utils';
-import http from '$utils/http';
-import { error } from '@sveltejs/kit'
+import type Chapter from '$models/Chapter.js';
+import type Comic from '$models/Comic.js';
+import { getAndVerifyToken } from '$utils/auth-server-utils.js';
+import { trySetBaseUrl } from '$utils/comic-utils.js';
+import http from '$utils/http.js';
+import { error } from '@sveltejs/kit';
 
-export async function load({ params }) {
+export async function load({ params, cookies }) {
     const number = params.number
     const comicId = params.comicId
+    const token = await getAndVerifyToken(cookies).catch(() => undefined);
+    if (token) {
+        http.defaults.headers.common.Authorization = `Bearer ${token}`;
+    }
     const comic = await http.get(`/comics/${comicId}`)
         .then(response => response.data as Comic)
         .catch(err => {

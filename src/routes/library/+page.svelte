@@ -18,7 +18,7 @@
   import { persistent } from '@furudean/svelte-persistent-store';
 
   export let data: PageData;
-  const pageName = 'Library';
+  const pageName = 'My Library';
 
   let categories: LibraryCategory[] = data.categories;
   let { tab, entries, search } = data;
