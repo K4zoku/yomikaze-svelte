@@ -2,6 +2,8 @@
     import Carousel from 'svelte-carousel';
     import LongStripMode from './long-strip-mode.svelte';
     import SinglePageMode from './single-page-mode.svelte';
+    import { goto } from '$app/navigation';
+    import Icon from '$components/icon.svelte';
     export let data;
     let { chapter, chapters, comic } = data;
     let active = false;
@@ -52,7 +54,7 @@
       <span class="duration-150 iconify lucide--bar-chart text-2xl transform rotate-90 scale-flip"
       ></span>
     </button>
-    <aside class:active class="pt-2">
+    <aside class:active class="pt-2 bg-base-200">
       <div class="flex justify-between pr-2">
         <button class="btn btn-circle btn-ghost" on:click={toggleSidebar}>
           {#if active}
@@ -106,9 +108,12 @@
           <div class="grow h-14 flex rounded-md">
             <select
               class="bg-base-200 select select-bordered h-full w-full max-w-xs select-page self-center"
+              on:change={(event) => {
+                if (event.target) goto(event.target.value);
+              }}
             >
-              {#each chapters as listChapter, index}
-                <option>Chapter {index + 1}</option>
+              {#each chapters as chapter, index}
+                <option value="/comics/{chapter.comicId}/chapters/{chapter.number}">Chapter {index + 1}</option>
               {/each}
             </select>
           </div>
@@ -133,16 +138,11 @@
           </div>
         </div>
         <div class="flex gap-5 mt-5">
-          <div class="flex"><p class="font-bold my-auto text-lg self-center">Language</p></div>
-          <select class="select select-bordered w-full max-w-xs">
-            <option>Viet Nam</option>
-            <option>England</option>
-            <option value=""></option>
-          </select>
+          <a href="/comics/{comic.id}/chapters/{chapter.number}/translations" class="btn btn-block btn-primary">
+            <Icon icon="lucide--languages" class="text-2xl" />
+            Translate
+          </a>
         </div>
-      </div>
-      <div>
-        <button>Comment</button>
       </div>
     </aside>
     <div class="h-screen">
@@ -157,8 +157,6 @@
       transition: all 0.15s;
       height: 100%;
       width: 300px;
-      border: 1px solid #ddd;
-      background-color: #ffffff;
     }
     .active {
       right: 0px;

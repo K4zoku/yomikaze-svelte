@@ -15,9 +15,11 @@ export async function load({ data }) {
     let resutls = {...data, comic, chapters, tagCategories};
     if (data.token) {
         const libraryManager = new LibraryManagement(data.token);
+        const libraryEntry = libraryManager.getEntry(data.comicId).catch(() => null);
         return {
             ...resutls,
-            libraryManager
+            libraryManager,
+            libraryEntry
         }
     }
     return {

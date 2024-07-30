@@ -1,6 +1,5 @@
 
 import { PUBLIC_API_BASE_URL } from "$env/static/public";
-import type HistorySearch from "$models/HistorySearch";
 import type { JsonPatchEntry } from "$models/JsonPatchDocument";
 import type PagedResult from "$models/PagedResult";
 import type Pagination from "$models/Pagination";

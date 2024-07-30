@@ -10,15 +10,12 @@
 
   export let data;
   let { comicId, comic, chapters, tagCategories, token, libraryManager } = data;
-
+  $: ({ comicId, comic, chapters, tagCategories, token, libraryManager } = data)
   function ratingInit(elem: HTMLDivElement) {
     const stars = elem.querySelectorAll('input[type="radio"]') as NodeListOf<HTMLInputElement>;
     comic.then((c) => {
-      console.log('My rating: ', c.isRated ? c.myRating : 0);
-      console.log('Average rating: ', c.averageRating);
       let rate = c.isRated ? c.myRating : c.averageRating;
       rate = rate ? Math.round(rate) : 0;
-      console.log('Display Rate: ', rate);
       stars.forEach((star) => {
         const value = parseInt(star.value);
         if (value <= rate) {
@@ -29,7 +26,7 @@
     });
   }
 
-  let postRatingAwaiter: Promise<void> = Promise.resolve();
+  let ratingAwait: Promise<void> = Promise.resolve();
   let totalRatings = 0;
   let averageRating = 0;
   async function postRating(e: Event) {
@@ -44,7 +41,7 @@
       }, 200);
       return;
     }
-    postRatingAwaiter = rateComic(comicId, rating, token)
+    ratingAwait = rateComic(comicId, rating, token)
       .then(async () => {
         const c = await comic;
         if (!c.isRated) {
@@ -211,13 +208,13 @@
                 </summary>
                 <ul class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                   <li>
-                    <a href="./create">
+                    <a href="/comics/{comicId}/chapters/create">
                       <Icon icon="lucide--file-plus" class="text-xl" />
                       Create Chapter
                     </a>
                   </li>
                   <li>
-                    <a href="./edit">
+                    <a href="/comics/{comicId}">
                       <Icon icon="lucide--edit" class="text-xl" />
                       Edit Comic
                     </a>
@@ -270,7 +267,7 @@
               {formatNumber(comic.totalComments ?? 0)}
             </div>
 
-            {#await postRatingAwaiter}
+            {#await ratingAwait}
               <div class="flex gap-1 items-center min-w-[0] w-fit">
                 <span class="loading loading-xs loading-dots"></span>
               </div>

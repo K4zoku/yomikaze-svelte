@@ -13,12 +13,17 @@
   export let data;
   let chapter = data.chapter;
 
-  interface Geometry {
+  interface Point {
     x: number;
     y: number;
+  }
+
+  interface Size {
     width: number;
     height: number;
   }
+
+  interface Geometry extends Point, Size {}
 
   interface TranslationBox {
     original: string;
@@ -42,6 +47,13 @@
     letterSpacing?: number;
   }
 
+  interface Translations {
+    boxes: TranslationBox[];
+    image: string;
+    width: number;
+    height: number;
+  }
+
   const DEFAULT_TEXT_FORMAT: TextFormat = {
     font: 'Comic Neue',
     fontSize: 'text-xl',
@@ -57,12 +69,6 @@
     letterSpacing: 0.1
   };
 
-  interface Translations {
-    boxes: TranslationBox[];
-    image: string;
-    width: number;
-    height: number;
-  }
   let pages: Translations[] = [];
   let currentPage: Translations;
   let store = persistent<Translations[]>({
@@ -85,7 +91,7 @@
   }
 
   onDestroy(() => {
-    confirm('Do you want to save your changes?') && save();
+    save();
   });
 
   function listFontFamilies() {
@@ -366,8 +372,16 @@
       zoomCenter = { x: mouseX - svgPosition.x, y: mouseY - svgPosition.y };
       if (event.deltaY < 0) {
         zoomFactor = Math.min(2, zoomFactor + 0.05);
+        svgPosition = {
+          x: svgPosition.x - (zoomCenter.x * 0.05),
+          y: svgPosition.y - (zoomCenter.y * 0.05)
+        };
       } else {
         zoomFactor = Math.max(0.1, zoomFactor - 0.05);
+        svgPosition = {
+          x: svgPosition.x + (zoomCenter.x * 0.05),
+          y: svgPosition.y + (zoomCenter.y * 0.05)
+        };
       }
       zoomCenter = { x: currentPage.width / 2, y: currentPage.height / 2 };
     }
