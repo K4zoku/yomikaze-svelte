@@ -251,6 +251,7 @@
     getComments();
     commentModal.showModal();
   }
+  // end comment
 
   async function getComicReports() {
     try {
@@ -347,6 +348,203 @@
     <div class="mt-6">
       <button class="btn btn-primary mt-2" on:click={openCommentModal}>View Comments</button>
     </div>
+    <dialog id="comment_modal" class="modal" bind:this={commentModal}>
+      <div class="modal-box w-11/12 max-w-5xl">
+        <h3 class="text-xl font-bold">Comments for Chapter {number}</h3>
+        <form method="dialog">
+          <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2 text-xl">✕</button>
+        </form>
+    
+        <div class="mt-6">
+          {#if comments.length > 0}
+            <ul class="max-h-96 overflow-x-auto">
+              {#each comments as comment (comment.id)}
+                <li class=" py-2">
+                  <div class="flex flex-col border-2 rounded-lg border p-4">
+                    <div class="flex justify-between border-b pb-2">
+                      <div class="flex gap-4 items-center">
+                        <div class="avatar">
+                          <div class="w-8 ring-2 ring-offset-2 ring-neutral rounded-full">
+                            <DefaultAvatar></DefaultAvatar>
+                          </div>
+                        </div>
+                        <p class=" leading-none font-medium">{comment.author.name}</p>
+                      </div>
+    
+                      <div class="my-auto flex items-center gap-2">
+                        <p class="text-xs text-gray-500 text-center">
+                          <Time timestamp={comment.creationTime} relative />
+                        </p>
+                        <details class="dropdown dropdown-end">
+                          <summary class="btn btn-sm btn-square"
+                            ><span class="iconify lucide--ellipsis-vertical text-xl"></span></summary
+                          >
+                          <ul
+                            class="menu dropdown-content bg-base-100 rounded-box z-[1] w-52 p-2 shadow"
+                          >
+                            <li><button on:click={() => deleteComment(comment.id)}>Delete</button></li>
+                            <li><button on:click={() => toggleEditComment(comment)}>Edit</button></li>
+                          </ul>
+                        </details>
+                      </div>
+                    </div>
+    
+                    {#if comment.editing}
+                      <textarea bind:value={comment.content} class="textarea textarea-bordered w-full"
+                      ></textarea>
+                      <div class="flex items-center gap-2 mt-2 justify-end">
+                        <button
+                          class="btn btn-sm btn-success flex items-center gap-1"
+                          on:click={() => editComment(comment.id, comment.content)}
+                          ><span class="iconify lucide--send text-xl"></span> Save</button
+                        >
+                        <button class="btn btn-sm" on:click={() => toggleEditComment(comment)}
+                          >Cancel</button
+                        >
+                      </div>
+                    {:else}
+                      <div class="my-2">
+                        <p class="mt-1">{comment.content}</p>
+                      </div>
+    
+                      <div class="flex gap-2 mt-2">
+                        <button
+                          class="btn btn-sm btn-square flex"
+                          on:click={() => reactComment(comment.id, 'Like')}
+                        >
+                          <div class="flex gap-1">
+                            <p
+                              class="iconify {comment.reacted
+                                ? 'fluent--thumb-like-20-filled'
+                                : 'fluent--thumb-like-16-regular'} text-xl"
+                            ></p>
+                            <p class="flex items-center">{comment.totalLikes}</p>
+                          </div>
+                        </button>
+    
+                        <button class="btn btn-sm" on:click={() => toggleReplySection(comment.id)}>
+                          {#if comment.showReplySection}
+                            Hide Replies
+                          {/if}
+                          {#if !comment.showReplySection}
+                            Show Replies
+                          {/if}
+                        </button>
+                      </div>
+    
+                      <div class="mt-4"></div>
+                    {/if}
+    
+                    {#if comment.showReplySection}
+                      <!-- Danh sách phản hồi -->
+                      {#if comment.replies && comment.replies.length > 0}
+                        <ul class="ml-4 mt-2">
+                          {#each comment.replies as reply (reply.id)}
+                            <li class="py-4 border-b">
+                              <div class="flex flex-col border-2 rounded-lg border p-2">
+                                <div class="flex justify-between border-b pb-2">
+                                  <div class="flex gap-4 items-center">
+                                    <div class="avatar">
+                                      <div class="w-6 ring-2 ring-offset-2 ring-neutral rounded-full">
+                                        <DefaultAvatar></DefaultAvatar>
+                                      </div>
+                                    </div>
+                                    <p class=" leading-none font-medium text-sm">
+                                      {comment.author.name}
+                                    </p>
+                                  </div>
+    
+                                  <div class="my-auto flex items-center gap-2">
+                                    <p class="text-xs text-gray-500 text-center">
+                                      <Time timestamp={comment.creationTime} relative />
+                                    </p>
+                                  </div>
+                                </div>
+                                <div class="my-2">
+                                  <p>{reply.content}</p>
+                                </div>
+                              </div>
+                            </li>
+                          {/each}
+                        </ul>
+                      {:else}
+                        <p class="text-base italic text-center">No Replies yet.</p>
+                      {/if}
+    
+                      <!-- Form phản hồi -->
+                      <div class="mt-4">
+                        <textarea
+                          bind:value={replyContent}
+                          placeholder="Write a reply..."
+                          class="textarea textarea-bordered w-full"
+                        ></textarea>
+                        {#if !!contentErr}
+                          <div class="label">
+                            <span class="label-text text-error font-semibold">{contentErr}</span>
+                          </div>
+                        {:else if !!errorMess}
+                          <div class="label">
+                            <span class="label-text text-error font-semibold">{errorMess}</span>
+                          </div>
+                        {:else if errorRep}
+                          <div class="label">
+                            <span class="label-text text-error font-semibold">{errorRep}</span>
+                          </div>
+                        {/if}
+                        <div class="flex justify-end">
+                          <button
+                            class="btn btn-sm btn-primary mt-2"
+                            on:click={() => postReply(comment.id)}
+                          >
+                            <span class="iconify lucide--send text-xl"></span> Post
+                          </button>
+                        </div>
+                      </div>
+                    {/if}
+                  </div>
+                </li>
+              {/each}
+            </ul>
+          {:else}
+            <p class="text-gray-500 italic">No comments yet.</p>
+          {/if}
+        </div>
+    
+        <!-- TODO Post Comment Chapter -->
+        <div class="mt-4">
+          <textarea
+            class="textarea textarea-bordered w-full"
+            placeholder="Add a comment..."
+            bind:value={commentText}
+            on:input={() => {
+              error = '';
+              contentErr = '';
+              errorMess = '';
+            }}
+          ></textarea>
+          {#if !!contentErr}
+            <div class="label">
+              <span class="label-text text-error font-semibold">{contentErr}</span>
+            </div>
+          {:else if !!errorMess}
+            <div class="label">
+              <span class="label-text text-error font-semibold">{errorMess}</span>
+            </div>
+          {:else if error}
+            <div class="label">
+              <span class="label-text text-error font-semibold">{error}</span>
+            </div>
+          {/if}
+    
+          <div class="flex justify-end">
+            <button class="btn btn-primary btn-sm mt-2" on:click={postComment}
+              ><span class="iconify lucide--send text-xl"></span> Post
+            </button>
+          </div>
+        </div>
+        <!-- TODO Post Comment Chapter -->
+      </div>
+    </dialog>
     <!-- TODO test comment chapter -->
 
     <table class="table lg:table-lg sm:table-sm xs:table-xs md:table-md">
@@ -454,200 +652,4 @@
 </dialog>
 
 <!-- ToDo Modal Comment Chapter -->
-<dialog id="comment_modal" class="modal" bind:this={commentModal}>
-  <div class="modal-box w-11/12 max-w-5xl">
-    <h3 class="text-xl font-bold">Comments for Chapter {number}</h3>
-    <form method="dialog">
-      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2 text-xl">✕</button>
-    </form>
 
-    <div class="mt-6">
-      {#if comments.length > 0}
-        <ul class="max-h-96 overflow-x-auto">
-          {#each comments as comment (comment.id)}
-            <li class=" py-2">
-              <div class="flex flex-col border-2 rounded-lg border p-4">
-                <div class="flex justify-between border-b pb-2">
-                  <div class="flex gap-4 items-center">
-                    <div class="avatar">
-                      <div class="w-8 ring-2 ring-offset-2 ring-neutral rounded-full">
-                        <DefaultAvatar></DefaultAvatar>
-                      </div>
-                    </div>
-                    <p class=" leading-none font-medium">{comment.author.name}</p>
-                  </div>
-
-                  <div class="my-auto flex items-center gap-2">
-                    <p class="text-xs text-gray-500 text-center">
-                      <Time timestamp={comment.creationTime} relative />
-                    </p>
-                    <details class="dropdown dropdown-end">
-                      <summary class="btn btn-sm btn-square"
-                        ><span class="iconify lucide--ellipsis-vertical text-xl"></span></summary
-                      >
-                      <ul
-                        class="menu dropdown-content bg-base-100 rounded-box z-[1] w-52 p-2 shadow"
-                      >
-                        <li><button on:click={() => deleteComment(comment.id)}>Delete</button></li>
-                        <li><button on:click={() => toggleEditComment(comment)}>Edit</button></li>
-                      </ul>
-                    </details>
-                  </div>
-                </div>
-
-                {#if comment.editing}
-                  <textarea bind:value={comment.content} class="textarea textarea-bordered w-full"
-                  ></textarea>
-                  <div class="flex items-center gap-2 mt-2 justify-end">
-                    <button
-                      class="btn btn-sm btn-success flex items-center gap-1"
-                      on:click={() => editComment(comment.id, comment.content)}
-                      ><span class="iconify lucide--send text-xl"></span> Save</button
-                    >
-                    <button class="btn btn-sm" on:click={() => toggleEditComment(comment)}
-                      >Cancel</button
-                    >
-                  </div>
-                {:else}
-                  <div class="my-2">
-                    <p class="mt-1">{comment.content}</p>
-                  </div>
-
-                  <div class="flex gap-2 mt-2">
-                    <button
-                      class="btn btn-sm btn-square flex"
-                      on:click={() => reactComment(comment.id, 'Like')}
-                    >
-                      <div class="flex gap-1">
-                        <p
-                          class="iconify {comment.reacted
-                            ? 'fluent--thumb-like-20-filled'
-                            : 'fluent--thumb-like-16-regular'} text-xl"
-                        ></p>
-                        <p class="flex items-center">{comment.totalLikes}</p>
-                      </div>
-                    </button>
-
-                    <button class="btn btn-sm" on:click={() => toggleReplySection(comment.id)}>
-                      {#if comment.showReplySection}
-                        Hide Replies
-                      {/if}
-                      {#if !comment.showReplySection}
-                        Show Replies
-                      {/if}
-                    </button>
-                  </div>
-
-                  <div class="mt-4"></div>
-                {/if}
-
-                {#if comment.showReplySection}
-                  <!-- Danh sách phản hồi -->
-                  {#if comment.replies && comment.replies.length > 0}
-                    <ul class="ml-4 mt-2">
-                      {#each comment.replies as reply (reply.id)}
-                        <li class="py-4 border-b">
-                          <div class="flex flex-col border-2 rounded-lg border p-2">
-                            <div class="flex justify-between border-b pb-2">
-                              <div class="flex gap-4 items-center">
-                                <div class="avatar">
-                                  <div class="w-6 ring-2 ring-offset-2 ring-neutral rounded-full">
-                                    <DefaultAvatar></DefaultAvatar>
-                                  </div>
-                                </div>
-                                <p class=" leading-none font-medium text-sm">
-                                  {comment.author.name}
-                                </p>
-                              </div>
-
-                              <div class="my-auto flex items-center gap-2">
-                                <p class="text-xs text-gray-500 text-center">
-                                  <Time timestamp={comment.creationTime} relative />
-                                </p>
-                              </div>
-                            </div>
-                            <div class="my-2">
-                              <p>{reply.content}</p>
-                            </div>
-                          </div>
-                        </li>
-                      {/each}
-                    </ul>
-                  {:else}
-                    <p class="text-base italic text-center">No Replies yet.</p>
-                  {/if}
-
-                  <!-- Form phản hồi -->
-                  <div class="mt-4">
-                    <textarea
-                      bind:value={replyContent}
-                      placeholder="Write a reply..."
-                      class="textarea textarea-bordered w-full"
-                    ></textarea>
-                    {#if !!contentErr}
-                      <div class="label">
-                        <span class="label-text text-error font-semibold">{contentErr}</span>
-                      </div>
-                    {:else if !!errorMess}
-                      <div class="label">
-                        <span class="label-text text-error font-semibold">{errorMess}</span>
-                      </div>
-                    {:else if errorRep}
-                      <div class="label">
-                        <span class="label-text text-error font-semibold">{errorRep}</span>
-                      </div>
-                    {/if}
-                    <div class="flex justify-end">
-                      <button
-                        class="btn btn-sm btn-primary mt-2"
-                        on:click={() => postReply(comment.id)}
-                      >
-                        <span class="iconify lucide--send text-xl"></span> Post
-                      </button>
-                    </div>
-                  </div>
-                {/if}
-              </div>
-            </li>
-          {/each}
-        </ul>
-      {:else}
-        <p class="text-gray-500 italic">No comments yet.</p>
-      {/if}
-    </div>
-
-    <!-- TODO Post Comment Chapter -->
-    <div class="mt-4">
-      <textarea
-        class="textarea textarea-bordered w-full"
-        placeholder="Add a comment..."
-        bind:value={commentText}
-        on:input={() => {
-          error = '';
-          contentErr = '';
-          errorMess = '';
-        }}
-      ></textarea>
-      {#if !!contentErr}
-        <div class="label">
-          <span class="label-text text-error font-semibold">{contentErr}</span>
-        </div>
-      {:else if !!errorMess}
-        <div class="label">
-          <span class="label-text text-error font-semibold">{errorMess}</span>
-        </div>
-      {:else if error}
-        <div class="label">
-          <span class="label-text text-error font-semibold">{error}</span>
-        </div>
-      {/if}
-
-      <div class="flex justify-end">
-        <button class="btn btn-primary btn-sm mt-2" on:click={postComment}
-          ><span class="iconify lucide--send text-xl"></span> Post
-        </button>
-      </div>
-    </div>
-    <!-- TODO Post Comment Chapter -->
-  </div>
-</dialog>
