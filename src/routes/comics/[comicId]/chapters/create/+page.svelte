@@ -18,8 +18,11 @@
     number: null,
     name: '',
     pages: [],
-    price : 0
+    price : null
   };
+  function handleChange(event) {
+    chapterData.price = event.target.value;
+  }
   function scrollToGuide() {
     const element = document.getElementById('guide-element');
     if (element) {
@@ -145,9 +148,9 @@
             />
             <select
               bind:value={chapterData.price}
-              class="h-14 w-72 bg-gray-200 focus:outline-none focus:ring-2 focus:ring-warning"
+              class="select h-14 w-72 bg-gray-200 focus:outline-none focus:ring-2 focus:ring-warning"
             >
-              <option disabled selected>Choose Coin</option>
+            <option disabled selected>Choose coin</option>
               {#each { length: 15 } as _, i}
                 {#if i == 0}
                   <option value={i + 1}>{i + 1} coin</option>

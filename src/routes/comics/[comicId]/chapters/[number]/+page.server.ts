@@ -31,6 +31,8 @@ export async function load({ params, cookies }) {
     return {
         chapter,
         chapters,
-        comic
+        comic,
+        number,
+        comicId
     };
 }
