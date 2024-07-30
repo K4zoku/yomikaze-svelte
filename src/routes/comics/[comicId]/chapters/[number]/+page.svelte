@@ -56,6 +56,8 @@
   let scrollY: number;
 // comment
   let comments: Array<Comment & { editing: boolean; reacted?: boolean }> = [];
+    
+  
   let commentText = '';
   let replyContent = '';
   let commentModal: any;
@@ -91,8 +93,7 @@
       });
       comments = [response.data, ...comments];
       commentText = '';
-
-      await tick();
+      await getComments();
     } catch (error) {
       const axiosError = error as AxiosError;
       const { response } = axiosError;
