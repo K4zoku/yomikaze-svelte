@@ -1,8 +1,8 @@
-import type Chapter from '$models/Chapter.js';
-import type Comic from '$models/Comic.js';
-import { trySetBaseUrl } from '$utils/comic-utils.js';
-import http from '$utils/http.js';
-import { error } from '@sveltejs/kit';
+import type Chapter from '$models/Chapter';
+import type Comic from '$models/Comic';
+import { trySetBaseUrl } from '$utils/comic-utils';
+import http from '$utils/http';
+import { error } from '@sveltejs/kit'
 
 export async function load({ params }) {
     const number = params.number
