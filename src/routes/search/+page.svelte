@@ -279,9 +279,9 @@
               </div>
             </summary>
             <div
-              class="dropdown-content z-50 bg-base-100 p-4 rounded shadow-lg mt-2 w-192 max-h-96 overflow-y-scroll overflow-x-hidden select-none"
+              class="dropdown-content z-50 bg-base-100 p-4 rounded shadow-lg mt-2 w-192 max-h-96 select-none flex flex-col gap-2"
             >
-              <div class="flex items-center gap-2 w-full py-2">
+              <div class="flex items-center gap-2 w-full py-2 h-fit shrink-0">
                 <label class="input input-bordered input-sm focus-within:input-accent flex items-center gap-1 grow">
                   <Icon icon="lucide--tag" class="text-xl shrink-0" />
                   <input class="grow" placeholder="Search tag" bind:value={tagSearch} on:input={debounceTagSearch}/>
@@ -290,7 +290,7 @@
                   Reset tag filter
                 </button> 
               </div>
-              <div class="flex flex-col gap-4">
+              <div class="flex flex-col gap-4 overflow-y-scroll overflow-x-hidden max-h-full">
                 {#each Object.keys(categorizedTags).sort() as categoryId (categoryId)}
                   <div class="flex flex-col gap-1 w-full">
                     <div class="flex gap-2 items-center">
@@ -417,8 +417,8 @@
     </div>
   {/if}
   <div class="w-full mt-2 flex justify-end items-center gap-2">
-    <button type="reset" form="search-form" class="btn">Reset filters</button>
-    <a href="/comics/random" data-sveltekit-reload class="btn">I'm feeling lucky</a>
+    <button type="reset" form="search-form" class="btn active:btn-accent">Reset filters</button>
+    <a href="/comics/random" class="btn active:btn-accent">I'm feeling lucky</a>
     <button type="submit" form="search-form" class="btn btn-accent flex items-center gap-2">
       <Icon icon="lucide--search" class="text-xl" />
       Search
