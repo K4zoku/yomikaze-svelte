@@ -16,8 +16,8 @@
   import type { ToastProps } from '~/routes/+layout.svelte';
 
   export let data;
-  let { profile } = data;
-  http.defaults.headers.common.Authorization = 'Bearer ' + profile;
+  let { profile, token } = data;
+  if (token) http.defaults.headers.common.Authorization = `Bearer ${token}`;
 
   let roleRequestModal: HTMLDialogElement;
   let reportModal: HTMLDialogElement;
