@@ -20,6 +20,12 @@
     pages: [],
     price : 0
   };
+  function scrollToGuide() {
+    const element = document.getElementById('guide-element');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
   // async function getComicInfor() {
   //   comicInformation = getComic(comicId,token);
   //   console.log(comicInformation)
@@ -108,20 +114,20 @@
 {#await comic then comic}
   <div class="flex justify-center">
     <div class="ml-10 w-9/12 aspect-[20/6]">
-      <button class="btn btn-block bg-orange-500 hover:bg-orange-600"
-        ><p class="text-white">Make sure to read the guidelines!{comicId}</p></button
-      >
+      <button on:click={scrollToGuide} class="btn btn-block bg-orange-500 hover:bg-orange-600">
+        <p class="text-white">Make sure to read the guidelines!</p>
+      </button>
       <div class="mt-10">
         <p class="text-xl font-bold">Details</p>
       </div>
-      <div class="bg-base-200 flex">
+      <div class="bg-base-200 flex items-center gap-3">
         <Picture
           src={comic.cover}
           useCdn={true}
-          class="h-24 w-fit aspect-cover"
+          class="h-28 w-fit aspect-cover"
           imgClass="rounded-md shadow object-contain w-full h-full"
         ></Picture>
-        <div class="ml-3 self-center">
+        <div class="">
           <p class="text-xl font-bold">{comic.name}</p>
           <p class="text-sm mb-2">{comic.authors}</p>
             <ComicStatus status={comic.status}></ComicStatus>
@@ -222,7 +228,7 @@
           </button>
         </div>
       </form>
-      <div class="mt-10 ml-5 pb-12">
+      <div id="guide-element" class="mt-10 ml-5 pb-12">
         <div class="prose">
           <h3 class="">Chapter Upload Guidelines</h3>
           <h4 class="text-orange-700 mt-7">Do not upload</h4>
