@@ -1,15 +1,14 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import Icon from '$components/icon.svelte';
+  import http from '$lib/utils/http';
   import { onMount } from 'svelte';
   import { writable } from 'svelte/store';
-  import Tags from '../create-comic/tags/+page.svelte';
-  import Icon from '$components/icon.svelte';
-  import http from '$lib/utils/http'; // Assuming http.js correctly handles HTTP requests
-  import httpImage from '$lib/utils/httpImage.js';
   import Swap from '$components/daisyui/actions/swap.svelte';
-  import type { CategorizedTags, TagCategoryExtended } from '$utils/tag-utils';
-  import { groupByCategory, getTagCategories } from '$utils/tag-utils';
+  import httpImage from '$lib/utils/httpImage.js';
   import { debounce } from '$utils/common';
+  import type { TagCategoryExtended } from '$utils/tag-utils';
+  import { groupByCategory } from '$utils/tag-utils';
 
   function goBack() {
     if (window.history.length > 1) {
