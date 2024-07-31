@@ -22,6 +22,8 @@
   let roleRequestModal: HTMLDialogElement;
   let reportModal: HTMLDialogElement;
   let addModal: HTMLDialogElement;
+  let editModal: HTMLDialogElement;
+  let changePasswordModal: HTMLDialogElement;
   let withdrawalAmount = 1;
   let remainingBalance = 0;
   let paymentInfomation = '';
@@ -223,156 +225,37 @@
         Share Profile
       </a>
       {#if isSelf}
-        <a href="/profile/settings" class="btn w-full">
+        <button class="btn w-full" on:click={() => editModal.showModal()}>
           <Icon icon="lucide--edit" class="text-xl" />
           Edit Profile
-        </a>
-        <button class="btn w-full" on:click={() => roleRequestModal.showModal()}>
-          <Icon icon="lucide--contact" class="text-xl" />
-          Request Role
         </button>
-        <dialog bind:this={roleRequestModal} class="modal">
-          <div class="modal-box">
-            <h3 class="text-lg font-bold flex items-center gap-2">
-              <Icon icon="lucide--contact" class="text-xl" />
-              Request Role
-            </h3>
-            <h5 class="font-medium mb-2">User</h5>
-            <div class="flex gap-4 items-center w-full bg-base-200 h-fit p-4 rounded">
-              <div class="avatar">
-                <div
-                  class="ring-2 ring-offset-2 ring-neutral ring-offset-base-100 w-12 h-12 aspect-square rounded-full bg-base-100"
-                >
-                  {#if profile.avatar}
-                    <Picture
-                      src={profile.avatar}
-                      alt="Avatar"
-                      class="w-full h-full"
-                      imgClass="w-full h-full rounded-full"
-                      useCdn={true}
-                    />
-                  {:else}
-                    <div
-                      class="w-full h-full flex justify-center items-center bg-gray-100 rounded-full"
-                    >
-                      <span class="iconify lucide--user text-4xl !text-base-content"></span>
-                    </div>
-                  {/if}
-                </div>
-              </div>
-              <span class="text-base font-medium">{profile.name}</span>
-            </div>
-            <hr class="border-1 my-4" />
-            <label for="role" class="block mb-2 font-medium">Role</label>
-            <select class="select select-bordered select-sm w-full max-w-xs" id="role">
-              <option value="Administrator">Administrator</option>
-              <option value="Publisher">Publisher</option>
-            </select>
-            <div class="modal-action">
-              <button class="btn btn-sm btn-accent">Request</button>
-              <form method="dialog">
-                <button class="btn btn-sm">Cancel</button>
-              </form>
-            </div>
-          </div>
-        </dialog>
-        <!-- {#if profile.roles.includes('Publisher')} -->
-        <button on:click={openAddModal} class="btn">
-          <Icon icon="lucide--receipt" class="text-xl" /> Request Withdrawal</button
-        >
-        <!--! Modal for Post Withdrawal -->
-        <dialog id="withdrawal_modal" bind:this={addModal} class="modal">
-          <div class="modal-box">
-            <h2 class="text-2xl mb-4 font-bold">Withdrawal Request</h2>
+        <button class="btn w-full" on:click={() => changePasswordModal.showModal()}>
+          <Icon icon="lucide--lock-keyhole" class="text-xl" />
+          Change Password
+        </button>
+        {#if !profile.roles.includes('Publisher')}
+          <button class="btn w-full" on:click={() => roleRequestModal.showModal()}>
+            <Icon icon="lucide--contact" class="text-xl" />
+            Request Role
+          </button>
+        {/if}
 
-            {#if !!errorMess}
-              <div role="alert" class="alert alert-error max-h-14 p-2">
-                <Icon icon="lucide--circle-x" class="text-xl" />
-                <span>{errorMess}</span>
-              </div>
-            {/if}
-            <form
-              on:submit|preventDefault={handlePostWithdrawal}
-              class="flex flex-col gap-3"
-              id="withdrawal-form"
+        {#if profile.roles.includes('Publisher')}
+          {#if profile.balance <= 0}
+            <div
+              class="tooltip w-full tooltip-right tooltip-warning cursor-help"
+              data-tip="You must have at least 1 coin to withdraw"
             >
-              <div class="flex gap-2">
-                <label class="form-control">
-                  <div class="label">
-                    <span class="label-text">Your Balance</span>
-                  </div>
-                  <input
-                    type="text"
-                    value="{profile.balance} coins"
-                    min="0"
-                    class="input input-bordered w-full"
-                    disabled
-                  />
-                </label>
-                <label class="form-control">
-                  <div class="label">
-                    <span class="label-text">New Balance</span>
-                  </div>
-                  <input
-                    type="text"
-                    value="{remainingBalance} coins"
-                    min="0"
-                    class="input input-bordered w-full"
-                    disabled
-                  />
-                </label>
-              </div>
-
-              <label class="form-control">
-                <div class="label">
-                  <span class="label-text">Coin amount</span>
-                </div>
-                <input
-                  type="number"
-                  bind:value={withdrawalAmount}
-                  placeholder="Enter amount to withdraw"
-                  min="1"
-                  max={profile.balance}
-                  class="input input-bordered w-full"
-                />
-              </label>
-              <label class="form-control">
-                <div class="label">
-                  <span class="label-text">Actual amount received</span>
-                </div>
-                <input
-                  type="text"
-                  value="{(withdrawalAmount * 0.009).toFixed(2)}$"
-                  min="0"
-                  class="input input-bordered w-full"
-                  disabled
-                />
-              </label>
-              <label class="form-control">
-                <div class="label">
-                  <span class="label-text">Payment infomation</span>
-                </div>
-                <textarea
-                  id="report-description"
-                  bind:value={paymentInfomation}
-                  class="textarea textarea-bordered w-full resize-none"
-                  placeholder="EX: &#10; Bank Name &#10; 0123456789 &#10; Card Holder Name"
-                  rows="3"
-                ></textarea>
-              </label>
-              {#if !!amountErr}
-                <p class="text-error">{amountErr}</p>
-              {/if}
-            </form>
-            <div class="modal-action">
-              <button type="submit" class="btn btn-success btn-sm" form="withdrawal-form"
-                >Submit</button
-              >
-              <button type="button" class="btn btn-sm" on:click={closeAddModal}>Cancel</button>
+              <button class="btn btn-block btn-disabled">
+                <Icon icon="lucide--receipt" class="text-xl" /> Request Withdrawal
+              </button>
             </div>
-          </div>
-        </dialog>
-        <!-- {/if} -->
+          {:else}
+            <button on:click={openAddModal} class="btn">
+              <Icon icon="lucide--receipt" class="text-xl" /> Request Withdrawal
+            </button>
+          {/if}
+        {/if}
       {:else}
         <button class="btn w-full" on:click={() => reportModal.showModal()}>
           <Icon icon="lucide--flag" class="text-xl" />
@@ -491,3 +374,183 @@
     </div>
   </div>
 </div>
+{#if isSelf}
+  <!--! Modal role request -->
+  <dialog bind:this={roleRequestModal} class="modal">
+    <div class="modal-box">
+      <h3 class="text-lg font-bold flex items-center gap-2">
+        <Icon icon="lucide--contact" class="text-xl" />
+        Request Role
+      </h3>
+      <h5 class="font-medium mb-2">User</h5>
+      <div class="flex gap-4 items-center w-full bg-base-200 h-fit p-4 rounded">
+        <div class="avatar">
+          <div
+            class="ring-2 ring-offset-2 ring-neutral ring-offset-base-100 w-12 h-12 aspect-square rounded-full bg-base-100"
+          >
+            {#if profile.avatar}
+              <Picture
+                src={profile.avatar}
+                alt="Avatar"
+                class="w-full h-full"
+                imgClass="w-full h-full rounded-full"
+                useCdn={true}
+              />
+            {:else}
+              <div class="w-full h-full flex justify-center items-center bg-gray-100 rounded-full">
+                <span class="iconify lucide--user text-4xl !text-base-content"></span>
+              </div>
+            {/if}
+          </div>
+        </div>
+        <span class="text-base font-medium">{profile.name}</span>
+      </div>
+      <hr class="border-1 my-4" />
+      <label for="role" class="block mb-2 font-medium">Role</label>
+      <select class="select select-bordered select-sm w-full max-w-xs" id="role">
+        <option value="Administrator">Administrator</option>
+        <option value="Publisher">Publisher</option>
+      </select>
+      <div class="modal-action">
+        <button class="btn btn-sm btn-accent">Request</button>
+        <form method="dialog">
+          <button class="btn btn-sm">Cancel</button>
+        </form>
+      </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
+
+  <!--! Modal edit profile -->
+  <dialog bind:this={editModal} class="modal">
+    <div class="modal-box">
+      <h3 class="text-lg font-bold flex"><Icon icon="lucide--edit" class="text-xl text-center" />Edit Profile</h3>
+      <p class="py-4">Press ESC key or click the button below to close</p>
+      <div class="modal-action">
+        <form method="dialog">
+          <!-- if there is a button in form, it will close the modal -->
+          <button class="btn">Close</button>
+        </form>
+      </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
+
+  <!--! Modal change password -->
+  <dialog bind:this={changePasswordModal} class="modal">
+    <div class="modal-box">
+      <h3 class="text-lg font-bold">Change Password</h3>
+      <p class="py-4">Press ESC key or click the button below to close</p>
+      <div class="modal-action">
+        <form method="dialog">
+          <!-- if there is a button in form, it will close the modal -->
+          <button class="btn">Close</button>
+        </form>
+      </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
+
+  {#if profile.roles.includes('Publisher') && profile.balance > 0}
+    <!--! Modal for Post Withdrawal -->
+    <dialog id="withdrawal_modal" bind:this={addModal} class="modal">
+      <div class="modal-box">
+        <h2 class="text-2xl mb-4 font-bold">Withdrawal Request</h2>
+
+        {#if !!errorMess}
+          <div role="alert" class="alert alert-error max-h-14 p-2">
+            <Icon icon="lucide--circle-x" class="text-xl" />
+            <span>{errorMess}</span>
+          </div>
+        {/if}
+        <form
+          on:submit|preventDefault={handlePostWithdrawal}
+          class="flex flex-col gap-3"
+          id="withdrawal-form"
+        >
+          <div class="flex gap-2">
+            <label class="form-control">
+              <div class="label">
+                <span class="label-text">Your Balance</span>
+              </div>
+              <input
+                type="text"
+                value="{profile.balance} coins"
+                min="0"
+                class="input input-bordered w-full"
+                readonly
+              />
+            </label>
+            <label class="form-control">
+              <div class="label">
+                <span class="label-text">New Balance</span>
+              </div>
+              <input
+                type="text"
+                value="{remainingBalance} coins"
+                min="0"
+                class="input input-bordered w-full"
+                readonly
+              />
+            </label>
+          </div>
+
+          <label class="form-control">
+            <div class="label">
+              <span class="label-text">Coin amount</span>
+            </div>
+            <input
+              type="number"
+              bind:value={withdrawalAmount}
+              placeholder="Enter amount to withdraw"
+              min="1"
+              max={profile.balance}
+              class="input input-bordered w-full"
+            />
+          </label>
+          <label class="form-control">
+            <div class="label">
+              <span class="label-text">Actual amount received</span>
+            </div>
+            <input
+              type="text"
+              value="{(withdrawalAmount * 0.009).toFixed(2)}$"
+              min="0"
+              class="input input-bordered w-full"
+              disabled
+            />
+          </label>
+          <label class="form-control">
+            <div class="label">
+              <span class="label-text">Payment infomation</span>
+            </div>
+            <textarea
+              id="report-description"
+              bind:value={paymentInfomation}
+              class="textarea textarea-bordered w-full resize-none"
+              placeholder="EX: &#10; Bank Name &#10; 0123456789 &#10; Card Holder Name"
+              rows="3"
+            ></textarea>
+          </label>
+          {#if !!amountErr}
+            <p class="text-error">{amountErr}</p>
+          {/if}
+        </form>
+        <div class="modal-action">
+          <button type="submit" class="btn btn-success btn-sm" form="withdrawal-form">Submit</button
+          >
+          <button type="button" class="btn btn-sm" on:click={closeAddModal}>Cancel</button>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
+  {/if}
+{/if}
