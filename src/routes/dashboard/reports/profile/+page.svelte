@@ -143,7 +143,13 @@
               {/if}
             </td>
             <td class="p-2">{report.reasonContent}</td>
-            <td class="p-2">{report.description} none</td>
+            <td class="p-2">
+            {#if report.description}
+              {report.description}
+              {:else}
+              <span class="text-neutral italic">No description provided.</span>
+              {/if}
+             </td>
             <td class="p-2">
               <a href="/profile/{report.reporter.id}" class="flex gap-3">
                 <div class="avatar">
