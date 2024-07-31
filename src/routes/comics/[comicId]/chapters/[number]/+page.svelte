@@ -2,7 +2,7 @@
   import Carousel from 'svelte-carousel';
   import LongStripMode from './long-strip-mode.svelte';
   import SinglePageMode from './single-page-mode.svelte';
-  import { goto } from '$app/navigation';
+  import { goto, invalidateAll } from '$app/navigation';
   import Icon from '$components/icon.svelte';
   export let data;
   import http from '$utils/http'
@@ -15,6 +15,7 @@
   http.defaults.headers.common.Authorization = 'Bearer ' + token;
   let active = false;
   import { onMount, tick } from 'svelte';
+    import { trySetBaseUrl } from '$utils/comic-utils';
   interface CarouselData {
     goToPrev: () => void;
     goToNext: () => void;
@@ -78,6 +79,16 @@
         console.error('Error:', error.message);
       }
     }
+  }
+  let unlockDialog: HTMLDialogElement;
+  async function handleUnlockClose() {
+    chapter = await http.get(`/comics/${comicId}/chapters/${number}`)
+      .then((response) => response.data)
+      .catch((error) => {
+        goto(`/comics/${comicId}`);
+        return false;
+      });
+      if (chapter) chapter.pages = chapter.pages.map(page => trySetBaseUrl(page));
   }
 
   async function postComment() {
@@ -282,6 +293,19 @@
     getComments();
     commentModal.showModal();
   }
+
+  function handleUnlock() {
+    http.put(`/comics/${comicId}/chapters/${number}/unlock`)
+      .then(() => {
+        unlockDialog.close();
+      })
+      .catch((error) => {
+        if (error.response.status === 402) {
+          goto('/shop');
+        }
+        console.error('Failed to unlock chapter:', error);
+      });
+  }
 </script>
 
 <svelte:window bind:scrollY />
@@ -483,6 +507,7 @@
   </div>
 </dialog>
 <div class="h-16"></div>
+{#if chapter && chapter.pages && chapter.pages.length > 0}
 <div class="flex justify-center h-screen relative">
   <button class="fixed top-15 right-0 btn btn-circle btn-ghost" on:click={toggleSidebar}>
     <span class="duration-150 iconify lucide--bar-chart text-2xl transform rotate-90 scale-flip"
@@ -595,7 +620,21 @@
     />
   </div>
 </div>
-
+{:else if chapter && chapter.price}
+<dialog id="unlock_chapter" class="modal" open on:close={handleUnlockClose} bind:this={unlockDialog}>
+  <div class="modal-box">
+    <h3 class="text-lg font-bold">Unlock Chapter</h3>
+    <form method="dialog">
+      <button class="btn btn-circle btn-ghost absolute right-2 top-2 text-xl">✕</button>
+    </form>
+    <p class="mt-4">This <strong>chapter</strong> is locked. Please unlock it to read.</p>
+    <p><strong>Unlock</strong> this chapter for <strong>{chapter.price}</strong> coins.</p>
+    <div class="mt-4">
+      <button class="btn btn-primary" on:click={handleUnlock}>Unlock</button>
+    </div>
+  </div>
+</dialog>
+{/if}
 <style>
   aside {
     position: fixed;

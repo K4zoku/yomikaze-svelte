@@ -53,8 +53,10 @@
 
 <div class="transition-margin duration-150 h-screen" class:shifted={active}>
   {#each pageElements as page, index (index)}
-    <div class="h-full" bind:this={page.element}>
-      <img class="object-contain max-h-full max-w-full" src={page.url} alt={`${index + 1}`} />
+    <div class="w-5/6" bind:this={page.element}>
+      <div class="flex w-full justify-center">
+        <img class="object-contain max-h-full max-w-full" src={page.url} alt={`${index + 1}`} />
+      </div>
     </div>
   {/each}
   <input

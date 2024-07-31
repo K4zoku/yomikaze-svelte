@@ -6,7 +6,10 @@ import http from '$utils/http.js';
 import { error } from '@sveltejs/kit';
 
 export async function load({ params, cookies }) {
-    const number = params.number
+    const number = parseInt(params.number)
+    if (isNaN(number)) {
+        throw error(404, 'Chapter not found')
+    }
     const comicId = params.comicId
     const token = await getAndVerifyToken(cookies).catch(() => undefined);
     if (token) {
@@ -17,17 +20,20 @@ export async function load({ params, cookies }) {
         .catch(err => {
             throw error(err.response.status, err.response.statusText)
         });
-    const chapter = await http.get(`/comics/${comicId}/chapters/${number}`)
+    const chapters = await http.get(`/comics/${comicId}/chapters`)
+        .then(response => response.data.results as Array<Chapter>)
+        .catch(err => {
+            throw error(err.response.status, err.response.statusText)
+        });
+    const chapter: Chapter | false = await http.get(`/comics/${comicId}/chapters/${number}`)
         .then(response => response.data as Chapter)
         .catch(err => {
+            if (err.response.status === 403) {
+                return chapters.find(chapter => chapter.number === number) || false
+            }
             throw error(err.response.status, err.response.statusText)
         });
-    const chapters = await http.get(`/comics/${comicId}/chapters`)
-        .then (response => response.data.results as Array<Chapter>)
-        .catch(err => {
-            throw error(err.response.status, err.response.statusText)
-        });
-        chapter.pages = chapter.pages.map(trySetBaseUrl)
+    if (chapter) chapter.pages = chapter.pages.map(trySetBaseUrl)
     return {
         chapter,
         chapters,
