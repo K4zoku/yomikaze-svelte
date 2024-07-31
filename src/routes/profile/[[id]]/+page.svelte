@@ -79,7 +79,7 @@
     try {
       const response = await http.post(`/withdrawal`, {
         amount: amount,
-        paymentInfomation: payInfo 
+        paymentInformation: payInfo 
       });
 
       console.log(response);

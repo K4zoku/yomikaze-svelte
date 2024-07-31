@@ -3,8 +3,13 @@
   import { onMount } from 'svelte';
   import { writable } from 'svelte/store';
   import Tags from '../create-comic/tags/+page.svelte';
+  import Icon from '$components/icon.svelte';
   import http from '$lib/utils/http'; // Assuming http.js correctly handles HTTP requests
   import httpImage from '$lib/utils/httpImage.js';
+  import Swap from '$components/daisyui/actions/swap.svelte';
+  import type { CategorizedTags, TagCategoryExtended } from '$utils/tag-utils';
+  import { groupByCategory, getTagCategories } from '$utils/tag-utils';
+  import { debounce } from '$utils/common';
 
   function goBack() {
     if (window.history.length > 1) {
@@ -24,8 +29,13 @@
   let title = '';
   let anotherTitle = '';
   let description = '';
-  let tags = writable([]); // Assuming you handle tags elsewhere
   let selectedAuthors = writable([]);
+
+  let tags = [];
+  let categorizedTags: Record<string, TagCategoryExtended> = {};
+  let selectedTags: Set<string> = new Set();
+  let tagSearch: string = '';
+  let filteredTags: Record<string, TagCategoryExtended> = {};
 
   async function handleFileChange(event) {
     const file = event.target.files[0];
@@ -121,7 +131,7 @@
       publicationDate: new Date().toISOString(),
       authors: $names,
       status: 'OnGoing',
-      tagIds: $tags
+      tagIds: Array.from(selectedTags)
     };
 
     console.log('Payload:', payload);
@@ -136,8 +146,7 @@
       imageUrl = '';
       bannerImageUrl = '';
       $names = [];
-      $tags = [];
-	  
+      selectedTags = new Set();
     } catch (error) {
       console.error('Error:', error);
       alert('An error occurred while creating the comic.');
@@ -148,9 +157,76 @@
     if (window.history.length > 1) {
       window.history.back();
     } else {
-      goto('/'); // Navigate to homepage if no history available
+      goto('/');
     }
     createComic();
+  }
+
+  onMount(async (size = 1000) => {
+    const tagResponse = await http.get('/tags', {
+      params: {
+        Size: size
+      }
+    });
+    tags = tagResponse.data.results;
+    categorizedTags = groupByCategory(tags);
+    filteredTags = categorizedTags;
+  });
+
+  function handleTagChange(tagId: string, isActive: boolean) {
+    // console.log(`Tag ID: ${tagId}, New State: ${newState}`); , newState: boolean
+    if (isActive) {
+      selectedTags.add(tagId);
+    } else {
+      selectedTags.delete(tagId);
+    }
+    updateSelectedTagNames();
+  }
+
+  function updateSelectedTagNames() {
+    selectedTagNames = Array.from(selectedTags)
+      .map((tagId) => tags.find((tag) => tag.id === tagId)?.name)
+      .filter(Boolean)
+      .join(', ');
+  }
+
+  let selectedTagNames = '';
+
+  $: selectedTagNames = Array.from(selectedTags)
+    .map((tagId) => tags.find((tag) => tag.id === tagId)?.name)
+    .filter(Boolean)
+    .join(', ');
+
+  function filterTags() {
+    if (tagSearch.trim() === '') {
+      filteredTags = categorizedTags;
+      return;
+    }
+    const searchLower = tagSearch.toLowerCase();
+    filteredTags = {};
+    for (const [category, data] of Object.entries(categorizedTags)) {
+      const filteredCategoryTags = data.tags.filter((tag) =>
+        tag.name.toLowerCase().includes(searchLower)
+      );
+      if (filteredCategoryTags.length > 0) {
+        filteredTags[category] = { ...data, tags: filteredCategoryTags };
+      }
+    }
+  }
+
+  const debouncedFilterTags = debounce(() => {
+    filterTags();
+  }, 300);
+
+  function handleInput(event: Event) {
+    tagSearch = (event.target as HTMLInputElement).value;
+    debouncedFilterTags();
+  }
+
+  // Reset selected tags
+  function resetTags() {
+    selectedTags = new Set();
+    updateSelectedTagNames();
   }
 </script>
 
@@ -271,7 +347,68 @@
 
           <div class="flex flex-col gap-2">
             <span class="text-xl font-semibold">Tags</span>
-            <Tags></Tags>
+            <!-- <Tags></Tags> -->
+
+            <details class="dropdown">
+              <summary
+                id="tags"
+                class="flex input input-bordered focus:input-accent bg-base-100 font-normal justify-start tooltip select-none"
+                data-tip={selectedTagNames || 'Include any'}
+              >
+                <div class="w-full h-full flex justify-start items-center">
+                  <span class="text-nowrap overflow-hidden text-ellipsis max-w-full select-none">
+                    {selectedTagNames || 'Include any'}
+                  </span>
+                </div>
+              </summary>
+
+              <div
+                class="dropdown-content z-50 bg-base-100 p-4 rounded shadow-lg mt-2 w-192 max-h-96 select-none flex flex-col gap-2 overflow-x-auto"
+              >
+                <div class="flex items-center gap-2 w-full py-2 h-fit shrink-0 justify-end">
+                  <label
+                    class="input input-bordered input-sm focus-within:input-accent flex items-center gap-1 grow"
+                  >
+                    <Icon icon="lucide--tag" class="text-xl shrink-0" />
+                    <input
+                      class="grow"
+                      placeholder="Search tag"
+                      bind:value={tagSearch}
+                      on:input={handleInput}
+                    />
+                  </label>
+                  <button class="btn btn-sm active:btn-accent shrink-0" on:click={resetTags}>
+                    Reset tag filter
+                  </button>
+                </div>
+                {#if Object.keys(filteredTags).length > 0}
+                  {#each Object.entries(filteredTags) as [category, { name, tags }]}
+                    <div class=" p-1 rounded-lg">
+                      <div class="flex gap-2 items-center">
+                        <h2 class="text-xl font-bold mb-2">{name}</h2>
+                        <hr class="border-1 my-4 flex-grow" />
+                      </div>
+
+                      <ul class="list-disc pl-5 flex flex-wrap gap-2">
+                        {#each tags as tag}
+                          <Swap
+                            on={selectedTags.has(tag.id)}
+                            on:change={() => handleTagChange(tag.id, !selectedTags.has(tag.id))}
+                          >
+                            <span slot="on" class="badge badge-outline badge-success"
+                              >{tag.name}</span
+                            >
+                            <span slot="off" class="badge badge-outline badge-neutral"
+                              >{tag.name}</span
+                            >
+                          </Swap>
+                        {/each}
+                      </ul>
+                    </div>
+                  {/each}
+                {/if}
+              </div>
+            </details>
           </div>
         </div>
         <div class="flex flex-col gap-2">
