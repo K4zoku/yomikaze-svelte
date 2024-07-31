@@ -1,8 +1,10 @@
 <script lang="ts">
   import Picture from '$components/picture.svelte';
+  import Sublayout from '$components/yomikaze/sublayout.svelte';
   import http from '$utils/http';
   import { onMount } from 'svelte';
   import Time from 'svelte-time/Time.svelte';
+    import InlineProfile from '../inline-profile.svelte';
 
   export let data;
   let { token } = data;
@@ -13,11 +15,11 @@
 
   async function getProfileReports() {
     try {
-        const [reportsResponse, reasonsResponse] = await Promise.all([
+      const [reportsResponse, reasonsResponse] = await Promise.all([
         http.get('/reports/profile'),
         http.get('/reports/profile/reasons')
       ]);
-      
+
       reports = reportsResponse.data.results || [];
       reasons = reasonsResponse.data || [];
 
@@ -29,19 +31,19 @@
       const profilePromises = reports.map(async (report) => {
         try {
           const profileResponse = await http.get(`/profile/${report.profileId}`);
-          return { 
-            ...report, 
+          return {
+            ...report,
             profileDetails: profileResponse.data,
             reasonContent: reasonsMap[report.reasonId] || 'Unknown Reason',
-            isUpdating: report.status !== 'Pending' 
+            isUpdating: report.status !== 'Pending'
           };
         } catch (profileErr) {
           console.error(`Error fetching profile for ${report.profileId}:`, profileErr);
-          return { 
-            ...report, 
+          return {
+            ...report,
             profileDetails: null,
             reasonContent: reasonsMap[report.reasonId] || 'Unknown Reason',
-            isUpdating: report.status !== 'Pending' 
+            isUpdating: report.status !== 'Pending'
           };
         }
       });
@@ -80,25 +82,19 @@
     }
   }
 
-
   onMount(async () => {
     await getProfileReports();
   });
-
 
   function isActionDisabled(status) {
     return status !== 'Pending';
   }
 </script>
 
-<div class="container mt-16">
-  <div class="flex justify-between">
-    <span class="text-2xl font-semibold">Profile Report Management</span>
-  </div>
-
-  <table class="table">
+<Sublayout pageName="Profile reports management">
+  <table class="table rounded">
     <thead>
-      <tr class="text-base font-semibold">
+      <tr class="text-base font-semibold bg-base-200 table-pin-rows">
         <th>Reported Profile</th>
         <th>Reason</th>
         <th>Description</th>
@@ -111,84 +107,33 @@
     <tbody>
       {#if reports.length > 0}
         {#each reports as report}
-          <tr class="border-b">
+          <tr class="hover">
             <td class="p-2">
-              {#if report.profileDetails}
-                <a href="/profile/{report.profileDetails.id}" class="flex gap-3 my-3">
-                  <div class="avatar">
-                    <div
-                      class="ring-4 ring-offset-4 ring-neutral ring-offset-base-100 w-8 aspect-square rounded-full bg-base-100"
-                    >
-                      {#if report.profileDetails.avatar}
-                        <div>
-                          <Picture
-                            src={report.profileDetails.avatar}
-                            alt="Avatar"
-                            class="max-w-8 max-h-14"
-                            imgClass="w-20 h-24 rounded-full"
-                            useCdn={true}
-                          />
-                        </div>
-                      {:else}
-                        <div
-                          class="w-8 h-10 flex justify-center items-center bg-gray-100 rounded-full"
-                        >
-                          <span class="iconify lucide--user text-8xl !text-base-content"></span>
-                        </div>
-                      {/if}
-                    </div>
-                  </div>
-                  <span class="flex items-center font-semibold"> {report.profileDetails.name}</span>
-                </a>
-              {/if}
+              <InlineProfile profile={report.profile}/>
             </td>
             <td class="p-2">{report.reasonContent}</td>
             <td class="p-2">
-            {#if report.description}
-              {report.description}
+              {#if report.description}
+                {report.description}
               {:else}
-              <span class="text-neutral italic">No description provided.</span>
+                <span class="text-neutral italic">No description provided.</span>
               {/if}
-             </td>
+            </td>
             <td class="p-2">
-              <a href="/profile/{report.reporter.id}" class="flex gap-3">
-                <div class="avatar">
-                  <div
-                    class="ring-4 ring-offset-4 ring-neutral ring-offset-base-100 w-8 aspect-square rounded-full bg-base-100"
-                  >
-                    {#if report.reporter.avatar}
-                      <div>
-                        <Picture
-                          src={report.reporter.avatar}
-                          alt="Avatar"
-                          class="max-w-8 max-h-14"
-                          imgClass="w-20 h-24 rounded-full"
-                          useCdn={true}
-                        />
-                      </div>
-                    {:else}
-                      <div
-                        class="w-full h-full flex justify-center items-center bg-gray-100 rounded-full"
-                      >
-                        <span class="iconify lucide--user text-8xl !text-base-content"></span>
-                      </div>
-                    {/if}
-                  </div>
-                </div>
-                <span class="flex items-center font-semibold">{report.reporter.name}</span>
-              </a>
+              <InlineProfile profile={report.reporter}/>
             </td>
             <td class="p-2">
               <span
-                class="font-semibold"
-                class:text-warning={report.status === 'Pending'}
-                class:text-success={report.status === 'Resolved'}
-                class:text-error={report.status === 'Dismissed'}>{report.status}</span
+                class="font-semibold badge badge-outline"
+                class:badge-warning={report.status === 'Pending'}
+                class:badge-success={report.status === 'Resolved'}
+                class:badge-error={report.status === 'Dismissed'}>{report.status}</span
               >
             </td>
             <td class="p-2"><Time timestamp={report.creationTime} relative /></td>
-            <td class="p-2 flex gap-2">
-              <button
+            <td class="p-2">
+              <div class="flex items-center gap-2">
+                <button
                 class="btn btn-success btn-sm"
                 disabled={isActionDisabled(report.status) || report.isUpdating}
                 on:click={() => updateReportStatus(report.id, 'Resolved')}
@@ -202,6 +147,8 @@
               >
                 Dismiss
               </button>
+              </div>
+              
             </td>
           </tr>
         {/each}
@@ -212,4 +159,4 @@
       {/if}
     </tbody>
   </table>
-</div>
+</Sublayout>

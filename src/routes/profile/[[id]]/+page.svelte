@@ -22,7 +22,7 @@
   let roleRequestModal: HTMLDialogElement;
   let reportModal: HTMLDialogElement;
   let addModal: HTMLDialogElement;
-  let withdrawalAmount = 0;
+  let withdrawalAmount = 1;
   let remainingBalance = 0;
   let paymentInfomation = '';
 
@@ -79,7 +79,7 @@
     try {
       const response = await http.post(`/withdrawal`, {
         amount: amount,
-        paymentInformation: payInfo 
+        paymentInformation: payInfo
       });
 
       console.log(response);
@@ -94,7 +94,7 @@
             case 'Amount':
               amountErr = data.errors[key].at(0) ?? '';
               break;
-              case 'PaymentInformation':
+            case 'PaymentInformation':
               amountErr = data.errors[key].at(0) ?? '';
               break;
             default:
@@ -283,9 +283,7 @@
         <!--! Modal for Post Withdrawal -->
         <dialog id="withdrawal_modal" bind:this={addModal} class="modal">
           <div class="modal-box">
-            <div class="text-start">
-              <h2 class="text-2xl mb-4 font-bold">Withdrawal Request</h2>
-            </div>
+            <h2 class="text-2xl mb-4 font-bold">Withdrawal Request</h2>
 
             {#if !!errorMess}
               <div role="alert" class="alert alert-error max-h-14 p-2">
@@ -293,10 +291,38 @@
                 <span>{errorMess}</span>
               </div>
             {/if}
-            <div class="shrink-0 flex gap-2 badge badge-outline badge-warning text-warning mt-3">
-              <span class="iconify la--coins text-lg"></span><span>{remainingBalance}</span>
-            </div>
-            <form on:submit|preventDefault={handlePostWithdrawal}>
+            <form
+              on:submit|preventDefault={handlePostWithdrawal}
+              class="flex flex-col gap-3"
+              id="withdrawal-form"
+            >
+              <div class="flex gap-2">
+                <label class="form-control">
+                  <div class="label">
+                    <span class="label-text">Your Balance</span>
+                  </div>
+                  <input
+                    type="text"
+                    value="{profile.balance} coins"
+                    min="0"
+                    class="input input-bordered w-full"
+                    disabled
+                  />
+                </label>
+                <label class="form-control">
+                  <div class="label">
+                    <span class="label-text">New Balance</span>
+                  </div>
+                  <input
+                    type="text"
+                    value="{remainingBalance} coins"
+                    min="0"
+                    class="input input-bordered w-full"
+                    disabled
+                  />
+                </label>
+              </div>
+
               <label class="form-control">
                 <div class="label">
                   <span class="label-text">Coin amount</span>
@@ -305,7 +331,8 @@
                   type="number"
                   bind:value={withdrawalAmount}
                   placeholder="Enter amount to withdraw"
-                  min="0"
+                  min="1"
+                  max={profile.balance}
                   class="input input-bordered w-full"
                 />
               </label>
@@ -315,7 +342,7 @@
                 </div>
                 <input
                   type="text"
-                  value={`${withdrawalAmount * 0.009} $`}
+                  value="{(withdrawalAmount * 0.009).toFixed(2)}$"
                   min="0"
                   class="input input-bordered w-full"
                   disabled
@@ -326,22 +353,23 @@
                   <span class="label-text">Payment infomation</span>
                 </div>
                 <textarea
-                id="report-description"
-                bind:value={paymentInfomation}
-                class="textarea textarea-bordered w-full resize-none"
-                placeholder="EX: MBBank 012345678"
-                rows="3"
-              ></textarea>
-            
+                  id="report-description"
+                  bind:value={paymentInfomation}
+                  class="textarea textarea-bordered w-full resize-none"
+                  placeholder="EX: &#10; Bank Name &#10; 0123456789 &#10; Card Holder Name"
+                  rows="3"
+                ></textarea>
               </label>
               {#if !!amountErr}
                 <p class="text-error">{amountErr}</p>
               {/if}
-              <div class="modal-action">
-                <button type="submit" class="btn btn-success btn-sm">Submit</button>
-                <button type="button" class="btn btn-sm" on:click={closeAddModal}>Cancel</button>
-              </div>
             </form>
+            <div class="modal-action">
+              <button type="submit" class="btn btn-success btn-sm" form="withdrawal-form"
+                >Submit</button
+              >
+              <button type="button" class="btn btn-sm" on:click={closeAddModal}>Cancel</button>
+            </div>
           </div>
         </dialog>
         <!-- {/if} -->
