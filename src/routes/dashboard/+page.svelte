@@ -81,7 +81,7 @@
             <span class="text-xl font-semibold">{statistics.comics}</span>
           </div>
           <div class="rounded flex items-center aspect-square h-full p-1 bg-accent shadow">
-            <Icon icon="lucide--book-open" class="text-3xl text-accent-content" />
+            <Icon icon="lucide--book-copy" class="text-3xl text-accent-content" />
           </div>
         </div>
       </a>
@@ -150,7 +150,7 @@
     <div
       class="rounded-md border-2 p-2 w-60 border-accent-content shadow-lg hover:shadow-2xl transition duration-300"
     >
-      <a href="/dashboard/reports/comics" class="">
+      <a href="/dashboard/reports" class="">
         <div class="flex justify-between items-center">
           <div class="flex flex-col">
             <span>Reports</span>

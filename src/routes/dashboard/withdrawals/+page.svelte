@@ -4,6 +4,8 @@
   import Picture from '$components/picture.svelte';
   import Time from 'svelte-time/Time.svelte';
   import { onMount } from 'svelte';
+  import Sublayout from '$components/yomikaze/sublayout.svelte';
+  import InlineProfile from '../reports/inline-profile.svelte';
 
   export let data;
   let { token } = data;
@@ -24,11 +26,11 @@
   async function getWithdrawals() {
     try {
       const response = await http.get('/withdrawal');
-      withdrawals = response.data.results || [];
-      console.log(withdrawals);
+      let w = response.data.results || [];
+      // console.log(withdrawals);
 
-      const profiles = await Promise.all(
-        withdrawals.map(async (withdrawal: any) => {
+      withdrawals = await Promise.all(
+        w.map(async (withdrawal: any) => {
           const profile = await getProfile(withdrawal.userId);
           return {
             ...withdrawal,
@@ -40,8 +42,6 @@
           };
         })
       );
-
-      withdrawals = profiles;
     } catch (err) {
       console.error(err);
     }
@@ -60,16 +60,13 @@
       console.log(response.data);
 
       // Cập nhật trạng thái trong withdrawals
-      withdrawals = withdrawals.map((w) => {
-        if (w.id === withdrawalId) {
-          return {
-            ...w,
-            status: status,
-            isUpdating: true // Đặt cờ để vô hiệu hóa nút
-          };
-        }
-        return w;
-      });
+      let index = withdrawals.findIndex((w) => w.id === withdrawalId);
+      withdrawals[index] = {
+        ...withdrawals[index],
+        status: status,
+        isUpdating: true // Đặt cờ để vô hiệu hóa nút
+      };
+      withdrawals = withdrawals; //trigger reactive
     } catch (err) {
       console.error('Error updating withdrawal status:', err);
     }
@@ -80,11 +77,7 @@
   });
 </script>
 
-<div class="container mt-16">
-  <div class="flex justify-between">
-    <span class=" text-2xl font-semibold">Withrawal Management</span>
-  </div>
-
+<Sublayout pageName="Withrawal Mannagement">
   <table class="table">
     <thead>
       <tr class="text-base font-semibold">
@@ -98,56 +91,25 @@
       </tr>
     </thead>
     <tbody>
-      {#if withdrawals.length > 0}
-        {#each withdrawals as withdrawal}
-          <tr>
-            <td>
-              {#if withdrawal.profile}
-                <a href={`/profile/${withdrawal.userId}`} class="flex gap-3">
-                  <div class="avatar">
-                    <div
-                      class="ring-4 ring-offset-4 ring-neutral ring-offset-base-100 w-8 aspect-square rounded-full bg-base-100"
-                    >
-                      {#if withdrawal.profile.avatar}
-                        <div>
-                          <Picture
-                            src={withdrawal.profile.avatar}
-                            alt="Avatar"
-                            class="max-w-8 max-h-14"
-                            imgClass="w-20 h-24 rounded-full"
-                            useCdn={true}
-                          />
-                        </div>
-                      {:else}
-                        <div
-                          class="w-full h-full flex justify-center items-center bg-gray-100 rounded-full"
-                        >
-                          <span class="iconify lucide--user text-8xl !text-base-content"></span>
-                        </div>
-                      {/if}
-                    </div>
-                  </div>
-                  <span class="flex items-center font-semibold">
-                    {withdrawal.profile.name}
-                  </span>
-                </a>
-              {:else}
-                <span>Loading...</span>
-              {/if}
-            </td>
-            <td>{withdrawal.amount} coins</td>
-            <td>{(withdrawal.amount * 0.009).toFixed(2)}$</td>
-            <td>{withdrawal.paymentInformation}</td>
-            <td><Time timestamp={withdrawal.creationTime} relative /> </td>
-            <td
-              ><span
+      {#each withdrawals as withdrawal (withdrawal.id)}
+        <tr>
+          <td>
+            <InlineProfile profile={withdrawal.profile} />
+          </td>
+          <td>{withdrawal.amount} coins</td>
+          <td>{(withdrawal.amount * 0.009).toFixed(2)}$</td>
+          <td>{withdrawal.paymentInformation}</td>
+          <td><Time timestamp={withdrawal.creationTime} relative /> </td>
+          <td
+            ><span
               class="font-semibold"
-                class:text-warning={withdrawal.status === 'Pending'}
-                class:text-success={withdrawal.status === 'Approved'}
-                class:text-error={withdrawal.status === 'Rejected'}
-              >{withdrawal.status}</span></td
-            >
-            <td class="flex gap-2">
+              class:text-warning={withdrawal.status === 'Pending'}
+              class:text-success={withdrawal.status === 'Approved'}
+              class:text-error={withdrawal.status === 'Rejected'}>{withdrawal.status}</span
+            ></td
+          >
+          <td >
+            <div class="flex gap-2">
               {#if !withdrawal.isUpdating}
                 <button
                   class="btn btn-success btn-sm"
@@ -165,12 +127,12 @@
                 <button class="btn btn-disabled btn-sm" disabled> Approve </button>
                 <button class="btn btn-disabled btn-sm" disabled> Reject </button>
               {/if}
-            </td>
-          </tr>
-        {/each}
+            </div>
+          </td>
+        </tr>
       {:else}
         <td colspan="6" class="text-center font-semibold italic">No withdrawals request.</td>
-      {/if}
+      {/each}
     </tbody>
   </table>
-</div>
+</Sublayout>

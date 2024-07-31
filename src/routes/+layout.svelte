@@ -185,7 +185,7 @@
                   <a href="/shop" class:active={path === '/shop'}> Coins Shop </a>
                 </li>
                 <li>
-                  <a href="/widrawal" class:active={path === '/widrawal'}> Withdrawal </a>
+                  <a href="/dashboard/withdrawals" class:active={path === '/dashboard/withdrawals'}> Withdrawal </a>
                 </li>
               </ul>
             </details>

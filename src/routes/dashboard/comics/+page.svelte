@@ -2,8 +2,12 @@
   import http from '$lib/utils/http';
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
-    import type Comic from '$models/Comic';
-    import type { AxiosError } from 'axios';
+  import type Comic from '$models/Comic';
+  import type { AxiosError } from 'axios';
+
+  export let data;
+  let { token } = data;
+  http.defaults.headers.common.Authorization = 'Bearer ' + token;
 
   let cover = 'https://i.yomikaze.org';
   let comics: Array<Comic> = [];
@@ -14,7 +18,7 @@
 
   const getComics = async (size = 1000) => {
     try {
-      const response = await http.get('/comics', {
+      const response = await http.get('/comics/management', {
         params: {
           Size: size
         }
@@ -204,7 +208,7 @@
 <dialog id="delete_modal" bind:this={deleteModal} class="modal">
   <div class="modal-box">
     <h3 class="text-xl font-bold">Are you sure you want to delete this comic?</h3>
-    <p class="py-4 ">Comic: <strong>{comicName}</strong></p>
+    <p class="py-4">Comic: <strong>{comicName}</strong></p>
     <div class="modal-action">
       <button
         class="btn btn-error btn-sm"
