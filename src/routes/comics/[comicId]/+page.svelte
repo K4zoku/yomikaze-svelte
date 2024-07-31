@@ -2,27 +2,30 @@
   import { goto } from '$app/navigation';
   import Icon from '$components/icon.svelte';
   import Picture from '$components/picture.svelte';
+  import LibraryModal from '$components/yomikaze/comic/library-modal.svelte';
   import ComicStatus from '$components/yomikaze/common/comic/comic-status.svelte';
+  import ComicReport from '$components/yomikaze/report/comic-report.svelte';
+  import type LibraryEntry from '$models/LibraryEntry.js';
   import { rateComic } from '$utils/comic-utils';
   import formatNumber from '$utils/common';
+  import http from '$utils/http';
   import { tick } from 'svelte';
   import Time from 'svelte-time/Time.svelte';
 
   export let data;
   let { comicId, comic, chapters, tagCategories, token, libraryManager } = data;
-  $: ({ comicId, comic, chapters, tagCategories, token, libraryManager } = data)
+  $: ({ comicId, comic, chapters, tagCategories, token, libraryManager } = data);
+  http.defaults.headers.common['Authorization'] = token ? `Bearer ${token}` : undefined;
   function ratingInit(elem: HTMLDivElement) {
     const stars = elem.querySelectorAll('input[type="radio"]') as NodeListOf<HTMLInputElement>;
-    comic.then((c) => {
-      let rate = c.isRated ? c.myRating : c.averageRating;
-      rate = rate ? Math.round(rate) : 0;
-      stars.forEach((star) => {
-        const value = parseInt(star.value);
-        if (value <= rate) {
-          star.checked = true;
-        }
-        star.addEventListener('click', postRating);
-      });
+    let rate = comic.isRated ? comic.myRating : comic.averageRating;
+    rate = rate ? Math.round(rate) : 0;
+    stars.forEach((star) => {
+      const value = parseInt(star.value);
+      if (value <= rate) {
+        star.checked = true;
+      }
+      star.addEventListener('click', postRating);
     });
   }
 
@@ -49,7 +52,8 @@
           c.averageRating = c.averageRating || 0;
 
           c.totalRatings = totalRatings = c.totalRatings + 1;
-          c.averageRating = averageRating = (c.averageRating * (totalRatings - 1) + rating) / totalRatings;
+          c.averageRating = averageRating =
+            (c.averageRating * (totalRatings - 1) + rating) / totalRatings;
         } else {
           c.totalRatings = c.totalRatings || 0;
           c.averageRating = c.averageRating || 0;
@@ -79,31 +83,32 @@
       });
   }
 
-  async function handleLibraryClick() {
+  let reportModal: HTMLDialogElement;
+
+  let libraryEntry: LibraryEntry | null;
+  async function loadLibrary() {
     const c = await comic;
-    if (!libraryManager) {
-      setTimeout(() => {
-        const result = confirm('You need to login to add this comic to your library.');
-        if (result) {
-          goto('/login?returnUrl=' + window.location.pathname);
-        }
-      }, 200);
-      return;
-    }
-    if (c.isFollowing) {
-      libraryManager.deleteEntry(c.id);
-      c.isFollowing = false;
-      alert('Comic removed from library.');
-    } else {
-      libraryManager.createEntry({ comicId: c.id });
-      c.isFollowing = true;
-      alert('Comic added to library.');
-    }
+    if (!libraryManager) return;
+    libraryEntry = await libraryManager.getEntry(c.id).catch(() => null);
+    c.isFollowing = !!libraryEntry;
   }
+
+  let historyContinue: string;
+  let isContinue = false;
+  async function loadHistory() {
+    const c = await comic;
+    http.get(`/history/comics/${c.id}/continue`).then((res) => {
+      const data = res.data;
+      historyContinue = `/comics/${c.id}/chapters/${data.chapter.number}`;
+      isContinue = true;
+    });
+    historyContinue = '';
+  }
+
+  let showLibraryModal: () => void;
 </script>
 
-{#await comic}
-  <div class="w-full relative h-96 bg-base-100">
+<!-- <div class="w-full relative h-96 bg-base-100">
     <div class="absolute top-28 left-0 w-full">
       <div class="container-80 flex gap-6">
         <div class="w-fit h-72 aspect-cover skeleton"></div>
@@ -134,177 +139,212 @@
         {/each}
       </p>
     </div>
-  </div>
-{:then comic}
-  <div class="w-full relative h-96 bg-base-100">
-    <div class="absolute w-full h-fit">
+  </div> -->
+
+<div class="w-full relative h-96 bg-base-100">
+  <div class="absolute w-full h-fit">
+    <div
+      class="w-full top-0 left-0 h-80 bg-cover bg-fixed bg-top bg-no-repeat"
+      style="background-image:url('{comic.banner ||
+        comic.cover ||
+        '/images/broken-image@2x.png'}');"
+    >
       <div
-        class="w-full top-0 left-0 h-80 bg-cover bg-fixed bg-top bg-no-repeat"
-        style="background-image:url('{comic.banner ||
-          comic.cover ||
-          '/images/broken-image@2x.png'}');"
-      >
-        <div
-          class="w-full absolute bottom-0 left-0 h-80 bg-gradient-to-t from-neutral-500 via-neutral-500/50 backdrop-blur"
-        ></div>
-      </div>
+        class="w-full absolute bottom-0 left-0 h-80 bg-gradient-to-t from-neutral-500 via-neutral-500/50 backdrop-blur"
+      ></div>
     </div>
-    <div class="absolute top-28 left-0 w-full">
-      <div class="container-80 flex gap-6">
-        <Picture
-          src={comic.cover}
-          class="w-fit h-72 aspect-cover"
-          imgClass="w-fit h-72 object-center object-cover aspect-cover rounded-lg"
-          useCdn={true}
-        />
-        <div class="grow flex flex-col gap-2 justify-start">
-          <div class="max-h-52 h-52 flex flex-col">
-            <h2
-              class="leading-tight break-words text-accent-content font-bold text-5xl w-full text-ellipsis line-clamp-2 max-h-32 h-32"
-            >
-              {comic.name}
-            </h2>
-            <h3
-              class="text-accent-content font-semibold text-xl w-full text-ellipsis line-clamp-1 grow"
-            >
-              {comic.aliases && comic.aliases.length > 0 ? comic.aliases[0] : ''}
-            </h3>
-            <div class="text-nowrap text-ellipsis overflow-hidden align-middle w-full py-3">
-              {#each comic.authors as author, i}
-                {#if i > 0},
-                {/if}
-                <a href="/search?Author={author}" class="font-normal text-accent-content italic"
-                  >{author}</a
-                >
-              {:else}
-                <span class="font-normal text-accent-content italic">Unknown author</span>
-              {/each}
-            </div>
+  </div>
+  <div class="absolute top-28 left-0 w-full">
+    <div class="container-80 flex gap-6">
+      <Picture
+        src={comic.cover}
+        class="w-fit h-72 aspect-cover"
+        imgClass="w-fit h-72 object-center object-cover aspect-cover rounded-lg"
+        useCdn={true}
+      />
+      <div class="grow flex flex-col gap-2 justify-start">
+        <div class="max-h-52 h-52 flex flex-col">
+          <h2
+            class="leading-tight break-words text-accent-content font-bold text-5xl w-full text-ellipsis line-clamp-2 max-h-32 h-32"
+          >
+            {comic.name}
+          </h2>
+          <h3
+            class="text-accent-content font-semibold text-xl w-full text-ellipsis line-clamp-1 grow"
+          >
+            {comic.aliases && comic.aliases.length > 0 ? comic.aliases[0] : ''}
+          </h3>
+          <div class="text-nowrap text-ellipsis overflow-hidden align-middle w-full py-3">
+            {#each comic.authors as author, i}
+              {#if i > 0},
+              {/if}
+              <a href="/search?Author={author}" class="font-normal text-accent-content italic"
+                >{author}</a
+              >
+            {:else}
+              <span class="font-normal text-accent-content italic">Unknown author</span>
+            {/each}
           </div>
-          <div class="grow flex items-end">
-            <div class="flex w-full gap-2">
-              <button class="btn btn-accent" on:click={handleLibraryClick}>
+        </div>
+        <div class="grow flex items-end">
+          <div class="flex w-full gap-2">
+            {#await loadLibrary()}
+              <button class="btn btn-wide">
+                <span class="loading"></span>
+              </button>
+            {:then}
+              <button class="btn btn-accent" on:click={showLibraryModal}>
                 {#if comic.isFollowing}
-                  <Icon icon="lucide--bookmark-minus" class="text-xl" />
-                  Remove From Library
+                  <Icon icon="lucide--bookmark" class="text-xl" />
+                  Following
                 {:else}
                   <Icon icon="lucide--bookmark-plus" class="text-xl" />
-                  Add To Library
+                  Follow
                 {/if}
               </button>
-              <button class="btn">
-                <Icon icon="lucide--play" class="text-xl" />
-                Start Reading
+              {#if libraryManager}
+                <LibraryModal
+                  bind:target={comic}
+                  bind:showModal={showLibraryModal}
+                  {libraryManager}
+                />
+              {/if}
+            {/await}
+            {#await loadHistory()}
+              <button class="btn btn-wide">
+                <span class="loading"></span>
               </button>
-              <button class="btn">
-                <Icon icon="lucide--flag" class="text-xl" />
-                Report
-              </button>
-
-              <details class="dropdown">
-                <summary class="btn">
-                  <Icon icon="lucide--settings" class="text-xl" />
-                  Manage
-                </summary>
-                <ul class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                  <li>
-                    <a href="/comics/{comicId}/chapters/create">
-                      <Icon icon="lucide--file-plus" class="text-xl" />
-                      Create Chapter
+            {:then _}
+              {#if isContinue}
+                <a class="btn btn-wide" href={historyContinue || '#'}>
+                  <Icon icon="lucide--play" class="text-xl" />
+                  Continue Reading
+                </a>
+              {:else}
+                {#await chapters then chapters}
+                  {#if chapters.totals > 0}
+                    <a
+                      class="btn btn-wide"
+                      href={`/comics/${comicId}/chapters/${chapters.results[0].number}`}
+                    >
+                      <Icon icon="lucide--play" class="text-xl" />
+                      Start Reading
                     </a>
-                  </li>
-                  <li>
-                    <a href="/comics/{comicId}">
-                      <Icon icon="lucide--edit" class="text-xl" />
-                      Edit Comic
-                    </a>
-                  </li>
-                  <li>
-                    <button>
-                      <Icon icon="lucide--trash" class="text-xl" />
-                      Delete Comic
+                  {:else}
+                    <button class="btn btn-wide btn-disabled">
+                      <Icon icon="lucide--play" class="text-xl" />
+                      Start Reading
                     </button>
-                  </li>
-                </ul>
-              </details>
-            </div>
+                  {/if}
+                {/await}
+              {/if}
+            {/await}
+            <button class="btn" on:click={() => reportModal.showModal()}>
+              <Icon icon="lucide--flag" class="text-xl" />
+              Report
+            </button>
+            <ComicReport target={comic} bind:modal={reportModal} {http} />
+            <details class="dropdown">
+              <summary class="btn">
+                <Icon icon="lucide--settings" class="text-xl" />
+                Manage
+              </summary>
+              <ul class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                <li>
+                  <a href="/comics/{comicId}/chapters/create">
+                    <Icon icon="lucide--file-plus" class="text-xl" />
+                    Create Chapter
+                  </a>
+                </li>
+                <li>
+                  <a href="/comics/{comicId}">
+                    <Icon icon="lucide--edit" class="text-xl" />
+                    Edit Comic
+                  </a>
+                </li>
+                <li>
+                  <button>
+                    <Icon icon="lucide--trash" class="text-xl" />
+                    Delete Comic
+                  </button>
+                </li>
+              </ul>
+            </details>
           </div>
-          <div class="flex gap-2">
-            <div class="flex gap-1">
-              {#each comic.tags
-                .filter((tag) => tag.category.name === 'Genre')
-                .slice(0, 4) as tag (tag.id)}
-                <span class="bg-base-300 rounded px-2 py-1 font-semibold text-xs">{tag.name}</span>
-              {/each}
+        </div>
+        <div class="flex gap-2">
+          <div class="flex gap-1">
+            {#each comic.tags
+              .filter((tag) => tag.category.name === 'Genre')
+              .slice(0, 4) as tag (tag.id)}
+              <span class="bg-base-300 rounded px-2 py-1 font-semibold text-xs">{tag.name}</span>
+            {/each}
+          </div>
+          <ComicStatus status={comic.status} />
+          <div class="flex items-center gap-1">
+            <span class="text-xs font-bold uppercase">
+              PUBLICATION: <Time timestamp={comic.publicationDate} format="YYYY" />
+            </span>
+          </div>
+        </div>
+        <div class="flex font-semibold text-sm gap-2">
+          <div
+            class="flex gap-1 items-center min-w-[0] w-fit tooltip"
+            data-tip="Total Follows: {comic.totalFollows?.toLocaleString()}"
+          >
+            <Icon icon="lucide--bookmark" class="text-md shrink-0" />
+            {formatNumber(comic.totalFollows ?? 0)}
+          </div>
+          <div
+            class="flex gap-1 items-center min-w-[0] w-fit tooltip"
+            data-tip="Total Views: {comic.totalViews?.toLocaleString()}"
+          >
+            <Icon icon="lucide--eye" class="text-md shrink-0" />
+            {formatNumber(comic.totalViews ?? 0)}
+          </div>
+          <div
+            class="flex gap-1 items-center min-w-[0] w-fit tooltip"
+            data-tip="Total Comments: {comic.totalComments?.toLocaleString()}"
+          >
+            <Icon icon="lucide--message-square" class="text-md shrink-0" />
+            {formatNumber(comic.totalComments ?? 0)}
+          </div>
+
+          {#await ratingAwait}
+            <div class="flex gap-1 items-center min-w-[0] w-fit">
+              <span class="loading loading-xs loading-dots"></span>
             </div>
-            <ComicStatus status={comic.status} />
-            <div class="flex items-center gap-1">
-              <span class="text-xs font-bold uppercase">
-                PUBLICATION: <Time timestamp={comic.publicationDate} format="YYYY" />
+          {:then _}
+            <div class="flex gap-1 items-center min-w-[0] w-fit" use:ratingInit>
+              <div class="rating rating-sm">
+                <input type="radio" name="rating" value="1" class="mask mask-star-2" />
+                <input type="radio" name="rating" value="2" class="mask mask-star-2" />
+                <input type="radio" name="rating" value="3" class="mask mask-star-2" />
+                <input type="radio" name="rating" value="4" class="mask mask-star-2" />
+                <input type="radio" name="rating" value="5" class="mask mask-star-2" />
+              </div>
+              <span>
+                {averageRating
+                  ? averageRating.toFixed(1)
+                  : comic.averageRating
+                    ? comic.averageRating.toFixed(1)
+                    : '0.0'}
+                ({totalRatings || comic.totalRatings?.toLocaleString()})
               </span>
             </div>
-          </div>
-          <div class="flex font-semibold text-sm gap-2">
-            <div
-              class="flex gap-1 items-center min-w-[0] w-fit tooltip"
-              data-tip="Total Follows: {comic.totalFollows?.toLocaleString()}"
-            >
-              <Icon icon="lucide--bookmark" class="text-md shrink-0" />
-              {formatNumber(comic.totalFollows ?? 0)}
-            </div>
-            <div
-              class="flex gap-1 items-center min-w-[0] w-fit tooltip"
-              data-tip="Total Views: {comic.totalViews?.toLocaleString()}"
-            >
-              <Icon icon="lucide--eye" class="text-md shrink-0" />
-              {formatNumber(comic.totalViews ?? 0)}
-            </div>
-            <div
-              class="flex gap-1 items-center min-w-[0] w-fit tooltip"
-              data-tip="Total Comments: {comic.totalComments?.toLocaleString()}"
-            >
-              <Icon icon="lucide--message-square" class="text-md shrink-0" />
-              {formatNumber(comic.totalComments ?? 0)}
-            </div>
-
-            {#await ratingAwait}
-              <div class="flex gap-1 items-center min-w-[0] w-fit">
-                <span class="loading loading-xs loading-dots"></span>
-              </div>
-            {:then _}
-              <div class="flex gap-1 items-center min-w-[0] w-fit" use:ratingInit>
-                <div class="rating rating-sm">
-                  <input type="radio" name="rating" value="1" class="mask mask-star-2" />
-                  <input type="radio" name="rating" value="2" class="mask mask-star-2" />
-                  <input type="radio" name="rating" value="3" class="mask mask-star-2" />
-                  <input type="radio" name="rating" value="4" class="mask mask-star-2" />
-                  <input type="radio" name="rating" value="5" class="mask mask-star-2" />
-                </div>
-                <span>
-                  {averageRating ? averageRating.toFixed(1) : (comic.averageRating ? comic.averageRating.toFixed(1) : '0.0')} 
-                  ({totalRatings || comic.totalRatings?.toLocaleString()})
-                </span>
-              </div>
-            {/await}
-          </div>
+          {/await}
         </div>
       </div>
     </div>
   </div>
-{/await}
+</div>
 <div class="h-16"></div>
 <div class="container-80 bg-base-100">
-  {#await comic}
-    <div class="flex justify-center">
-      <span class="loading loading-lg"></span>
-    </div>
-  {:then comic}
-    <div class="whitespace-pre-wrap leading-6 py-2 mb-6">
-      <p class="max-h-48 min-h-16 overflow-y-scroll">
-        {comic.description}
-      </p>
-    </div>
-  {/await}
+  <div class="whitespace-pre-wrap leading-6 py-2 mb-6">
+    <p class="max-h-48 min-h-16 overflow-y-scroll">
+      {comic.description}
+    </p>
+  </div>
 </div>
 <div class="container-80 bg-base-100">
   <div class="flex gap-4 items-start">
@@ -336,59 +376,49 @@
     {/await}
     <div class="flex flex-col grow">
       <div role="tablist" class="tabs tabs-boxed w-fit p-2 shadow-inner mb-4">
-        <button class="tab" class:tab-active={true}> Chapters </button>
-        <button on:click={() => {}} class="tab" class:tab-active={false}> Comments </button>
+        <button class="tab" class:tab-active={true}> Chapters ({comic.totalChapters}) </button>
+        <button on:click={() => {}} class="tab" class:tab-active={false}> Comments ({comic.totalComments}) </button>
       </div>
-      <span class="text-xl font-semibold">Totals:</span>
       <div class="flex flex-col gap-2 max-h-64 overflow-x-auto">
-        {#await chapters}
-          <div class="flex flex-col gap-2 max-h-64 overflow-x-auto">
-            <div class="flex justify-center">
-              <span class="loading loading-lg"></span>
-            </div>
-          </div>
-        {:then chapters}
-          {#each chapters.results as chapter}
-            <a
-              href="/comics/{chapter.comicId}/chapters/{chapter.number}"
-              title="Read Chapter {chapter.number}"
-              class="flex justify-start btn btn-block no-animation"
-              class:btn-disabled={chapter.hasLock && !chapter.isUnlocked}
-            >
-              <span>
-                {#if chapter.hasLock}
-                  {#if chapter.isUnlocked}
-                    <Icon icon="lucide--lock-open" class="text-xl" />
-                  {:else}
-                    <Icon icon="lucide--lock" class="text-xl" />
-                  {/if}
+        {#each chapters.results as chapter}
+          <a
+            href="/comics/{chapter.comicId}/chapters/{chapter.number}"
+            title="Read Chapter {chapter.number}"
+            class="flex justify-start btn btn-block no-animation"
+          >
+            <span>
+              {#if chapter.hasLock}
+                {#if chapter.isUnlocked}
+                  <Icon icon="lucide--lock-open" class="text-xl text-success" />
                 {:else}
-                  <Icon icon="lucide--file-check" class="text-xl" />
+                  <Icon icon="lucide--lock" class="text-xl text-error" />
                 {/if}
-              </span>
-              <div class="flex gap-2 grow">
-                Ch.{chapter.number}
-                {chapter.name}
+              {:else}
+                <Icon icon="lucide--lock-open" class="text-xl text-neutral" />
+              {/if}
+            </span>
+            <div class="flex gap-2 grow">
+              Ch.{chapter.number}
+              {chapter.name}
+            </div>
+            <div class="flex gap-6">
+              <div class="flex gap-1 items-center">
+                <Icon icon="lucide--clock" class="text-lg" />
+                <Time timestamp={chapter.creationTime} relative />
               </div>
-              <div class="flex gap-6">
+              <div class="flex flex-col justify-between">
                 <div class="flex gap-1 items-center">
-                  <Icon icon="lucide--clock" class="text-lg" />
-                  <Time timestamp={chapter.creationTime} relative />
+                  <Icon icon="lucide--eye" class="text-lg" />
+                  <span>{chapter.views}</span>
                 </div>
-                <div class="flex flex-col justify-between">
-                  <div class="flex gap-1 items-center">
-                    <Icon icon="lucide--eye" class="text-lg" />
-                    <span>{chapter.views}</span>
-                  </div>
-                  <div class="flex gap-1 items-center">
-                    <Icon icon="lucide--message-square" class="text-lg" />
-                    <span>{chapter.totalComments}</span>
-                  </div>
+                <div class="flex gap-1 items-center">
+                  <Icon icon="lucide--message-square" class="text-lg" />
+                  <span>{chapter.totalComments}</span>
                 </div>
               </div>
-            </a>
-          {/each}
-        {/await}
+            </div>
+          </a>
+        {/each}
       </div>
     </div>
   </div>
