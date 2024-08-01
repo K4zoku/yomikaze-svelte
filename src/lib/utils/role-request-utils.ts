@@ -14,7 +14,7 @@ export async function postRoleRequest(reason: string): Promise<RoleRequest> {
 export async function getRoleRequests(): Promise<RoleRequest[]> {
     try {
         const response = await http.get(ROLE_REQUEST_ENDPOINT);
-        return response.data; // Giả sử response.data chứa danh sách yêu cầu vai trò
+        return response.data.results; // Giả sử response.data chứa danh sách yêu cầu vai trò
     } catch (error) {
         console.error('Error fetching role requests:', error);
         throw error; // Có thể xử lý lỗi cụ thể hơn tùy theo yêu cầu của bạn
