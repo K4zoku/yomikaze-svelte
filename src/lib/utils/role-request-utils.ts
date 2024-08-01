@@ -14,9 +14,22 @@ export async function postRoleRequest(reason: string): Promise<RoleRequest> {
 export async function getRoleRequests(): Promise<RoleRequest[]> {
     try {
         const response = await http.get(ROLE_REQUEST_ENDPOINT);
-        return response.data.results; // Giả sử response.data chứa danh sách yêu cầu vai trò
+        return response.data.results; 
     } catch (error) {
         console.error('Error fetching role requests:', error);
-        throw error; // Có thể xử lý lỗi cụ thể hơn tùy theo yêu cầu của bạn
+        throw error;
     }
+}
+
+export async function approveRoleRequest(id: string): Promise<void> {
+    try {
+        await http.put(`${ROLE_REQUEST_ENDPOINT}/${id}/approve`);
+    } catch (error) {
+        console.error('Error approving role request:', error);
+        throw error; 
+    }
+}
+
+export async function rejectRoleRequest(id: string): Promise<void> {
+    await http.put(`${ROLE_REQUEST_ENDPOINT}/${id}/reject`);
 }
