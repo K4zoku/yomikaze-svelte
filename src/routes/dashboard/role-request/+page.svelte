@@ -18,6 +18,7 @@
   http.defaults.headers.common.Authorization = 'Bearer ' + token;
 
   let roleRequests: RoleRequest[] = [];
+  let totalRequests: number = 0;
   let error: Error | null = null;
 
   async function handleApproveRequest(id: string) {

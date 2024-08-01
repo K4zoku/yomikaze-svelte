@@ -14,7 +14,7 @@ export async function postRoleRequest(reason: string): Promise<RoleRequest> {
 export async function getRoleRequests(): Promise<RoleRequest[]> {
     try {
         const response = await http.get(ROLE_REQUEST_ENDPOINT);
-        return response.data.results; 
+        return response.data.results;
     } catch (error) {
         console.error('Error fetching role requests:', error);
         throw error;
@@ -26,7 +26,7 @@ export async function approveRoleRequest(id: string): Promise<void> {
         await http.put(`${ROLE_REQUEST_ENDPOINT}/${id}/approve`);
     } catch (error) {
         console.error('Error approving role request:', error);
-        throw error; 
+        throw error;
     }
 }
 
