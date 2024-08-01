@@ -12,7 +12,7 @@ const BASE_URL = PUBLIC_API_BASE_URL ?? 'https://api.yomikaze.org/';
 const COMIC_COMMENT_ENDPOINT = '/comics';
 
 export class ComicCommentManagement {
-  private http: AxiosInstance;
+  http: AxiosInstance;
 
   constructor(token: string) {
     this.http = axios.create({
@@ -45,13 +45,13 @@ export class ComicCommentManagement {
     return response.data;
   }
 
-  async createComment(comicId: string, comments: ComicComment): Promise<ComicComment> {
-    const response = await this.http.post(`${COMIC_COMMENT_ENDPOINT}/${comicId}/comments`, comments);
+  async createComment(comicId: string, content: string): Promise<ComicComment> {
+    const response = await this.http.post(`${COMIC_COMMENT_ENDPOINT}/${comicId}/comments`, { content });
     return response.data;
   }
 
-  async replyComment(comicId: string, commentId: string, comments: ComicComment): Promise<ComicComment> {
-    const response = await this.http.post(`${COMIC_COMMENT_ENDPOINT}/${comicId}/comments/${commentId}/replies`, comments);
+  async replyComment(comicId: string, commentId: string, content: string): Promise<ComicComment> {
+    const response = await this.http.post(`${COMIC_COMMENT_ENDPOINT}/${comicId}/comments/${commentId}/replies`, { content });
     return response.data;
   }
 

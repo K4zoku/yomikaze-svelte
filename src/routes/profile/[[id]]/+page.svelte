@@ -300,8 +300,8 @@
             <hr class="border-1 flex-grow" />
           </div>
           <div class="w-full max-h-96 overflow-y-scroll">
-            <table class="table w-full table-zebra">
-              <thead class="sticky">
+            <table class="table table-pin-rows w-full table-zebra">
+              <thead>
                 <tr>
                   <th>Time</th>
                   <th>Amount</th>

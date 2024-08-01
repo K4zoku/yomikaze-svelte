@@ -11,6 +11,7 @@ export default interface Comment extends Model {
     totalReplies: number;
     isReacted: boolean;
     myReaction: Reaction | undefined;
+    [x: string]: any;
 }
 export interface ComicComment extends Comment {
     readonly comicId: string;

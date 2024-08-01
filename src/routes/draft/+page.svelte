@@ -15,7 +15,7 @@
 
   commentManager = new ComicCommentManagement($token);
   let comment: Promise<Comment> = commentManager
-    .getComment('68638295025815553', '76022782210605056');
+    .getComment('68638295025815553', '75830146090663936');
 </script>
 <div class="container pt-16">
     {#await comment then comment}
