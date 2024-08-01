@@ -78,16 +78,16 @@
   }
 
   async function handleRoleRequest() {
-  try {
-    await postRoleRequest(reason);
-    roleRequestModal.close();
-    addToast('Role request submitted successfully');
-    reason = '';
-  } catch (err) {
-    console.error('Error requesting role:', err);
-    // addErrToast('Failed to submit role request');
+    try {
+      await postRoleRequest(reason);
+      roleRequestModal.close();
+      addToast('Role request submitted successfully');
+      reason = '';
+    } catch (err) {
+      console.error('Error requesting role:', err);
+      // addErrToast('Failed to submit role request');
+    }
   }
-}
 
   $: remainingBalance = profile.balance - withdrawalAmount;
   $: errorMess = remainingBalance < 0 ? 'Insufficient balance' : '';
@@ -248,7 +248,7 @@
           <Icon icon="lucide--lock-keyhole" class="text-xl" />
           Change Password
         </button>
-        {#if !profile.roles.includes('Publisher')}
+        {#if profile.roles.includes('Reader') && !profile.roles.includes('Publisher')}
           <button class="btn w-full" on:click={() => roleRequestModal.showModal()}>
             <Icon icon="lucide--contact" class="text-xl" />
             Request Role
@@ -390,61 +390,63 @@
   </div>
 </div>
 {#if isSelf}
-  <!--! Modal role request -->
-  <dialog bind:this={roleRequestModal} class="modal">
-    <div class="modal-box">
-      <h3 class="text-lg font-bold flex items-center gap-2">
-        Request Role
-      </h3>
-      <h5 class="font-medium mb-2">User</h5>
-      <div class="flex gap-4 items-center w-full bg-base-200 h-fit p-4 rounded">
-        <div class="avatar">
-          <div
-            class="ring-2 ring-offset-2 ring-neutral ring-offset-base-100 w-12 h-12 aspect-square rounded-full bg-base-100"
-          >
-            {#if profile.avatar}
-              <Picture
-                src={profile.avatar}
-                alt="Avatar"
-                class="w-full h-full"
-                imgClass="w-full h-full rounded-full"
-                useCdn={true}
-              />
-            {:else}
-              <div class="w-full h-full flex justify-center items-center bg-gray-100 rounded-full">
-                <span class="iconify lucide--user text-4xl !text-base-content"></span>
-              </div>
-            {/if}
+  {#if profile.roles.includes('Reader') && !profile.roles.includes('Publisher')}
+    <!--! Modal role request -->
+    <dialog bind:this={roleRequestModal} class="modal">
+      <div class="modal-box">
+        <h3 class="text-lg font-bold flex items-center gap-2">Request Role</h3>
+        <h5 class="font-medium mb-2">User</h5>
+        <div class="flex gap-4 items-center w-full bg-base-200 h-fit p-4 rounded">
+          <div class="avatar">
+            <div
+              class="ring-2 ring-offset-2 ring-neutral ring-offset-base-100 w-12 h-12 aspect-square rounded-full bg-base-100"
+            >
+              {#if profile.avatar}
+                <Picture
+                  src={profile.avatar}
+                  alt="Avatar"
+                  class="w-full h-full"
+                  imgClass="w-full h-full rounded-full"
+                  useCdn={true}
+                />
+              {:else}
+                <div
+                  class="w-full h-full flex justify-center items-center bg-gray-100 rounded-full"
+                >
+                  <span class="iconify lucide--user text-4xl !text-base-content"></span>
+                </div>
+              {/if}
+            </div>
           </div>
+          <span class="text-base font-medium">{profile.name}</span>
         </div>
-        <span class="text-base font-medium">{profile.name}</span>
+        <hr class="border-1 my-4" />
+        <div class="form-control mt-4">
+          <label class="label" for="price">Role</label>
+          <input class="input input-bordered" id="price" type="text" value="Publisher" readonly />
+        </div>
+        <div class="form-control mt-4">
+          <label class="label" for="reason">Reason</label>
+          <textarea
+            class="textarea textarea-bordered resize-none"
+            id="reason"
+            bind:value={reason}
+            placeholder="Enter reason for role request"
+            rows="3"
+          ></textarea>
+        </div>
+        <div class="modal-action">
+          <button class="btn btn-sm btn-accent" on:click={handleRoleRequest}>Request</button>
+          <form method="dialog">
+            <button class="btn btn-sm">Cancel</button>
+          </form>
+        </div>
       </div>
-      <hr class="border-1 my-4" />
-      <div class="form-control mt-4">
-        <label class="label" for="price">Role</label>
-        <input class="input input-bordered" id="price" type="text" value="Publisher" readonly />
-      </div>
-      <div class="form-control mt-4">
-        <label class="label" for="reason">Reason</label>
-        <textarea
-          class="textarea textarea-bordered resize-none"
-          id="reason"
-          bind:value={reason}
-          placeholder="Enter reason for role request"
-          rows="3"
-        ></textarea>
-      </div>
-      <div class="modal-action">
-        <button class="btn btn-sm btn-accent"  on:click={handleRoleRequest}>Request</button>
-        <form method="dialog">
-          <button class="btn btn-sm">Cancel</button>
-        </form>
-      </div>
-    </div>
-    <form method="dialog" class="modal-backdrop">
-      <button>close</button>
-    </form>
-  </dialog>
+      <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
+  {/if}
 
   <!--! Modal edit profile -->
   <dialog bind:this={editModal} class="modal">
@@ -568,8 +570,7 @@
           {/if}
         </form>
         <div class="modal-action">
-          <button type="submit" class="btn btn-accent btn-sm" form="withdrawal-form">Submit</button
-          >
+          <button type="submit" class="btn btn-accent btn-sm" form="withdrawal-form">Submit</button>
           <button type="button" class="btn btn-sm" on:click={closeAddModal}>Cancel</button>
         </div>
       </div>
