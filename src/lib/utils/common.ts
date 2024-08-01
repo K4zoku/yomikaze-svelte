@@ -25,8 +25,8 @@ export function appendQueryParams(searchParams: URLSearchParams, params?: { [key
     return searchParams;
   }
   for (const key in params) {
-    if (typeof params[key] === 'string') {
-      searchParams.set(key, params[key]);
+    if (typeof params[key] === 'string' || typeof params[key] === 'number') {
+      searchParams.set(key, params[key].toString());
     } else if (Array.isArray(params[key])) {
       for (const value of params[key]) {
         if (typeof value === 'string') {

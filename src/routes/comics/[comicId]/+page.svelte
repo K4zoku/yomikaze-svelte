@@ -3,14 +3,19 @@
   import Icon from '$components/icon.svelte';
   import Picture from '$components/picture.svelte';
   import LibraryModal from '$components/yomikaze/comic/library-modal.svelte';
+  import CommentList from '$components/yomikaze/comment/comment-list.svelte';
   import ComicStatus from '$components/yomikaze/common/comic/comic-status.svelte';
   import ComicReport from '$components/yomikaze/report/comic-report.svelte';
-  import type LibraryEntry from '$models/LibraryEntry.js';
+  import type LibraryEntry from '$models/LibraryEntry';
+    import type Profile from '$models/Profile';
   import { rateComic } from '$utils/comic-utils';
+  import { ComicCommentManagement } from '$utils/comment-utils';
   import formatNumber from '$utils/common';
   import http from '$utils/http';
-  import { tick } from 'svelte';
+    import { getProfile } from '$utils/profile-utils.js';
+  import { onMount, tick } from 'svelte';
   import Time from 'svelte-time/Time.svelte';
+  import { fly } from 'svelte/transition';
 
   export let data;
   let { comicId, comic, chapters, tagCategories, token, libraryManager } = data;
@@ -106,6 +111,16 @@
   }
 
   let showLibraryModal: () => void;
+
+  let tab: boolean = true;
+  let commentManager: ComicCommentManagement | undefined;
+  let currentUser: Profile;
+  onMount(async () => {
+    if (token) {
+      currentUser = await getProfile({ token });
+      commentManager = new ComicCommentManagement(token);
+    }
+  });
 </script>
 
 <!-- <div class="w-full relative h-96 bg-base-100">
@@ -375,51 +390,76 @@
       </div>
     {/await}
     <div class="flex flex-col grow">
-      <div role="tablist" class="tabs tabs-boxed w-fit p-2 shadow-inner mb-4">
-        <button class="tab" class:tab-active={true}> Chapters ({comic.totalChapters}) </button>
-        <button on:click={() => {}} class="tab" class:tab-active={false}> Comments ({comic.totalComments}) </button>
+      <div role="tablist" class="tabs tabs-boxed gap-1 w-fit p-2 shadow-inner mb-4">
+        <button on:click={() => (tab = true)} class="tab" class:tab-active={tab}>
+          Chapters ({comic.totalChapters})
+        </button>
+        <button on:click={() => (tab = false)} class="tab" class:tab-active={!tab}>
+          Comments ({comic.totalComments})
+        </button>
       </div>
-      <div class="flex flex-col gap-2 max-h-64 overflow-x-auto">
-        {#each chapters.results as chapter}
-          <a
-            href="/comics/{chapter.comicId}/chapters/{chapter.number}"
-            title="Read Chapter {chapter.number}"
-            class="flex justify-start btn btn-block no-animation"
-          >
-            <span>
-              {#if chapter.hasLock}
-                {#if chapter.isUnlocked}
-                  <Icon icon="lucide--lock-open" class="text-xl text-success" />
+      {#if tab}
+        <div
+          class="flex flex-col gap-2 max-h-64 overflow-x-auto"
+          in:fly={{ x: 32 }}
+          out:fly={{ x: -32 }}
+        >
+          {#each chapters.results as chapter}
+            <a
+              href="/comics/{chapter.comicId}/chapters/{chapter.number}"
+              title="Read Chapter {chapter.number}"
+              class="flex justify-start btn btn-block no-animation"
+            >
+              <span>
+                {#if chapter.hasLock}
+                  {#if chapter.isUnlocked}
+                    <Icon icon="lucide--lock-open" class="text-xl text-success" />
+                  {:else}
+                    <Icon icon="lucide--lock" class="text-xl text-error" />
+                  {/if}
                 {:else}
-                  <Icon icon="lucide--lock" class="text-xl text-error" />
+                  <Icon icon="lucide--lock-open" class="text-xl text-neutral" />
                 {/if}
-              {:else}
-                <Icon icon="lucide--lock-open" class="text-xl text-neutral" />
-              {/if}
-            </span>
-            <div class="flex gap-2 grow">
-              Ch.{chapter.number}
-              {chapter.name}
-            </div>
-            <div class="flex gap-6">
-              <div class="flex gap-1 items-center">
-                <Icon icon="lucide--clock" class="text-lg" />
-                <Time timestamp={chapter.creationTime} relative />
+              </span>
+              <div class="flex gap-2 grow">
+                Ch.{chapter.number}
+                {chapter.name}
               </div>
-              <div class="flex flex-col justify-between">
+              <div class="flex gap-6">
                 <div class="flex gap-1 items-center">
-                  <Icon icon="lucide--eye" class="text-lg" />
-                  <span>{chapter.views}</span>
+                  <Icon icon="lucide--clock" class="text-lg" />
+                  <Time timestamp={chapter.creationTime} relative />
                 </div>
-                <div class="flex gap-1 items-center">
-                  <Icon icon="lucide--message-square" class="text-lg" />
-                  <span>{chapter.totalComments}</span>
+                <div class="flex flex-col justify-between">
+                  <div class="flex gap-1 items-center">
+                    <Icon icon="lucide--eye" class="text-lg" />
+                    <span>{chapter.views}</span>
+                  </div>
+                  <div class="flex gap-1 items-center">
+                    <Icon icon="lucide--message-square" class="text-lg" />
+                    <span>{chapter.totalComments}</span>
+                  </div>
                 </div>
               </div>
+            </a>
+          {/each}
+        </div>
+      {:else}
+        <div class="w-full" in:fly={{ x: 32 }} out:fly={{ x: 32 }}>
+          {#if commentManager}
+            <CommentList
+              {currentUser}
+              {comicId}
+              {commentManager}
+              on:comments={(e) => (comic.totalComments = e.detail)}
+            />
+          {:else}
+            <div class="flex justify-center items-center h-10 w-full rounded bg-base-200">
+              <span class="font-bold text-lg">You need to login to view comments.</span>
             </div>
-          </a>
-        {/each}
-      </div>
+          {/if}
+        </div>
+      {/if}
     </div>
   </div>
 </div>

@@ -10,9 +10,10 @@
   import CommentDeleteModal from './comment-delete-modal.svelte';
   import { marked } from 'marked';
   import insane from 'insane';
-  import { tick } from 'svelte';
+  import { onMount, tick } from 'svelte';
 
   export let currentUser: Profile | undefined = undefined;
+  export let comicId: string = '';
   export let comment: Comment;
   export let commentManager: ComicCommentManagement;
   export let parentReplyTexarea: HTMLTextAreaElement | undefined = undefined;
@@ -22,7 +23,9 @@
     currentReplyTexarea = textarea;
     currentReplyTexarea.focus();
   }
-
+  onMount(() => {
+    comicId ||= (parentComment ? parentComment.comicId : comment.comicId) ?? '0';
+  });
   let editing = false;
   let newContent = '';
 
@@ -44,7 +47,6 @@
   }
 
   async function likeComment() {
-    const comicId = parentComment ? parentComment.comicId : comment.comicId;
     let isOk = await commentManager
       .reactComment(comicId, comment.id, { type: Reaction.Like })
       .then(() => true)
@@ -71,7 +73,6 @@
   }
 
   async function dislikeComment() {
-    const comicId = parentComment ? parentComment.comicId : comment.comicId;
     let isOk = await commentManager
       .reactComment(comicId, comment.id, { type: Reaction.Dislike })
       .then(() => true)
@@ -107,18 +108,18 @@
     }
 
     replies = await commentManager
-      .getComicCommentReplies(comment.comicId, comment.id)
+      .getComicCommentReplies(comicId, comment.id)
       .then((response) => response.results);
   }
 
   async function postReply() {
     if (!currentReplyTexarea.value) return;
     let newReply = await commentManager.replyComment(
-      comment.comicId,
+      comicId,
       comment.id,
       currentReplyTexarea.value
     );
-    newReply = await commentManager.getComment(comment.comicId, newReply.id);
+    newReply = await commentManager.getComment(comicId, newReply.id);
     replies = [newReply, ...replies];
     currentReplyTexarea.value = '';
     comment.totalReplies++;
@@ -206,7 +207,7 @@
               <CommentDeleteModal
                 target={comment}
                 {commentManager}
-                comicId={parentComment ? parentComment.comicId : comment.comicId}
+                {comicId}
                 bind:open={isDeleting}
                 on:deleted={() => {
                   isDeleted = true;
@@ -236,8 +237,10 @@
               }}
             ></textarea>
             <div class="flex justify-end gap-2">
-              <button class="btn btn-sm btn-accent" on:click={saveEditComment}> Save </button>
-              <button class="btn btn-sm hover:btn-error" on:click={cancelEditComment}>
+              <button type="button" class="btn btn-sm btn-accent" on:click={saveEditComment}>
+                Save
+              </button>
+              <button type="button" class="btn btn-sm hover:btn-error" on:click={cancelEditComment}>
                 Cancel
               </button>
             </div>
@@ -251,6 +254,7 @@
         <div class="flex justify-start p-2 gap-2">
           <div class="flex gap-2 items-center">
             <button
+              type="button"
               class="btn btn-xs"
               class:btn-accent={comment.myReaction === Reaction.Like}
               on:click={likeComment}
@@ -259,6 +263,7 @@
               <span>{comment.totalLikes}</span>
             </button>
             <button
+              type="button"
               class="btn btn-xs"
               class:btn-accent={comment.myReaction === Reaction.Dislike}
               on:click={dislikeComment}
@@ -268,6 +273,7 @@
             </button>
           </div>
           <button
+            type="button"
             class="btn btn-xs"
             class:btn-accent={showReplies}
             on:click={() =>
@@ -303,7 +309,9 @@
               }}
             ></textarea>
             <div class="flex justify-end gap-2">
-              <button class="btn btn-sm btn-accent" on:click={postReply}> Reply </button>
+              <button type="button" class="btn btn-sm btn-accent" on:click={postReply}>
+                Reply
+              </button>
             </div>
           </div>
           {#await loadReplies()}
@@ -333,7 +341,6 @@
                 bind:parentComment={comment}
               />
             {/each}
-            
           </div>
         </div>
       {/if}
