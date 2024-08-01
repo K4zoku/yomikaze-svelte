@@ -5,12 +5,13 @@
   import { Reaction, type ComicComment } from '$models/Comment';
   import type Profile from '$models/Profile';
   import type { ComicCommentManagement } from '$utils/comment-utils';
+  import insane from 'insane';
+  import { marked } from 'marked';
+  import { onMount, tick } from 'svelte';
   import Time from 'svelte-time/Time.svelte';
   import { fade, slide } from 'svelte/transition';
+  import CommentReport from '../report/comment-report.svelte';
   import CommentDeleteModal from './comment-delete-modal.svelte';
-  import { marked } from 'marked';
-  import insane from 'insane';
-  import { onMount, tick } from 'svelte';
 
   export let currentUser: Profile | undefined = undefined;
   export let comicId: string = '';
@@ -128,6 +129,7 @@
 
   let isDeleting = false;
   let isDeleted = false;
+  let reportOpen = false;
 </script>
 
 {#if !isDeleted}
@@ -197,7 +199,7 @@
                     </li>
                   {/if}
                   <li>
-                    <button class="flex items-center gap-1">
+                    <button class="flex items-center gap-1" on:click={() => (reportOpen = true)}>
                       <Icon icon="lucide--flag" class="text-lg shrink-0" />
                       Report
                     </button>
@@ -215,6 +217,7 @@
                   if (parentComment) parentComment.totalReplies--;
                 }}
               />
+              <CommentReport bind:target={comment} http={commentManager.http} bind:open={reportOpen}  />
             </div>
           {/if}
         </div>

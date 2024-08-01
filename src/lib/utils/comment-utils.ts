@@ -12,7 +12,7 @@ const BASE_URL = PUBLIC_API_BASE_URL ?? 'https://api.yomikaze.org/';
 const COMIC_COMMENT_ENDPOINT = '/comics';
 
 export class ComicCommentManagement {
-  private http: AxiosInstance;
+  http: AxiosInstance;
 
   constructor(token: string) {
     this.http = axios.create({
