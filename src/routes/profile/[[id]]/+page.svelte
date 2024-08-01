@@ -14,6 +14,7 @@
   import Time from 'svelte-time/Time.svelte';
   import type { Writable } from 'svelte/store';
   import type { ToastProps } from '~/routes/+layout.svelte';
+  import { postRoleRequest } from '$utils/role-request-utils';
 
   export let data;
   let { profile, token } = data;
@@ -30,6 +31,8 @@
 
   let amountErr = '';
   let errorMess = '';
+
+  let reason: string;
 
   const authStore = getContext<AuthDataStore>('auth');
   const currentUser = authStore?.user;
@@ -73,6 +76,18 @@
       }
     }
   }
+
+  async function handleRoleRequest() {
+  try {
+    await postRoleRequest(reason);
+    roleRequestModal.close();
+    addToast('Role request submitted successfully');
+    reason = '';
+  } catch (err) {
+    console.error('Error requesting role:', err);
+    // addErrToast('Failed to submit role request');
+  }
+}
 
   $: remainingBalance = profile.balance - withdrawalAmount;
   $: errorMess = remainingBalance < 0 ? 'Insufficient balance' : '';
@@ -379,7 +394,6 @@
   <dialog bind:this={roleRequestModal} class="modal">
     <div class="modal-box">
       <h3 class="text-lg font-bold flex items-center gap-2">
-        <Icon icon="lucide--contact" class="text-xl" />
         Request Role
       </h3>
       <h5 class="font-medium mb-2">User</h5>
@@ -406,13 +420,22 @@
         <span class="text-base font-medium">{profile.name}</span>
       </div>
       <hr class="border-1 my-4" />
-      <label for="role" class="block mb-2 font-medium">Role</label>
-      <select class="select select-bordered select-sm w-full max-w-xs" id="role">
-        <option value="Administrator">Administrator</option>
-        <option value="Publisher">Publisher</option>
-      </select>
+      <div class="form-control mt-4">
+        <label class="label" for="price">Role</label>
+        <input class="input input-bordered" id="price" type="text" value="Publisher" readonly />
+      </div>
+      <div class="form-control mt-4">
+        <label class="label" for="reason">Reason</label>
+        <textarea
+          class="textarea textarea-bordered resize-none"
+          id="reason"
+          bind:value={reason}
+          placeholder="Enter reason for role request"
+          rows="3"
+        ></textarea>
+      </div>
       <div class="modal-action">
-        <button class="btn btn-sm btn-accent">Request</button>
+        <button class="btn btn-sm btn-accent"  on:click={handleRoleRequest}>Request</button>
         <form method="dialog">
           <button class="btn btn-sm">Cancel</button>
         </form>
@@ -426,7 +449,9 @@
   <!--! Modal edit profile -->
   <dialog bind:this={editModal} class="modal">
     <div class="modal-box">
-      <h3 class="text-lg font-bold flex"><Icon icon="lucide--edit" class="text-xl text-center" />Edit Profile</h3>
+      <h3 class="text-lg font-bold flex">
+        <Icon icon="lucide--edit" class="text-xl text-center" />Edit Profile
+      </h3>
       <p class="py-4">Press ESC key or click the button below to close</p>
       <div class="modal-action">
         <form method="dialog">
@@ -543,7 +568,7 @@
           {/if}
         </form>
         <div class="modal-action">
-          <button type="submit" class="btn btn-success btn-sm" form="withdrawal-form">Submit</button
+          <button type="submit" class="btn btn-accent btn-sm" form="withdrawal-form">Submit</button
           >
           <button type="button" class="btn btn-sm" on:click={closeAddModal}>Cancel</button>
         </div>
