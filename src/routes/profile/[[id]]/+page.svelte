@@ -427,7 +427,7 @@
       <div class="form-control mt-4">
         <label class="label" for="reason">Reason</label>
         <textarea
-          class="textarea textarea-bordered"
+          class="textarea textarea-bordered resize-none"
           id="reason"
           bind:value={reason}
           placeholder="Enter reason for role request"
