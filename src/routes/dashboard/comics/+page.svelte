@@ -4,6 +4,7 @@
   import { onMount } from 'svelte';
   import type Comic from '$models/Comic';
   import type { AxiosError } from 'axios';
+    import Sublayout from '$components/yomikaze/sublayout.svelte';
 
   export let data;
   let { token } = data;
@@ -90,24 +91,15 @@
     deleteModal.showModal();
   }
 </script>
-
-<div class="container mx-auto mt-16">
-  <div class="flex my-3 gap-2">
-    <button on:click={goBack}>
-      <span class="iconify lucide--arrow-left text-4xl text-center"></span>
-    </button>
-    <div>
-      <span class="text-3xl font-semibold">Comics Management</span>
-    </div>
-  </div>
-
+<Sublayout pageName="Comics Management">
   <div class="ml-8">
-    <a href="../create-comic" class="btn btn-warning"
-      ><span class="iconify lucide--plus text-2xl"></span></a
-    >
+    <a href="/comics/create" class="btn btn-accent">
+      <span class="iconify lucide--plus text-2xl"></span>
+      Create Comic
+    </a>
   </div>
 
-  <h1 class="text-3xl font-semibold ml-8 mt-14">{totals} title</h1>
+  <h3 class="text-3xl font-semibold ml-8 mt-14">{totals} comics</h3>
 
   <div class="mt-5 mb-10 flex flex-col gap-3 mx-auto w-11/12">
     {#each comics as comic (comic.id)}
@@ -203,7 +195,7 @@
       </div>
     {/each}
   </div>
-</div>
+</Sublayout>
 
 <dialog id="delete_modal" bind:this={deleteModal} class="modal">
   <div class="modal-box">

@@ -25,6 +25,18 @@ export default interface Comic extends Model {
     myRating?: number
 }
 
+export interface ComicCreate {
+    name: string,
+    aliases: Array<string>,
+    description: string,
+    cover: string,
+    banner?: string,
+    publicationDate: string | Date,
+    authors: Array<string>,
+    status: ComicStatus | ComicStatus.Cancelled | ComicStatus.Completed | ComicStatus.Hiatus | ComicStatus.OnGoing,
+    tagIds: string[],
+}
+
 export enum ComicStatus {
     OnGoing = 'OnGoing', 
     Completed = 'Completed', 

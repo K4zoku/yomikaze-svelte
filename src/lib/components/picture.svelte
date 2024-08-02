@@ -43,26 +43,28 @@
   export let imgClass = `w-full h-full`;
 </script>
 
-{#await loadImage(src)}
-  <slot name="loading">
-    <div class={$$props.class ? $$props.class : ''}>
-      <div class="flex justify-center items-center bg-base-200 {imgClass}">
-        <span class="loading loading-dots"></span>
+{#key src}
+  {#await loadImage(src)}
+    <slot name="loading">
+      <div class={$$props.class ? $$props.class : ''}>
+        <div class="flex justify-center items-center bg-base-200 {imgClass}">
+          <span class="loading loading-dots"></span>
+        </div>
       </div>
-    </div>
-  </slot>
-{:then src}
-  <picture class={$$props.class ? $$props.class : ''} data-src={src}>
-    <source class={imgClass} srcset={src} />
-    <slot name="fallback">
-      <img class={imgClass} src="/images/default.svg" alt="" />
     </slot>
-  </picture>
-{:catch}
-  <slot name="error">
+  {:then src}
     <picture class={$$props.class ? $$props.class : ''} data-src={src}>
-      <source class={imgClass} src="/images/broken-image.svg" type="image/svg+xml" />
-      <img class={imgClass} src="/images/broken-image@2x.png" alt="" />
+      <source class={imgClass} srcset={src} />
+      <slot name="fallback">
+        <img class={imgClass} src="/images/default.svg" alt="" />
+      </slot>
     </picture>
-  </slot>
-{/await}
+  {:catch}
+    <slot name="error">
+      <picture class={$$props.class ? $$props.class : ''} data-src={src}>
+        <source class={imgClass} src="/images/broken-image.svg" type="image/svg+xml" />
+        <img class={imgClass} src="/images/broken-image@2x.png" alt="" />
+      </picture>
+    </slot>
+  {/await}
+{/key}
