@@ -5,14 +5,13 @@ import type ChapterSearch from '$models/ChapterSearch';
 
 import { appendQueryParams } from './common';
 import axios, { type AxiosInstance } from 'axios';
-import type Chapter from '$models/Chapter';
-import type { ChapterComment, CommentReaction } from '$models/Chapter';
+import type { ChapterComment, CommentReaction } from '$models/Comment';
 
 const BASE_URL = PUBLIC_API_BASE_URL ?? 'https://api.yomikaze.org/';
-const CHAPTER_COMMENT_ENDPOINT = '/chaptercomment'
+const CHAPTER_COMMENT_ENDPOINT = '/comics';
 
 export class ChapterCommentManagement {
-  private http: AxiosInstance;
+  http: AxiosInstance;
 
   constructor(private token: string) {
     this.http = axios.create({
@@ -23,50 +22,50 @@ export class ChapterCommentManagement {
       }
     });
   }
-  async getChapterComments(comicId: string, chapterId: number, commentId: string, search?: ChapterSearch): Promise<PagedResult<Chapter>> {
-    const url = new URL(`${CHAPTER_COMMENT_ENDPOINT}/${comicId}/chapters/${chapterId}/${commentId}`, BASE_URL);
-    appendQueryParams(url, search);
+  async getComments(comicId: string, chapterNumber: number, search?: ChapterSearch): Promise<PagedResult<ChapterComment>> {
+    const url = new URL(`${CHAPTER_COMMENT_ENDPOINT}/${comicId}/chapters/${chapterNumber}/comments`, BASE_URL);
+    appendQueryParams(url.searchParams, search);
     const response = await this.http.get(url.toString());
     return response.data;
   }
 
-  async getChapterCommentReplies(comicId: string, chapterId: number, commentId: string, search?: ChapterSearch): Promise<PagedResult<Chapter>> {
-    const url = new URL(`${CHAPTER_COMMENT_ENDPOINT}/${comicId}/chapters/${chapterId}/${commentId}/replies`, BASE_URL);
-    appendQueryParams(url, search);
+  async getCommentReplies(comicId: string, chapterNumber: number, commentId: string, search?: ChapterSearch): Promise<PagedResult<ChapterComment>> {
+    const url = new URL(`${CHAPTER_COMMENT_ENDPOINT}/${comicId}/chapters/${chapterNumber}/comments/${commentId}/replies`, BASE_URL);
+    appendQueryParams(url.searchParams, search);
     const response = await this.http.get(url.toString());
     return response.data;
   }
 
-  async getComment(comicId: string, chapterId: number, commentId: string): Promise<ChapterComment> {
-    const response = await this.http.get(`${CHAPTER_COMMENT_ENDPOINT}/${comicId}/chapters/${chapterId}/${commentId}`
+  async getComment(comicId: string, chapterNumber: number, commentId: string): Promise<ChapterComment> {
+    const response = await this.http.get(`${CHAPTER_COMMENT_ENDPOINT}/${comicId}/chapters/${chapterNumber}/${commentId}`
     );
     return response.data;
   }
 
-  async createChapterComment(comicId: string, chapterId: number, comments: ChapterComment): Promise<ChapterComment> {
-    const response = await this.http.post(`${CHAPTER_COMMENT_ENDPOINT}/${comicId}/chapters/${chapterId}/comments`, comments);
+  async createComment(comicId: string, chapterNumber: number, content: string): Promise<ChapterComment> {
+    const response = await this.http.post(`${CHAPTER_COMMENT_ENDPOINT}/${comicId}/chapters/${chapterNumber}/comments`, { content });
     return response.data;
   }
 
-  async replyChapterComment(comicId: string, chapterId: number, commentId: string, comments: ChapterComment): Promise<ChapterComment> {
-    const response = await this.http.post(`${CHAPTER_COMMENT_ENDPOINT}/${comicId}/chapters/${chapterId}/${commentId}/replies`, comments);
+  async replyComment(comicId: string, chapterNumber: number, commentId: string, content: string): Promise<ChapterComment> {
+    const response = await this.http.post(`${CHAPTER_COMMENT_ENDPOINT}/${comicId}/chapters/${chapterNumber}/comments/${commentId}/replies`, { content });
     return response.data;
   }
 
-  async updateChapterComment(chapterId: string, comment: ChapterComment): Promise<ChapterComment> {
-    const patch: JsonPatchEntry[] = [{ op: 'replace', path: '/content', value: comment.content }];
-    const response = await this.http.patch(`${CHAPTER_COMMENT_ENDPOINT}/${comment.comicId}/chapters/${chapterId}/comments/${comment.id}`,
+  async updateComment(comicId: string, chapterNumber: number, commentId: string, content: string): Promise<ChapterComment> {
+    const patch: JsonPatchEntry[] = [{ op: 'replace', path: '/content', value: content }];
+    const response = await this.http.patch(`${CHAPTER_COMMENT_ENDPOINT}/${comicId}/chapters/${chapterNumber}/comments/${commentId}`,
       patch
     );
     return response.data;
   }
 
-  async deleteComment(comicId: string, chapterId: string, commentId: string): Promise<void> {
-    await this.http.delete(`${CHAPTER_COMMENT_ENDPOINT}/${comicId}/chapters/${chapterId}/comments/${commentId}`);
+  async deleteComment(comicId: string, chapterNumber: number, commentId: string): Promise<void> {
+    await this.http.delete(`${CHAPTER_COMMENT_ENDPOINT}/${comicId}/chapters/${chapterNumber}/comments/${commentId}`);
   }
 
-  async reactComment(comicId: string, chapterId:string, commentId: string,data: CommentReaction): Promise<ChapterComment> {
-    const response = await this.http.post(`${CHAPTER_COMMENT_ENDPOINT}/${comicId}/chapters/${chapterId}/comments/${commentId}/react`,data );
+  async reactComment(comicId: string, chapterNumber: number, commentId: string, data: CommentReaction): Promise<ChapterComment> {
+    const response = await this.http.post(`${CHAPTER_COMMENT_ENDPOINT}/${comicId}/chapters/${chapterNumber}/comments/${commentId}/react`, data);
     return response.data;
   }
 }

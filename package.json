@@ -45,6 +45,7 @@
   "dependencies": {
     "@furudean/svelte-persistent-store": "^0.9.0",
     "@stripe/stripe-js": "^4.1.0",
+    "@types/insane": "^1.0.0",
     "@types/node": "^20.14.11",
     "@types/sortablejs": "^1.15.8",
     "autoprefixer": "^10.4.19",

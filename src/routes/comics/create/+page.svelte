@@ -5,11 +5,11 @@
   import Sublayout from '$components/yomikaze/sublayout.svelte';
   import type Comic from '$models/Comic';
   import { ComicStatus, type ComicCreate } from '$models/Comic';
-  import type Tag from '$models/Tag.js';
-  import { debounce } from '$utils/common.js';
+  import type Tag from '$models/Tag';
+  import { debounce } from '$utils/common';
   import http from '$utils/http';
   import { uploadImage } from '$utils/image-utils';
-  import type { CategorizedTags } from '$utils/tag-utils.js';
+  import type { CategorizedTags } from '$utils/tag-utils';
   import { onDestroy } from 'svelte';
 
   export let data;
@@ -141,9 +141,10 @@
           </div>
         {/await}
         <label
-          class="w-full h-80 border-2 flex justify-center cursor-pointer
-          border-dashed
-          hover:border-accent bg-base-200 rounded transition-colors duration-500"
+          class="w-full h-80 flex justify-center cursor-pointer
+          border-2 border-dashed hover:border-accent 
+          bg-base-200 hover:bg-base-300
+          rounded transition-colors duration-500"
         >
           <input
             id="banner-input"
@@ -158,7 +159,7 @@
               src={bannerUrl}
               useCdn={true}
               class="w-full h-full"
-              imgClass="w-full h-full object-cover object-top"
+              imgClass="w-full h-full object-cover object-top rounded"
             />
           {:else}
             <div class="flex w-full h-full items-center justify-center gap-2 flex-col">
@@ -186,9 +187,10 @@
             </div>
           {/await}
           <label
-            class="w-48 h-fit aspect-cover border-2 flex justify-center cursor-pointer
-            border-dashed
-            hover:border-accent bg-base-200 rounded transition-colors duration-500"
+            class="w-48 h-fit aspect-cover flex justify-center cursor-pointer
+            border-2 border-dashed hover:border-accent 
+            bg-base-200 hover:bg-base-300
+            rounded transition-colors duration-500"
           >
             <input
               id="cover-input"
@@ -203,7 +205,7 @@
                 src={coverUrl}
                 useCdn={true}
                 class="w-full h-full"
-                imgClass="w-full h-full object-cover object-top"
+                imgClass="w-full h-full object-cover object-top rounded"
               />
             {:else}
               <div class="flex w-full h-full items-center justify-center gap-2 flex-col">
@@ -421,7 +423,7 @@
 
               <div
                 class="dropdown-content z-50 bg-base-100 p-4 rounded
-                shadow-lg mt-2 w-full max-h-56 select-none flex flex-col gap-2"
+                shadow-lg mt-2 w-[140%] max-h-64 select-none flex flex-col gap-2"
               >
                 <div class="flex items-center gap-2 w-full py-2 h-fit shrink-0 justify-end">
                   <label
@@ -444,25 +446,27 @@
                   </button>
                 </div>
                 <div class="flex flex-col gap-4 overflow-y-scroll overflow-x-hidden max-h-full">
-                  {#each Object.entries(filteredTags) as [category, { name, tags }]}
-                    <div class=" p-1 rounded-lg">
-                      <div class="flex gap-2 items-center">
-                        <h2 class="text-xl font-bold mb-2">{name}</h2>
-                        <hr class="border-1 my-4 flex-grow" />
-                      </div>
+                  {#each Object.entries(categorizedTags) as [category, { name, tags }]}
+                      <div class=" p-1 rounded-lg" class:hidden={!(category in filteredTags)}>
+                        <div class="flex gap-2 items-center">
+                          <h2 class="text-xl font-bold mb-2">{name}</h2>
+                          <hr class="border-1 my-4 flex-grow" />
+                        </div>
 
-                      <ul class="list-disc flex flex-wrap gap-2">
-                        {#each tags as tag (tag.id)}
-                          <label class="swap">
-                            <input type="checkbox" bind:group={selectedTags} value={tag} />
-                            <span class="swap-off badge badge-outline badge-neutral"
-                              >{tag.name}</span
-                            >
-                            <span class="swap-on badge badge-outline badge-accent">{tag.name}</span>
-                          </label>
-                        {/each}
-                      </ul>
-                    </div>
+                        <div class="flex flex-wrap gap-2">
+                          {#each tags as tag (tag.id)}
+                            <label class="swap" class:hidden={!(tag.name.toLowerCase().includes(tagSearch.toLowerCase()))}>
+                              <input type="checkbox" bind:group={selectedTags} value={tag} />
+                              <span class="swap-off badge badge-outline badge-neutral"
+                                >{tag.name}</span
+                              >
+                              <span class="swap-on badge badge-outline badge-accent"
+                                >{tag.name}</span
+                              >
+                            </label>
+                          {/each}
+                        </div>
+                      </div>
                   {/each}
                 </div>
               </div>

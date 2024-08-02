@@ -45,7 +45,7 @@
     submitting = true;
 
     const response = await http
-      .post('/reports/chapter/' + target.id, {
+      .post(`/reports/chapter/comics/${comic.id}/chapters/${target.number}`, {
         reasonId: selectedReason.id,
         description
       })

@@ -103,18 +103,16 @@
   let historyContinue: string;
   let isContinue = false;
   async function loadHistory() {
-    const response = await http
-      .get(`/history/comics/${comic.id}/continue`)
-      .catch((error) => {
-        isContinue = false;
-        return error.response;
-      });
+    const response = await http.get(`/history/comics/${comic.id}/continue`).catch((error) => {
+      isContinue = false;
+      historyContinue = '';
+      return error.response;
+    });
     if (response.status.toString().startsWith('2')) {
       const data = response.data;
       historyContinue = `/comics/${comic.id}/chapters/${data.chapter.number}`;
       isContinue = true;
     }
-    historyContinue = '';
   }
 
   let showLibraryModal: () => void;
@@ -205,7 +203,7 @@
               </button>
             {:then _}
               {#if isContinue}
-                <a class="btn btn-wide" href={historyContinue || '#'}>
+                <a class="btn btn-wide" href={historyContinue}>
                   <Icon icon="lucide--play" class="text-xl" />
                   Continue Reading
                 </a>
@@ -229,7 +227,7 @@
               Report
             </button>
             <ComicReport target={comic} bind:modal={reportModal} {http} />
-            {#if currentUser && (currentUser.roles.includes('Administrator') || currentUser.roles.includes('Publisher') && currentUser.id === comic.publisher.id)}
+            {#if currentUser && (currentUser.roles.includes('Administrator') || (currentUser.roles.includes('Publisher') && currentUser.id === comic.publisher.id))}
               <details class="dropdown">
                 <summary class="btn">
                   <Icon icon="lucide--settings" class="text-xl" />
@@ -377,8 +375,8 @@
         <div class="py-2">
           <div class="text-xl font-bold">Authors</div>
           <div class="flex flex-wrap gap-2">
-            {#each comic.authors as author}
-              <span class="btn btn-xs no-animation font-medium text-nowrap w-fit">{author}</span>
+            {#each comic.authors as author (author)}
+              <a href="/search?authors={author}" class="btn btn-xs no-animation font-medium text-nowrap w-fit">{author}</a>
             {/each}
           </div>
         </div>
@@ -387,7 +385,7 @@
         <div class="text-xl font-bold">Publisher</div>
         <div class="flex flex-wrap gap-2">
           <span class="btn btn-xs no-animation font-medium text-nowrap w-fit">
-            <a href="/search?publisher={comic.publisher.name}">{comic.publisher.name}</a>
+            <a href="/profile/{comic.publisher.id}">{comic.publisher.name}</a>
           </span>
         </div>
       </div>
@@ -460,7 +458,11 @@
           {/each}
         </div>
       {:else}
-        <div class="w-full" in:fly={{ x: -32, delay: 150, duration: 150 }} out:fly={{ x: -32, duration: 150 }}>
+        <div
+          class="w-full"
+          in:fly={{ x: -32, delay: 150, duration: 150 }}
+          out:fly={{ x: -32, duration: 150 }}
+        >
           {#if commentManager}
             <CommentList
               {currentUser}

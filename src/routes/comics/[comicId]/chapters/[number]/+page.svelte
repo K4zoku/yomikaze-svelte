@@ -1,52 +1,67 @@
 <script lang="ts">
-  import Carousel from 'svelte-carousel';
+  import { goto } from '$app/navigation';
+  import Swap from '$components/daisyui/actions/swap.svelte';
+  import Icon from '$components/icon.svelte';
+  import http from '$utils/http';
+  import { onMount, type ComponentType } from 'svelte';
   import LongStripMode from './long-strip-mode.svelte';
   import SinglePageMode from './single-page-mode.svelte';
-  import { goto, invalidateAll } from '$app/navigation';
-  import Icon from '$components/icon.svelte';
+  import ChapterReport from '$components/yomikaze/report/chapter-report.svelte';
+  import ChapterCommentList from '$components/yomikaze/comment/chapter/chapter-comment-list.svelte';
+  import type Profile from '$models/Profile';
+  import { ChapterCommentManagement } from '$utils/chapter-comment-utils';
+
   export let data;
-  import http from '$utils/http'
-  import type Comment from '$models/Comment';
-  import type { AxiosError } from 'axios';
-  import type Problem from '$models/ProblemResponse.js';
-  import DefaultAvatar from '$components/default-user-avatar.svelte';
-  import Time from 'svelte-time/Time.svelte';
-  let { chapter, chapters, comic, comicId, number,token } = data;
+  let { chapter, chapters, comic, comicId, number, token } = data;
+  $: ({ chapter, chapters, comic, comicId, number, token } = data);
   http.defaults.headers.common.Authorization = 'Bearer ' + token;
-  let active = false;
-  import { onMount, tick } from 'svelte';
-    import { trySetBaseUrl } from '$utils/comic-utils';
-  interface CarouselData {
-    goToPrev: () => void;
-    goToNext: () => void;
-    currentPageIndex: number;
-  }
-  let carousel: CarouselData = {
-    goToNext: () => {},
-    goToPrev: () => {},
-    currentPageIndex: 0
-  };
 
-  let progressBar;
+  let currentUser: Profile;
+  let commentManager = new ChapterCommentManagement(token as string);
+  onMount(async () => {
+    currentUser = await http.get('/profile').then((response) => response.data);
+  });
+  let active = true;
 
-  function toggleSidebar() {
-    active = !active;
+  let readingMode = 'Long Strip';
+  function toggleReadingMode() {
+    readingMode = readingMode === 'Single Page' ? 'Long Strip' : 'Single Page';
   }
-  let buttonText = 'Single Page';
-  function toggleButtonState() {
-    buttonText = buttonText === 'Single Page' ? 'Long Strip' : 'Single Page';
-    if (buttonText === 'Single Page') {
-      //startSplide();
+  let currentPage: number = 0;
+
+  function goToPrevPage() {
+    if (currentPage > 0) {
+      currentPage--;
     }
   }
-  // Hàm xử lý sự kiện khi người dùng chọn ảnh
-  const handleSelectChange = (event) => {};
 
-  const goToPrevPage = () => {};
+  function goToNextPage() {
+    if (chapter) {
+      if (currentPage < chapter.pages.length - 1) {
+        currentPage++;
+      }
+    }
+  }
 
-  const goToNextPage = () => {};
+  function goToNextChapter() {
+    if (chapter) {
+      if (chapter.number < chapters.length - 1) {
+        goto(`/comics/${comic.id}/chapters/${chapter.number + 1}`);
+      }
+    }
+  }
 
-  const readingModes = {
+  function goToPrevChapter() {
+    if (chapter) {
+      if (chapter.number > 0) {
+        goto(`/comics/${comic.id}/chapters/${chapter.number - 1}`);
+      }
+    }
+  }
+
+  const readingModes: {
+    [key: string | 'Single Page' | 'Long Strip']: { component: ComponentType };
+  } = {
     'Single Page': {
       component: SinglePageMode
     },
@@ -54,248 +69,21 @@
       component: LongStripMode
     }
   };
-  let scrollY: number;
-// comment
-  let comments: Array<Comment & { editing: boolean; reacted?: boolean }> = [];
-    
-  
-  let commentText = '';
-  let replyContent = '';
-  let commentModal: any;
-  let contentErr = '';
-  let errorMess = '';
-  let error = '';
-  let errorRep = '';
 
-  // test comment Chapter
-  async function getComments() {
-    try {
-      const response = await http.get(`/comics/${comicId}/chapters/${number}/comments`);
-      comments = response.data.results;
-    } catch (error) {
-      if (error.response) {
-        console.error('API error:', error.response.data);
-      } else {
-        console.error('Error:', error.message);
-      }
-    }
-  }
   let unlockDialog: HTMLDialogElement;
   async function handleUnlockClose() {
-    chapter = await http.get(`/comics/${comicId}/chapters/${number}`)
+    chapter = await http
+      .get(`/comics/${comicId}/chapters/${number}`)
       .then((response) => response.data)
       .catch((error) => {
         goto(`/comics/${comicId}`);
         return false;
       });
-      if (chapter) chapter.pages = chapter.pages.map(page => trySetBaseUrl(page));
-  }
-
-  async function postComment() {
-    error = '';
-    try {
-      if (commentText.trim() === '') {
-        error = 'Please enter a comment before posting.';
-        return;
-      }
-
-      const response = await http.post(`/comics/${comicId}/chapters/${number}/comments`, {
-        content: commentText
-      });
-      comments = [response.data, ...comments];
-      commentText = '';
-      await getComments();
-    } catch (error) {
-      const axiosError = error as AxiosError;
-      const { response } = axiosError;
-      if (response && response.status === 400) {
-        let data = response.data as Problem;
-        for (let key of Object.keys(data.errors)) {
-          switch (key) {
-            case 'Content':
-              contentErr = data.errors[key].at(0) ?? '';
-              break;
-            default:
-              errorMess = 'An unknown error occurred';
-              break;
-          }
-        }
-      } else {
-        errorMess = 'An unknown error occurred';
-      }
-    }
-  }
-
-  async function postReply(commentId: string) {
-    try {
-      if (replyContent.trim() === '') {
-        errorRep = 'Please enter a reply before posting.';
-        return;
-      }
-
-      await http.post(
-        `/comics/${comicId}/chapters/${number}/comments/${commentId}/replies`,
-        { content: replyContent }
-      );
-
-      // Cập nhật danh sách bình luận
-      comments = comments.map((comment) => {
-        if (comment.id === commentId) {
-          return { ...comment, replyContent: '', showReplySection: false }; // Xóa nội dung đã gửi và đóng phần phản hồi
-        }
-        return comment;
-      });
-    } catch (error) {
-      const axiosError = error as AxiosError;
-      const { response } = axiosError;
-      if (response && response.status === 400) {
-        let data = response.data as Problem;
-        for (let key of Object.keys(data.errors)) {
-          switch (key) {
-            case 'Content':
-              contentErr = data.errors[key].at(0) ?? '';
-              break;
-            default:
-              errorMess = 'An unknown error occurred';
-              break;
-          }
-        }
-      } else {
-        errorMess = 'An unknown error occurred';
-      }
-    }
-  }
-
-  async function getReplies(commentId: string) {
-    try {
-      const response = await http.get(
-        `/comics/${comicId}/chapters/${number}/comments/${commentId}/replies`
-      );
-      const replies = response.data.results;
-
-      // Cập nhật danh sách bình luận với phản hồi
-      comments = comments.map((comment) => {
-        if (comment.id === commentId) {
-          return { ...comment, replies }; // Thêm phản hồi vào bình luận
-        }
-        return comment;
-      });
-    } catch (error) {
-      console.error('Error fetching replies:', error);
-    }
-  }
-
-  // Hàm để toggle phần phản hồi
-  function toggleReplySection(commentId: string) {
-    // Gọi getReplies nếu phần phản hồi chưa được mở và chưa có dữ liệu phản hồi
-    const comment = comments.find((c) => c.id === commentId);
-    if (comment && !comment.showReplySection) {
-      getReplies(commentId);
-    }
-
-    comments = comments.map((comment) => {
-      if (comment.id === commentId) {
-        return { ...comment, showReplySection: !comment.showReplySection }; // Chuyển đổi trạng thái hiển thị phần phản hồi
-      }
-      return comment;
-    });
-  }
-
-  async function deleteComment(commentId: string | bigint) {
-    try {
-      await http.delete(`/comics/${comicId}/chapters/${number}/comments/${commentId}`);
-      comments = comments.filter((comment) => comment.id !== commentId);
-      console.log('Delete success');
-    } catch (error) {
-      const axiosError = error as AxiosError;
-      const { response } = axiosError;
-      if (response) {
-        console.error('API error:', response.data);
-      } else {
-        console.error('Error:', error.message);
-      }
-    }
-  }
-
-  async function editComment(commentId: string, newContent: string) {
-    try {
-      const patchData = [
-        {
-          op: 'replace',
-          path: '/content',
-          value: newContent
-        }
-      ];
-      const response = await http.patch(
-        `/comics/${comicId}/chapters/${number}/comments/${commentId}`,
-        patchData
-      );
-      comments = comments.map((comment) =>
-        comment.id === commentId ? { ...response.data, editing: false } : comment
-      );
-      await tick();
-    } catch (error) {
-      console.error('Failed to edit comment:', error);
-    }
-  }
-
-  async function reactComment(commentId: string, reactionType: string) {
-    try {
-      // Gửi yêu cầu đến API để thêm hoặc gỡ bỏ phản ứng
-      const response = await http.post(
-        `/comics/${comicId}/chapters/${number}/comments/${commentId}/react`,
-        { type: reactionType }
-      );
-
-      // Lấy thông tin phản hồi từ API
-      const { isReacted, myReaction } = response.data;
-
-      // Cập nhật danh sách comments
-      comments = comments.map((comment) => {
-        if (comment.id === commentId) {
-          // Tính toán số lượng phản ứng mới
-          let newTotalLikes = comment.totalLikes;
-          if (isReacted) {
-            // Nếu phản ứng đã được thêm, cộng thêm
-            if (!comment.reacted) {
-              newTotalLikes += 1;
-            }
-          } else {
-            // Nếu phản ứng bị gỡ bỏ, trừ đi
-            if (comment.reacted) {
-              newTotalLikes -= 1;
-            }
-          }
-
-          return {
-            ...comment,
-            myReaction,
-            reacted: isReacted,
-            totalLikes: newTotalLikes
-          };
-        }
-        return comment;
-      });
-
-      // Đảm bảo giao diện cập nhật sau khi thay đổi dữ liệu
-      await tick();
-    } catch (error) {
-      console.error('Failed to react to comment:', error);
-    }
-  }
-
-  function toggleEditComment(comment: any) {
-    comment.editing = !comment.editing;
-    comments = [...comments];
-  }
-
-  function openCommentModal() {
-    getComments();
-    commentModal.showModal();
   }
 
   function handleUnlock() {
-    http.put(`/comics/${comicId}/chapters/${number}/unlock`)
+    http
+      .put(`/comics/${comicId}/chapters/${number}/unlock`)
       .then(() => {
         unlockDialog.close();
       })
@@ -306,344 +94,198 @@
         console.error('Failed to unlock chapter:', error);
       });
   }
+
+  let chapterReportModal: HTMLDialogElement;
+  let commentsModal: HTMLDialogElement;
 </script>
 
-<svelte:window bind:scrollY />
-<dialog id="comment_modal" class="modal" bind:this={commentModal}>
-  <div class="modal-box w-11/12 max-w-5xl">
-    <h3 class="text-xl font-bold">Comments for Chapter {number}</h3>
-    <form method="dialog">
-      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2 text-xl">✕</button>
-    </form>
-
-    <div class="mt-6">
-      {#if comments.length > 0}
-        <ul class="max-h-96 overflow-x-auto">
-          {#each comments as comment (comment.id)}
-            <li class=" py-2">
-              <div class="flex flex-col border-2 rounded-lg border p-4">
-                <div class="flex justify-between border-b pb-2">
-                  <div class="flex gap-4 items-center">
-                    <div class="avatar">
-                      <div class="w-8 ring-2 ring-offset-2 ring-neutral rounded-full">
-                        <DefaultAvatar></DefaultAvatar>
-                      </div>
-                    </div>
-                    <p class=" leading-none font-medium">{comment.author.name}</p>
-                  </div>
-
-                  <div class="my-auto flex items-center gap-2">
-                    <p class="text-xs text-gray-500 text-center">
-                      <Time timestamp={comment.creationTime} relative />
-                    </p>
-                    <details class="dropdown dropdown-end">
-                      <summary class="btn btn-sm btn-square"
-                        ><span class="iconify lucide--ellipsis-vertical text-xl"></span></summary
-                      >
-                      <ul
-                        class="menu dropdown-content bg-base-100 rounded-box z-[1] w-52 p-2 shadow"
-                      >
-                        <li><button on:click={() => deleteComment(comment.id)}>Delete</button></li>
-                        <li><button on:click={() => toggleEditComment(comment)}>Edit</button></li>
-                      </ul>
-                    </details>
-                  </div>
-                </div>
-
-                {#if comment.editing}
-                  <textarea bind:value={comment.content} class="textarea textarea-bordered w-full"
-                  ></textarea>
-                  <div class="flex items-center gap-2 mt-2 justify-end">
-                    <button
-                      class="btn btn-sm btn-success flex items-center gap-1"
-                      on:click={() => editComment(comment.id, comment.content)}
-                      ><span class="iconify lucide--send text-xl"></span> Save</button
-                    >
-                    <button class="btn btn-sm" on:click={() => toggleEditComment(comment)}
-                      >Cancel</button
-                    >
-                  </div>
-                {:else}
-                  <div class="my-2">
-                    <p class="mt-1">{comment.content}</p>
-                  </div>
-
-                  <div class="flex gap-2 mt-2">
-                    <button
-                      class="btn btn-sm btn-square flex"
-                      on:click={() => reactComment(comment.id, 'Like')}
-                    >
-                      <div class="flex gap-1">
-                        <p
-                          class="iconify {comment.reacted
-                            ? 'fluent--thumb-like-20-filled'
-                            : 'fluent--thumb-like-16-regular'} text-xl"
-                        ></p>
-                        <p class="flex items-center">{comment.totalLikes}</p>
-                      </div>
-                    </button>
-
-                    <button class="btn btn-sm" on:click={() => toggleReplySection(comment.id)}>
-                      {#if comment.showReplySection}
-                        Hide Replies
-                      {/if}
-                      {#if !comment.showReplySection}
-                        Show Replies
-                      {/if}
-                    </button>
-                  </div>
-
-                  <div class="mt-4"></div>
-                {/if}
-
-                {#if comment.showReplySection}
-                  <!-- Danh sách phản hồi -->
-                  {#if comment.replies && comment.replies.length > 0}
-                    <ul class="ml-4 mt-2">
-                      {#each comment.replies as reply (reply.id)}
-                        <li class="py-4 border-b">
-                          <div class="flex flex-col border-2 rounded-lg border p-2">
-                            <div class="flex justify-between border-b pb-2">
-                              <div class="flex gap-4 items-center">
-                                <div class="avatar">
-                                  <div class="w-6 ring-2 ring-offset-2 ring-neutral rounded-full">
-                                    <DefaultAvatar></DefaultAvatar>
-                                  </div>
-                                </div>
-                                <p class=" leading-none font-medium text-sm">
-                                  {reply.author.name}
-                                </p>
-                              </div>
-
-                              <div class="my-auto flex items-center gap-2">
-                                <p class="text-xs text-gray-500 text-center">
-                                  <Time timestamp={reply.creationTime} relative />
-                                </p>
-                              </div>
-                            </div>
-                            <div class="my-2">
-                              <p>{reply.content}</p>
-                            </div>
-                          </div>
-                        </li>
-                      {/each}
-                    </ul>
-                  {:else}
-                    <p class="text-base italic text-center">No Replies yet.</p>
-                  {/if}
-
-                  <!-- Form phản hồi -->
-                  <div class="mt-4">
-                    <textarea
-                      bind:value={replyContent}
-                      placeholder="Write a reply..."
-                      class="textarea textarea-bordered w-full"
-                    ></textarea>
-                    {#if !!contentErr}
-                      <div class="label">
-                        <span class="label-text text-error font-semibold">{contentErr}</span>
-                      </div>
-                    {:else if !!errorMess}
-                      <div class="label">
-                        <span class="label-text text-error font-semibold">{errorMess}</span>
-                      </div>
-                    {:else if errorRep}
-                      <div class="label">
-                        <span class="label-text text-error font-semibold">{errorRep}</span>
-                      </div>
-                    {/if}
-                    <div class="flex justify-end">
-                      <button
-                        class="btn btn-sm btn-primary mt-2"
-                        on:click={() => postReply(comment.id)}
-                      >
-                        <span class="iconify lucide--send text-xl"></span> Post
-                      </button>
-                    </div>
-                  </div>
-                {/if}
-              </div>
-            </li>
-          {/each}
-        </ul>
-      {:else}
-        <p class="text-gray-500 italic">No comments yet.</p>
-      {/if}
+<div class="container w-full h-screen mt-16">
+  {#if chapter && chapter.pages && chapter.pages.length > 0}
+    <div class="flex items-center gap-2 mb-6 mt-2">
+      <a class="btn btn-circle btn-ghost" href="/comics/{comic.id}">
+        <Icon icon="lucide--arrow-left" class="text-3xl" />
+      </a>
+      <h2 class="font-header text-2xl font-semibold">
+        Reading Chapter {chapter.number + 1}
+      </h2>
     </div>
-
-    <!-- TODO Post Comment Chapter -->
-    <div class="mt-4">
-      <textarea
-        class="textarea textarea-bordered w-full"
-        placeholder="Add a comment..."
-        bind:value={commentText}
-        on:input={() => {
-          error = '';
-          contentErr = '';
-          errorMess = '';
-        }}
-      ></textarea>
-      {#if !!contentErr}
-        <div class="label">
-          <span class="label-text text-error font-semibold">{contentErr}</span>
-        </div>
-      {:else if !!errorMess}
-        <div class="label">
-          <span class="label-text text-error font-semibold">{errorMess}</span>
-        </div>
-      {:else if error}
-        <div class="label">
-          <span class="label-text text-error font-semibold">{error}</span>
-        </div>
-      {/if}
-
-      <div class="flex justify-end">
-        <button class="btn btn-primary btn-sm mt-2" on:click={postComment}
-          ><span class="iconify lucide--send text-xl"></span> Post
-        </button>
+    <div class="flex justify-center h-screen relative">
+      <div class="fixed top-16 right-0 p-4 z-50">
+        <Swap class="btn btn-circle {active ? 'btn-ghost' : 'shadow'}" bind:active rotate={true}>
+          <span slot="off" class="iconify lucide--bar-chart text-2xl transform rotate-90 scale-flip"
+          ></span>
+          <span slot="on" class="iconify lucide--x text-2xl"></span>
+        </Swap>
       </div>
-    </div>
-    <!-- TODO Post Comment Chapter -->
-  </div>
-</dialog>
-<div class="h-16"></div>
-{#if chapter && chapter.pages && chapter.pages.length > 0}
-<div class="flex justify-center h-screen relative">
-  <button class="fixed top-15 right-0 btn btn-circle btn-ghost" on:click={toggleSidebar}>
-    <span class="duration-150 iconify lucide--bar-chart text-2xl transform rotate-90 scale-flip"
-    ></span>
-  </button>
-  <aside class:active class="pt-2 bg-base-200">
-    <div class="flex justify-between pr-2">
-      <button class="btn btn-circle btn-ghost" on:click={toggleSidebar}>
-        {#if active}
-          <span class="duration-150 iconify lucide--x text-2xl"></span>
-        {/if}
-      </button>
-      <button class="btn btn-circle btn-ghost">
-        <span class="duration-150 iconify lucide--flag text-2xl"></span>
-      </button>
-    </div>
-    <div class="pl-4 pr-4">
-      <div class="flex gap-5 mt-5">
-        <span class="iconify lucide--book-open text-2xl self-center"></span>
-        <a class="self-center" href={`/comics/${comic.id}`}>
-          {comic.name}
-        </a>
-      </div>
-      <div class="flex gap-5 mt-5">
-        <span class="iconify lucide--file-image text-2xl self-center"></span>
-        <p class="self-center">{chapter.name}</p>
-      </div>
-
-      <div class="flex gap-3 mt-5">
-        <div class="flex w-8 h-14 bg-base-200 justify-center rounded-md btn btn-ghost">
-          <button class="flex" on:click={goToPrevPage}>
-            <span class="iconify lucide--chevron-left text-2xl self-center"></span>
+      <aside
+        class="bg-base-200 rounded p-4 fixed shadow right-0 w-96 h-full top-16 transition-[right] duration-150 flex flex-col gap-4"
+        class:-right-96={!active}
+        class:right-0={active}
+      >
+        <div class="flex items-center justify-start">
+          <button class="btn btn-ghost btn-circle" on:click={() => chapterReportModal.showModal()}>
+            <Icon icon="lucide--flag" class="text-2xl" />
           </button>
+          <ChapterReport bind:target={chapter} bind:comic {http} bind:modal={chapterReportModal} />
         </div>
-        <div class="grow h-14 flex rounded-md">
-          <select
-            class="bg-base-200 select select-bordered h-full w-full max-w-xs select-page self-center"
-            on:change={handleSelectChange}
+        <div class="flex flex-col gap-4 w-full">
+          <a
+            class="no-animation btn btn-ghost btn-block min-w-[0] max-w-full"
+            href={`/comics/${comic.id}`}
           >
-            {#each chapter.pages as image, index}
-              <option class="bg-base-200" value={index}>Pg.{index + 1}</option>
-            {/each}
-          </select>
+            <div class="flex gap-2 items-center max-w-full">
+              <Icon icon="lucide--book-open" class="text-2xl shrink-0" />
+              <span class="text-left text-wrap overflow-hidden text-ellipsis line-clamp-2">
+                {comic.name}
+              </span>
+            </div>
+          </a>
+          <div class="no-animation btn btn-ghost btn-block min-w-[0] max-w-full justify-start">
+            <Icon icon="lucide--file-image" class="text-2xl" />
+            <span class="text-left text-wrap overflow-hidden text-ellipsis line-clamp-2"
+              >{chapter.name}</span
+            >
+          </div>
+          <div class="flex items-center gap-1">
+            <button
+              class="btn btn-square shrink-0"
+              on:click={goToPrevPage}
+              disabled={currentPage === 0}
+            >
+              <Icon icon="lucide--chevron-left" class="text-2xl" />
+            </button>
+            <select
+              class="select select-bordered focus:select-accent grow"
+              bind:value={currentPage}
+            >
+              {#each chapter.pages as _, index}
+                <option class="bg-base-200" value={index}>Pg.{index + 1}</option>
+              {/each}
+            </select>
+            <button
+              class="btn btn-square shrink-0"
+              on:click={goToNextPage}
+              disabled={currentPage === chapter.pages.length - 1}
+            >
+              <Icon icon="lucide--chevron-right" class="text-2xl" />
+            </button>
+          </div>
         </div>
-        <div class="flex w-8 h-14 bg-base-200 justify-center rounded-md btn btn-ghost">
-          <button class="flex" on:click={goToNextPage}>
-            <span class="iconify lucide--chevron-right text-2xl self-center"></span>
+        <div class="flex items-center gap-1">
+          <button
+            class="btn btn-square shrink-0"
+            on:click={goToPrevChapter}
+            disabled={chapter.number === 0}
+          >
+            <Icon icon="lucide--chevron-left" class="text-2xl" />
           </button>
-        </div>
-      </div>
-      <div class="flex gap-3 mt-3">
-        <div class="w-8 h-14 bg-base-200 rounded-md btn btn-ghost">
-          <button class="flex" on:click={goToPrevPage}>
-            <span class="iconify lucide--chevron-left text-2xl self-center"></span>
-          </button>
-        </div>
-        <div class="grow h-14 flex rounded-md">
           <select
-            class="bg-base-200 select select-bordered h-full w-full max-w-xs select-page self-center"
+            class="select select-bordered h-full w-full max-w-xs select-page self-center"
             on:change={(event) => {
-              if (event.target) goto(event.target.value);
+              if (event.currentTarget && event.currentTarget instanceof HTMLSelectElement) {
+                const target = event.currentTarget;
+                goto(target.value, { state: { chapters } });
+              }
             }}
           >
-            {#each chapters as chapter, index}
-              <option value="/comics/{chapter.comicId}/chapters/{chapter.number}"
-                >Chapter {index + 1}</option
+            {#each chapters as chapter (chapter.id)}
+              <option
+                value="/comics/{chapter.comicId}/chapters/{chapter.number}"
+                selected={chapter.number === number}>#{chapter.number + 1} - {chapter.name}</option
               >
             {/each}
           </select>
-        </div>
-        <div class="w-8 h-14 bg-base-200 rounded-md btn btn-ghost">
-          <button class="flex" on:click={goToNextPage}>
-            <span class="iconify lucide--chevron-right text-2xl self-center"></span>
+          <button
+            class="btn btn-square shrink-0"
+            on:click={goToNextChapter}
+            disabled={chapter.number === chapters.length - 1}
+          >
+            <Icon icon="lucide--chevron-right" class="text-2xl" />
           </button>
         </div>
-      </div>
-      <div class="flex gap-5 mt-5">
-        <div><p class="font-bold my-auto text-lg">Reading Mode</p></div>
-        <div>
-          <button class="flex gap-3" on:click={toggleButtonState}>
-            {#if buttonText == 'Single Page'}
-              <span class="iconify lucide--file text-2xl"></span>
-              <p class="text-sm font-bold self-center">{buttonText}</p>
+        <div class="flex items-center gap-4">
+          <div class="font-bold shrink-0">Reading Mode</div>
+          <button class="btn gap-2 grow items-center justify-start" on:click={toggleReadingMode}>
+            {#if readingMode == 'Single Page'}
+              <Icon icon="lucide--file" class="text-2xl" />
             {:else}
-              <span class="iconify lucide--gallery-vertical text-2xl"></span>
-              <p class="text-sm font-bold self-center">{buttonText}</p>
+              <Icon icon="lucide--gallery-vertical" class="text-2xl" />
             {/if}
+            {readingMode}
           </button>
         </div>
-      </div>
-      <div class="flex gap-5 mt-5">
-        <a
-          href="/comics/{comic.id}/chapters/{chapter.number}/translations"
-          class="btn btn-block btn-primary"
-        >
-          <Icon icon="lucide--languages" class="text-2xl" />
-          Translate
-        </a>
+        <div class="flex flex-col gap-5 mt-5">
+          <a
+            href="/comics/{comic.id}/chapters/{chapter.number}/translations"
+            class="btn btn-block btn-primary"
+          >
+            <Icon icon="lucide--languages" class="text-2xl" />
+            Translate
+          </a>
+          <button class="btn btn-accent btn-block" on:click={() => commentsModal.showModal()}>
+            <Icon icon="lucide--messages-square" class="text-2xl" />
+            View Comments
+          </button>
+        </div>
+      </aside>
+      <div class="min-h-screen h-fit pb-1 transition-margin duration-150" class:mr-96={active}>
+        <svelte:component
+          this={readingModes[readingMode].component}
+          bind:pages={chapter.pages}
+          bind:currentPage
+        />
+        <div class="flex w-full">
+          <!-- check if has next chapter add next chap button -->
+          {#if chapter && chapter.number < chapters.length - 1}
+            <button
+              class="btn btn-block"
+              on:click={() => {
+                if (chapter) goto(`/comics/${comic.id}/chapters/${chapter.number + 1}`);
+                else goto(`/comics/${comic.id}`);
+              }}
+            >
+              Next chapter
+            </button>
+          {:else}
+            <button class="btn btn-block btn-disabled">No more chapters</button>
+          {/if}
+        </div>
       </div>
     </div>
-    <div class="mt-6">
-      <button class="btn btn-primary mt-2" on:click={openCommentModal}>View Comments</button>
-    </div>
-  </aside>
-  <div class="h-screen">
-    <svelte:component
-      this={readingModes[buttonText].component}
-      bind:pages={chapter.pages}
-      bind:active
-    />
-  </div>
+  {:else if chapter && chapter.price}
+    <dialog
+      id="unlock_chapter"
+      class="modal"
+      open
+      on:close={handleUnlockClose}
+      bind:this={unlockDialog}
+    >
+      <div class="modal-box">
+        <h3 class="text-lg font-bold">Unlock Chapter</h3>
+        <form method="dialog">
+          <button class="btn btn-circle btn-ghost absolute right-2 top-2 text-xl">✕</button>
+        </form>
+        <p class="mt-4">This <strong>chapter</strong> is locked. Please unlock it to read.</p>
+        <p><strong>Unlock</strong> this chapter for <strong>{chapter.price}</strong> coins.</p>
+        <div class="mt-4">
+          <button class="btn btn-primary" on:click={handleUnlock}>Unlock</button>
+        </div>
+      </div>
+    </dialog>
+  {/if}
 </div>
-{:else if chapter && chapter.price}
-<dialog id="unlock_chapter" class="modal" open on:close={handleUnlockClose} bind:this={unlockDialog}>
-  <div class="modal-box">
-    <h3 class="text-lg font-bold">Unlock Chapter</h3>
+<!-- Chapter comment modal -->
+
+<dialog class="modal" bind:this={commentsModal}>
+  <div class="modal-box w-11/12 max-w-5xl">
+    <!-- X -->
     <form method="dialog">
       <button class="btn btn-circle btn-ghost absolute right-2 top-2 text-xl">✕</button>
     </form>
-    <p class="mt-4">This <strong>chapter</strong> is locked. Please unlock it to read.</p>
-    <p><strong>Unlock</strong> this chapter for <strong>{chapter.price}</strong> coins.</p>
-    <div class="mt-4">
-      <button class="btn btn-primary" on:click={handleUnlock}>Unlock</button>
-    </div>
+    <h2 class="text-lg font-bold">Comments</h2>
+    <ChapterCommentList {comicId} chapterNumber={number} {currentUser} {commentManager} />
   </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>Close</button>
+  </form>
 </dialog>
-{/if}
-<style>
-  aside {
-    position: fixed;
-    right: -300px;
-    transition: all 0.15s;
-    height: 100%;
-    width: 300px;
-  }
-  .active {
-    right: 0px;
-  }
-</style>

@@ -1,25 +1,15 @@
 <script lang="ts">
   import Picture from '$components/picture.svelte';
-  import Page from './+page.svelte';
-
-  export let active: boolean;
   export let pages: Array<string>;
-  interface Page {
-    element?: HTMLDivElement;
-    url: string;
-  }
-  let pageElements: Page[] = pages.map((url) => {
-    return {
-      url
-    } as Page;
-  });
+  export let offset = 16 * 16; // 16rem
+  let elements: Array<HTMLElement> = [];
+
   export let currentPage: number = 0;
   let scrollY: number;
   let moving: boolean = false;
   function handleScroll() {
-    // if (moving) return;
-    for (let i = 0; i < pageElements.length; i++) {
-      let element = pageElements[i].element;
+    for (let i = 0; i < pages.length; i++) {
+      let element = elements[i];
       if (!element) continue;
       let box = element.getBoundingClientRect();
       if (!box) {
@@ -27,50 +17,51 @@
       }
       if (box.top >= 0) {
         currentPage = i;
-        console.log(box.top, scrollY, i);
         break;
       }
     }
   }
 
+  $: if (currentPage !== undefined) {
+    currentPage = Math.min(Math.max(currentPage, 0), pages.length - 1);
+    handleChange();
+  }
+
   function handleChange() {
-    let element = pageElements[currentPage].element;
+    let element = elements[currentPage];
     if (!element) return;
     let box = element.getBoundingClientRect();
     if (!box) {
       return;
     }
-    moving = true;
     window.scrollBy({
-      top: box.top
+      top: box.top - offset
     });
-    setTimeout(() => {
-      moving = false;
-    }, 200);
   }
+
+  let height: number = 0;
 </script>
 
 <svelte:window on:scroll={handleScroll} bind:scrollY />
 
-<div class="transition-margin duration-150 h-screen" class:shifted={active}>
-  {#each pageElements as page, index (index)}
-    <div class="w-full" bind:this={page.element}>
-      <Picture src={page.url} class="w-full h-fit" imgClass="object-contain" />
+<div class="w-full" bind:clientHeight={height}>
+  {#each pages as page, index (page + index)}
+    <div class="w-full" bind:this={elements[index]}>
+      <Picture
+        src={page}
+        useCdn={true}
+        class="w-full h-fit select-none"
+        imgClass="object-contain"
+      />
     </div>
   {/each}
   <input
     type="range"
     min="0"
-    max={pageElements.length - 1}
+    max={pages.length - 1}
     bind:value={currentPage}
     on:input={handleChange}
-    class="range range-accent opacity-50 hover:opacity-100 transition-opacity duration-150 sticky bottom-2"
+    class="range range-accent opacity-50 hover:opacity-100 transition-opacity duration-300 sticky bottom-2 mt-2"
     step="1"
   />
 </div>
-
-<style>
-  .shifted {
-    margin-right: 300px;
-  }
-</style>
