@@ -26,12 +26,14 @@
   }
   onMount(() => {
     comicId ||= (parentComment ? parentComment.comicId : comment.comicId) ?? '0';
+    console.log('comicId', comicId);
   });
   let editing = false;
   let newContent = '';
 
   async function saveEditComment() {
     comment.content = newContent;
+    comment.comicId = comicId;
     let isOk = await commentManager
       .updateComment(comment as ComicComment)
       .then(() => true)
@@ -176,7 +178,7 @@
                   <Icon icon="lucide--ellipsis-vertical" class="text-xl" />
                 </summary>
                 <ul class="dropdown-content menu menu-sm bg-base-200 shadow rounded w-40">
-                  {#if currentUser.id === comment.authorId}
+                  {#if currentUser.id === comment.author.id}
                     <li>
                       <button
                         class="flex items-center gap-1"
@@ -187,7 +189,7 @@
                       </button>
                     </li>
                   {/if}
-                  {#if currentUser.id === comment.authorId || currentUser.roles.includes('Administrator')}
+                  {#if currentUser.id === comment.author.id || currentUser.roles.includes('Administrator')}
                     <li class="text-error">
                       <button
                         class="active:bg-error active:text-error-content hover:bg-error hover:text-error-content flex items-center gap-1"

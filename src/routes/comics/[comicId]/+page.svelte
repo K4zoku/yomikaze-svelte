@@ -370,7 +370,7 @@
     </p>
   </div>
 </div>
-<div class="container-80 bg-base-100">
+<div class="container-80 bg-base-100 pb-8">
   <div class="flex gap-4 items-start">
     <div class="flex flex-wrap gap-4 shrink-0 w-1/4">
       {#if comic.authors?.length > 0}
@@ -417,8 +417,8 @@
       {#if tab}
         <div
           class="flex flex-col gap-2 max-h-64 overflow-x-auto"
-          in:fly={{ x: 32 }}
-          out:fly={{ x: -32 }}
+          in:fly={{ x: 32, delay: 150, duration: 150 }}
+          out:fly={{ x: 32, duration: 150 }}
         >
           {#each chapters.results as chapter}
             <a
@@ -438,8 +438,7 @@
                 {/if}
               </span>
               <div class="flex gap-2 grow">
-                Ch.{chapter.number}
-                {chapter.name}
+                #{chapter.number + 1} - {chapter.name}
               </div>
               <div class="flex gap-6">
                 <div class="flex gap-1 items-center">
@@ -461,7 +460,7 @@
           {/each}
         </div>
       {:else}
-        <div class="w-full" in:fly={{ x: 32 }} out:fly={{ x: 32 }}>
+        <div class="w-full" in:fly={{ x: -32, delay: 150, duration: 150 }} out:fly={{ x: -32, duration: 150 }}>
           {#if commentManager}
             <CommentList
               {currentUser}

@@ -4,6 +4,7 @@ import type { PageServerLoad } from "./$types";
 import type Tag from "$models/Tag";
 import http from "$utils/http";
 import { groupByCategory } from "$utils/tag-utils";
+import type Chapter from "$models/Chapter";
 
 export const load : PageServerLoad = (async ({ cookies, params }) => {
     const token = await getAndVerifyToken(cookies);
@@ -22,7 +23,9 @@ export const load : PageServerLoad = (async ({ cookies, params }) => {
     if (comic.publisher.id !== uid && !await hasRoles(token, ['Administrator'])) {
         throw error(403, 'You are not the publisher of this comic');
     }
-    const chapters = await http.get(`/comics/${comicId}/chapters`).then(response => response.data).catch(() => []);
+    const chapters: Chapter[] = await http.get(`/comics/${comicId}/chapters`)
+        .then(response => response.data.results)
+        .catch(() => []);
 
     return {
         comicId,

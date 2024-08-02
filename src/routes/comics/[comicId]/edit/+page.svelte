@@ -11,13 +11,17 @@
   import http from '$utils/http';
   import { uploadImage } from '$utils/image-utils';
   import type { CategorizedTags } from '$utils/tag-utils.js';
-  import { getContext, onDestroy, onMount } from 'svelte';
+  import { getContext, onDestroy, onMount, tick } from 'svelte';
   import type { PageData } from './$types';
   import dayjs from 'dayjs';
+  import Sortable, { type SortableEvent } from 'sortablejs';
 
   export let data: PageData;
-  let { token, categorizedTags } = data;
+  let { token, categorizedTags, chapters } = data;
   const originalComic: Comic = data.comic;
+  originalComic.publicationDate = originalComic.publicationDate
+    ? dayjs(originalComic.publicationDate).format('YYYY-MM-DD')
+    : undefined;
   const tags = Object.values(categorizedTags).reduce(
     (acc, { tags }) => [...acc, ...tags],
     [] as Tag[]
@@ -40,21 +44,45 @@
     selectedTags = [];
     selectedTags = tags.filter((tag) => originalComic.tags.find((ctag) => ctag.id === tag.id));
   }
-  
-  const addSuccessToast: (message: string, duration?: number) => void = getContext('addSuccessToast');
+
+  const addSuccessToast: (message: string, duration?: number) => void =
+    getContext('addSuccessToast');
   const addErrorToast: (message: string, duration?: number) => void = getContext('addErrorToast');
 
   async function editComic() {
-    const patch: JsonPatchEntry[] = [
-      { op: 'replace', path: '/name', value: comic.name },
-      { op: 'replace', path: '/aliases', value: comic.aliases },
-      { op: 'replace', path: '/authors', value: comic.authors },
-      { op: 'replace', path: '/status', value: comic.status },
-      { op: 'replace', path: '/publicationDate', value: comic.publicationDate?.toString() },
-      { op: 'replace', path: '/tagIds', value: comic.tagIds?.map((tagId) => tagId.toString()) },
-      { op: 'replace', path: '/banner', value: comic.banner },
-      { op: 'replace', path: '/cover', value: comic.cover }
-    ];
+    const patch: JsonPatchEntry[] = [...chapterPatch];
+    if (comic.name !== originalComic.name)
+      patch.push({ op: 'replace', path: '/name', value: comic.name });
+    if (comic.aliases?.join(';') !== originalComic.aliases?.join(';'))
+      patch.push({ op: 'replace', path: '/aliases', value: comic.aliases });
+    if (comic.authors.join(',') !== originalComic.authors.join(','))
+      patch.push({ op: 'replace', path: '/authors', value: comic.authors });
+    if (comic.status !== originalComic.status)
+      patch.push({ op: 'replace', path: '/status', value: comic.status });
+    if (comic.publicationDate !== originalComic.publicationDate)
+      patch.push({
+        op: 'replace',
+        path: '/publicationDate',
+        value: comic.publicationDate ? comic.publicationDate.toString() : null
+      });
+    const updatedTagIds = comic.tagIds?.sort().join(',') || '';
+    const originalTagIds = originalComic.tags.map((tag) => tag.id).sort().join(',');
+    if (updatedTagIds !== originalTagIds)
+      patch.push({
+        op: 'replace',
+        path: '/tagIds',
+        value: comic.tagIds?.map((tagId) => tagId.toString())
+      });
+    if (comic.banner !== originalComic.banner)
+      patch.push({ op: 'replace', path: '/banner', value: comic.banner });
+    if (comic.cover !== originalComic.cover)
+      patch.push({ op: 'replace', path: '/cover', value: comic.cover });
+    if (comic.description !== originalComic.description)
+      patch.push({ op: 'replace', path: '/description', value: comic.description });
+    if (patch.length === 0) {
+      addErrorToast('No changes detected');
+      return;
+    }
     await http
       .patch('/comics/' + data.comicId, patch)
       .then(() => {
@@ -150,14 +178,37 @@
   }
   const [debouncedFilterTags, destroyFilterTags] = debounce<void>(filterTags, 300);
   onDestroy(() => destroyFilterTags());
-
+  let chapterList: HTMLDivElement;
+  let chaptersCopy = [...chapters];
+  let chapterPatch: JsonPatchEntry[] = [];
   onMount(() => {
     reset();
+    new Sortable(chapterList, {
+      animation: 150,
+      ghostClass: 'bg-accent-100/50',
+      dataIdAttr: 'data-id',
+      onEnd: async ({ oldIndex, newIndex }: SortableEvent) => {
+        if (oldIndex === undefined || newIndex === undefined) return;
+        chaptersCopy.splice(newIndex, 0, chaptersCopy.splice(oldIndex, 1)[0]);
+        chaptersCopy = chaptersCopy;
+        await tick();
+      },
+      swap: true,
+      swapClass: 'bg-accent-100/50'
+    });
   });
+  $: chapterPatch = chaptersCopy
+    .filter((chapter, index) => chapter.number !== index)
+    .map((chapter, index) => ({
+      op: 'replace',
+      path: `/chapters/${chapter.number}/number`,
+      value: index
+    }));
+  $: console.log(chapterPatch);
 </script>
 
 <Sublayout pageName="Edit comic {data.comic.name}">
-  <div class="flex flex-col gap-9 px-10 min-w-[0]">
+  <div class="flex flex-col gap-9 px-10 min-w-[0] pb-8 container-80">
     <!-- Banner -->
     <div class="flex flex-col gap-2 min-w-[0]">
       <label for="banner-input" class="font-medium">Banner image</label>
@@ -294,15 +345,17 @@
                       on:paste={(event) => {
                         if (event.clipboardData) {
                           const text = event.clipboardData.getData('text/plain');
-                          aliases = [
-                            ...aliases.filter((alias) => alias.trim() !== ''),
-                            ...text.split(',').filter((alias) => alias.trim() !== '')
-                          ];
-                          if (aliases.length === 0) aliases = [''];
+                          if (text.includes(';')) {
+                            aliases = [
+                              ...aliases.filter((alias) => alias.trim() !== ''),
+                              ...text.split(';').filter((alias) => alias.trim() !== '')
+                            ];
+                            if (aliases.length === 0) aliases = [''];
+                          }
                         }
                       }}
                       on:keydown={(event) => {
-                        if (event.key === ',') {
+                        if (event.key === ';') {
                           event.preventDefault();
                           aliases = [...aliases, ''];
                         }
@@ -370,11 +423,13 @@
                       on:paste|preventDefault={(event) => {
                         if (event.clipboardData) {
                           const text = event.clipboardData.getData('text/plain');
-                          authors = [
-                            ...authors.filter((author) => author.trim() !== ''),
-                            ...text.split(',').filter((author) => author.trim() !== '')
-                          ];
-                          if (authors.length === 0) authors = [''];
+                          if (text.includes(',')) {
+                            authors = [
+                              ...authors.filter((author) => author.trim() !== ''),
+                              ...text.split(',').filter((author) => author.trim() !== '')
+                            ];
+                            if (authors.length === 0) authors = [''];
+                          }
                         }
                       }}
                       on:keydown={(event) => {
@@ -517,6 +572,46 @@
             />
           </div>
         </div>
+      </div>
+    </div>
+    <!-- Description -->
+    <div class="flex flex-col gap-2 min-w-[0]">
+      <label for="description" class="font-medium">Description</label>
+      <textarea
+        id="description"
+        class="textarea textarea-bordered focus:textarea-accent resize-none"
+        placeholder="Enter comic description here"
+        rows="3"
+        bind:value={comic.description}
+      ></textarea>
+    </div>
+    <!-- Chapters -->
+    <div class="flex flex-col gap-2 min-w-[0]">
+      <span class="font-medium">Chapters</span>
+      <a href="/comics/{comic.id}/chapters/create" class="btn">Add new chapter</a>
+      <div bind:this={chapterList} class="flex flex-col gap-2 w-full items-center">
+        {#each chaptersCopy as chapter (chapter.id)}
+          <div
+            class="flex items-center justify-between w-full btn-ghost p-2 rounded bg-base-200"
+            data-id={chapter.id}
+            data-number={chapter.number}
+          >
+            <div class="flex gap-2">
+              <Icon icon="lucide--menu" class="handle flex text-2xl cursor-grab" />
+              <span class="justify-center items-center">
+                #{chapter.number + 1} - {chapter.name}
+              </span>
+            </div>
+            <div class="flex gap-2">
+              <button
+                class="btn btn-sm btn-circle btn-ghost hover:text-error transition-colors duration-100"
+                on:click={() => {}}
+              >
+                <Icon icon="lucide--trash" class="text-xl" />
+              </button>
+            </div>
+          </div>
+        {/each}
       </div>
     </div>
 

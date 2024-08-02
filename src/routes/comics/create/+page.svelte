@@ -130,7 +130,7 @@
 </script>
 
 <Sublayout pageName="Create comic">
-  <div class="flex flex-col gap-9 px-10 min-w-[0]">
+  <div class="flex flex-col gap-9 px-10 min-w-[0] pb-8 container-80">
     <!-- Banner -->
     <div class="flex flex-col gap-2 min-w-[0]">
       <label for="banner-input" class="font-medium">Banner image</label>
@@ -267,8 +267,13 @@
                       on:paste={(event) => {
                         if (event.clipboardData) {
                           const text = event.clipboardData.getData('text/plain');
-                          aliases = [...aliases.filter(alias => alias.trim() !== ''), ...text.split(',').filter(alias => alias.trim() !== '')];
-                          if (aliases.length === 0) aliases = [''];
+                          if (text.includes(';')) {
+                            aliases = [
+                              ...aliases.filter((alias) => alias.trim() !== ''),
+                              ...text.split(';').filter((alias) => alias.trim() !== '')
+                            ];
+                            if (aliases.length === 0) aliases = [''];
+                          }
                         }
                       }}
                       on:keydown={(event) => {
@@ -285,11 +290,12 @@
                         class:btn-disabled={aliases.some((alias) => alias.trim() === '')}
                         class:text-neutral={aliases.some((alias) => alias.trim() === '')}
                         class:text-success={aliases.every((alias) => alias.trim() !== '')}
-                        on:click={() => (aliases = [
-                          ...aliases.slice(0, index + 1),
-                          '',
-                          ...aliases.slice(index + 1)
-                        ])}
+                        on:click={() =>
+                          (aliases = [
+                            ...aliases.slice(0, index + 1),
+                            '',
+                            ...aliases.slice(index + 1)
+                          ])}
                       >
                         <Icon icon="lucide--plus" class="text-lg" />
                       </button>
@@ -339,8 +345,13 @@
                       on:paste|preventDefault={(event) => {
                         if (event.clipboardData) {
                           const text = event.clipboardData.getData('text/plain');
-                          authors = [...authors.filter((author) => author.trim() !== ''), ...text.split(',').filter((author) => author.trim() !== '')];
-                          if (authors.length === 0) authors = [''];
+                          if (text.includes(',')) {
+                            authors = [
+                              ...authors.filter((author) => author.trim() !== ''),
+                              ...text.split(',').filter((author) => author.trim() !== '')
+                            ];
+                            if (authors.length === 0) authors = [''];
+                          }
                         }
                       }}
                       on:keydown={(event) => {
@@ -484,6 +495,17 @@
         </div>
       </div>
     </div>
+    <!-- Description -->
+    <div class="flex flex-col gap-2 min-w-[0]">
+      <label for="description" class="font-medium">Description</label>
+      <textarea
+        id="description"
+        class="textarea textarea-bordered focus:textarea-accent resize-none"
+        placeholder="Enter comic description here"
+        rows="3"
+        bind:value={comic.description}
+      ></textarea>
+    </div>
 
     <!-- Actions -->
     <div class="flex gap-2 items-center justify-end w-full max-w-full min-w-[0]">
@@ -491,7 +513,7 @@
       <button
         type="button"
         class="btn btn-accent"
-        class:btn-disabled={!comic.name || !comic.cover}
+        class:btn-disabled={!comic.name || !coverUrl}
         on:click={createComic}
       >
         Create comic

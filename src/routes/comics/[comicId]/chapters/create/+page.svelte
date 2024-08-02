@@ -1,24 +1,23 @@
 <script lang="ts">
-  import { SortableList } from '@jhubbardsf/svelte-sortablejs';
-  import httpImage from '$utils/httpImage';
-  import type Chapter from '$models/Chapter';
-  import chapterManagement from '$utils/chapter-utils';
-  import { getComic, normalizeComic } from '$utils/comic-utils.js';
-  import { onMount } from 'svelte';
   import Picture from '$components/picture.svelte';
   import ComicStatus from '$components/yomikaze/common/comic/comic-status.svelte';
   import Sublayout from '$components/yomikaze/sublayout.svelte';
+  import type { ChapterCreate } from '$models/Chapter';
+  import chapterManagement from '$utils/chapter-utils';
+  import httpImage from '$utils/httpImage';
+  import { SortableList } from '@jhubbardsf/svelte-sortablejs';
+  import { onMount } from 'svelte';
   export let data;
   let { token, comicId, comic } = data;
   let pageName = 'Create Chapter';
   let postChapter = new chapterManagement(token, comicId);
   let images: Array<string> = [];
   let imageUrl: string;
-  let chapterData: Chapter = {
-    number: null,
+  let chapterData: ChapterCreate = {
+    number: comic.totalChapters + 1,
     name: '',
-    pages: [],
-    price: null
+    pages: [] as Array<string>,
+    price: 0,
   };
   function handleChange(event) {
     chapterData.price = event.target.value;
@@ -145,15 +144,22 @@
                 bind:value={chapterData.number}
                 type="number"
                 placeholder="Chapter Number"
-                class="border-orange-500 h-14 w-72 bg-gray-200 focus:outline-none focus:ring-2 focus:ring-warning custom-input"
+                class="w-72 input input-bordered focus:input-accent"
+                readonly
               />
               <select
                 bind:value={chapterData.price}
-                class="select h-14 w-72 bg-gray-200 focus:outline-none focus:ring-2 focus:ring-warning"
+                class="select select-bordered focus:select-accent w-72"
               >
                 <option disabled selected>Choose coin</option>
-                {#each { length: 15 } as _, i}
-                  <option value={i + 1}>{i + 1} coins</option>
+                {#each { length: 16 } as _, i}
+                  {#if i === 0}
+                    <option value={i} selected>Free</option>
+                  {:else if i === 1}
+                    <option value={i}>{i} coin</option>
+                  {:else}
+                    <option value={i}>{i} coins</option>
+                  {/if}
                 {/each}
               </select>
             </div>
@@ -161,7 +167,7 @@
               bind:value={chapterData.name}
               type="text"
               placeholder="Chapter Title"
-              class="h-14 w-full bg-gray-200 focus:outline-none focus:ring-2 focus:ring-warning mt-3 custom-input"
+              class="w-full input input-bordered focus:input-accent mt-6"
             />
           </div>
           <div class="mt-10 grid grid-cols-5 gap-4">
