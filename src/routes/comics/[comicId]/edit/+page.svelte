@@ -4,48 +4,67 @@
   import Picture from '$components/picture.svelte';
   import Sublayout from '$components/yomikaze/sublayout.svelte';
   import type Comic from '$models/Comic';
-  import { ComicStatus, type ComicCreate } from '$models/Comic';
+  import { ComicStatus } from '$models/Comic';
+  import type { JsonPatchEntry } from '$models/JsonPatchDocument.js';
   import type Tag from '$models/Tag.js';
   import { debounce } from '$utils/common.js';
   import http from '$utils/http';
   import { uploadImage } from '$utils/image-utils';
   import type { CategorizedTags } from '$utils/tag-utils.js';
-  import { onDestroy } from 'svelte';
+  import { getContext, onDestroy, onMount } from 'svelte';
+  import type { PageData } from './$types';
+  import dayjs from 'dayjs';
 
-  export let data;
+  export let data: PageData;
   let { token, categorizedTags } = data;
+  const originalComic: Comic = data.comic;
+  const tags = Object.values(categorizedTags).reduce(
+    (acc, { tags }) => [...acc, ...tags],
+    [] as Tag[]
+  ); // flatten tags
   http.defaults.headers.common.Authorization = `Bearer ${token}`;
-
-  const DEFAULTS: ComicCreate = {
-    name: '',
-    aliases: [''],
-    description: '',
-    cover: '',
-    banner: '',
-    publicationDate: '',
-    authors: [''],
-    status: ComicStatus.OnGoing,
-    tagIds: []
-  };
-
-  let comic: ComicCreate = { ...DEFAULTS };
+  let comic: Comic = { ...originalComic };
   function reset() {
-    comic = { ...DEFAULTS };
+    comic = { ...originalComic };
+    comic.publicationDate = originalComic.publicationDate
+      ? dayjs(originalComic.publicationDate).format('YYYY-MM-DD')
+      : undefined;
     bannerFile = null;
-    bannerUrl = null;
+    bannerUrl = originalComic.banner || null;
     coverFile = null;
-    coverUrl = null;
-    aliases = [''];
-    authors = [''];
+    coverUrl = originalComic.cover || null;
+    aliases =
+      originalComic.aliases && originalComic.aliases.length > 0 ? [...originalComic.aliases] : [''];
+    authors =
+      originalComic.authors && originalComic.authors.length > 0 ? [...originalComic.authors] : [''];
     selectedTags = [];
+    selectedTags = tags.filter((tag) => originalComic.tags.find((ctag) => ctag.id === tag.id));
   }
+  
+  const addSuccessToast: (message: string, duration?: number) => void = getContext('addSuccessToast');
+  const addErrorToast: (message: string, duration?: number) => void = getContext('addErrorToast');
 
-  async function createComic() {
-    comic.banner = bannerUrl || undefined;
-    comic.cover = coverUrl || '';
-    const response = await http.post('/comics', comic);
-    const createdComic: Comic = response.data;
-    goto(`/comics/${createdComic.id}`);
+  async function editComic() {
+    const patch: JsonPatchEntry[] = [
+      { op: 'replace', path: '/name', value: comic.name },
+      { op: 'replace', path: '/aliases', value: comic.aliases },
+      { op: 'replace', path: '/authors', value: comic.authors },
+      { op: 'replace', path: '/status', value: comic.status },
+      { op: 'replace', path: '/publicationDate', value: comic.publicationDate?.toString() },
+      { op: 'replace', path: '/tagIds', value: comic.tagIds?.map((tagId) => tagId.toString()) },
+      { op: 'replace', path: '/banner', value: comic.banner },
+      { op: 'replace', path: '/cover', value: comic.cover }
+    ];
+    await http
+      .patch('/comics/' + data.comicId, patch)
+      .then(() => {
+        addSuccessToast('Comic updated successfully', 3000);
+        goto(`/comics/${comic.id}`, { invalidateAll: true });
+      })
+      .catch((error) => {
+        console.error(error);
+        addErrorToast('Failed to update comic');
+      });
   }
 
   let bannerFile: File | null = null;
@@ -56,6 +75,7 @@
     bannerUrl = URL.createObjectURL(bannerFile);
     bannerTask = uploadImage(bannerFile).then((url) => {
       bannerUrl = url;
+      comic.banner = url;
     });
   }
 
@@ -67,18 +87,21 @@
     coverUrl = URL.createObjectURL(coverFile);
     coverTask = uploadImage(coverFile).then((url) => {
       coverUrl = url;
+      comic.cover = url;
     });
   }
 
-  let aliases: string[] = [''];
+  let aliases: string[] = [];
   $: {
     comic.aliases = aliases.filter((alias) => alias.trim() !== '');
   }
   let aliasesDisplay: string;
   $: aliasesDisplay =
-    comic.aliases.length === 0 ? 'Click to add aliases' : comic.aliases.join('; ');
+    comic.aliases && comic.aliases.length === 0
+      ? 'Click to add aliases'
+      : comic.aliases?.join('; ') || '';
 
-  let authors: string[] = [''];
+  let authors: string[] = [];
   $: {
     comic.authors = authors.filter((author) => author.trim() !== '');
   }
@@ -127,9 +150,13 @@
   }
   const [debouncedFilterTags, destroyFilterTags] = debounce<void>(filterTags, 300);
   onDestroy(() => destroyFilterTags());
+
+  onMount(() => {
+    reset();
+  });
 </script>
 
-<Sublayout pageName="Create comic">
+<Sublayout pageName="Edit comic {data.comic.name}">
   <div class="flex flex-col gap-9 px-10 min-w-[0]">
     <!-- Banner -->
     <div class="flex flex-col gap-2 min-w-[0]">
@@ -244,7 +271,7 @@
             >
               <summary
                 class="flex input input-bordered focus:input-accent bg-base-100 justify-start tooltip select-none max-w-full min-w-[0]"
-                class:text-neutral={comic.aliases.length === 0}
+                class:text-neutral={comic.aliases && comic.aliases.length === 0}
               >
                 <div class="w-full max-w-full h-full flex justify-start items-center min-w-[0]">
                   <span
@@ -267,7 +294,10 @@
                       on:paste={(event) => {
                         if (event.clipboardData) {
                           const text = event.clipboardData.getData('text/plain');
-                          aliases = [...aliases.filter(alias => alias.trim() !== ''), ...text.split(',').filter(alias => alias.trim() !== '')];
+                          aliases = [
+                            ...aliases.filter((alias) => alias.trim() !== ''),
+                            ...text.split(',').filter((alias) => alias.trim() !== '')
+                          ];
                           if (aliases.length === 0) aliases = [''];
                         }
                       }}
@@ -285,11 +315,12 @@
                         class:btn-disabled={aliases.some((alias) => alias.trim() === '')}
                         class:text-neutral={aliases.some((alias) => alias.trim() === '')}
                         class:text-success={aliases.every((alias) => alias.trim() !== '')}
-                        on:click={() => (aliases = [
-                          ...aliases.slice(0, index + 1),
-                          '',
-                          ...aliases.slice(index + 1)
-                        ])}
+                        on:click={() =>
+                          (aliases = [
+                            ...aliases.slice(0, index + 1),
+                            '',
+                            ...aliases.slice(index + 1)
+                          ])}
                       >
                         <Icon icon="lucide--plus" class="text-lg" />
                       </button>
@@ -339,7 +370,10 @@
                       on:paste|preventDefault={(event) => {
                         if (event.clipboardData) {
                           const text = event.clipboardData.getData('text/plain');
-                          authors = [...authors.filter((author) => author.trim() !== ''), ...text.split(',').filter((author) => author.trim() !== '')];
+                          authors = [
+                            ...authors.filter((author) => author.trim() !== ''),
+                            ...text.split(',').filter((author) => author.trim() !== '')
+                          ];
                           if (authors.length === 0) authors = [''];
                         }
                       }}
@@ -478,6 +512,7 @@
               id="publication-date"
               type="date"
               class="input input-bordered focus:input-accent"
+              data-value={comic.publicationDate || 'undefined'}
               bind:value={comic.publicationDate}
             />
           </div>
@@ -491,11 +526,12 @@
       <button
         type="button"
         class="btn btn-accent"
-        class:btn-disabled={!comic.name || !comic.cover}
-        on:click={createComic}
+        class:btn-disabled={!comic.name || !coverUrl}
+        on:click={editComic}
       >
-        Create comic
+        Save
       </button>
+      <a href={`/comics/${comic.id}`} class="btn"> Cancel </a>
     </div>
   </div>
 </Sublayout>

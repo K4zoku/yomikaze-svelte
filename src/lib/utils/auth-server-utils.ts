@@ -62,6 +62,15 @@ export async function hasRoles(token: string, roles: string[]): Promise<boolean>
     return checkRoles(payload['roles'] as string | string[], roles);
 }
 
+export async function getUserId(token: string): Promise<string> {
+    const { payload } = await jose.jwtVerify(token, SECRET);
+    const userId = payload.sub;
+    if (!userId) {
+        throw error(401, 'Invalid token');
+    }
+    return userId;
+}
+
 function checkRoles(tokenRoles: string | string[], roles: string[]): boolean {
     if (!tokenRoles) {
         return false;

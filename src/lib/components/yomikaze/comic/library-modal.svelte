@@ -6,7 +6,7 @@
   import type LibraryEntry from '$models/LibraryEntry';
   import { delay } from '$utils/common';
   import type { LibraryManagement } from '$utils/library-utils';
-  import { createEventDispatcher, onMount, tick } from 'svelte';
+  import { createEventDispatcher, getContext, onMount, tick } from 'svelte';
 
   const dispatch = createEventDispatcher();
 
@@ -50,35 +50,49 @@
         isInLibrary = false;
       });
   }
-
+  const addSuccessToast: (message: string, duration?: number) => void =
+    getContext('addSuccessToast');
+  const addErrorToast: (message: string, duration?: number) => void = getContext('addErrorToast');
   async function handleSubmit() {
     submitting = true;
 
     if (isInLibrary) {
-      libraryEntry.categories.filter((category) => {
-        if (!selectedCategories.includes(category.id)) {
-          libraryManager
+      const toRemove = libraryEntry.categories.filter(
+        (category) => !selectedCategories.includes(category.id)
+      );
+      await Promise.all(
+        toRemove.map(async (category) => {
+          await libraryManager
             .removeEntryFromCategory(target.id, category.id)
             .then(() => {
+              addSuccessToast('Removed comic from category ' + category.name);
               dispatch('update');
             })
             .catch(() => {
-              submitting = false;
+              addErrorToast('Failed to remove comic from category ' + category.name);
             });
-        }
-      });
-      await libraryManager
-        .addEntryToCategories(target.id, selectedCategories)
-        .then(() => {
-          dispatch('update');
         })
-        .catch(() => {
-          submitting = false;
-        });
+      );
+
+      await Promise.all(
+        selectedCategories
+          .map(async (category) => {
+            const categoryName = categories.find((c) => c.id === category)?.name || 'Unknown';
+            await libraryManager
+              .addEntryToCategory(target.id, category)
+              .then(() => {
+                addSuccessToast('Added comic to category ' + categoryName);
+                dispatch('update');
+              })
+              .catch(() => {
+                addErrorToast('Failed to add comic to category ' + categoryName);
+              });
+          })
+      );
     } else {
       let entry: LibraryEntryCreate = {
         comicId: target.id,
-        categoryIds: selectedCategories,
+        categoryIds: selectedCategories
       };
       await libraryManager
         .createEntry(entry)
@@ -87,9 +101,15 @@
           target.totalFollows = target.totalFollows ?? 0 + 1;
           target = target;
           dispatch('update');
+          addSuccessToast('Comic added to library');
+          for (const category of selectedCategories) {
+            const categoryName = categories.find((c) => c.id === category)?.name || 'Unknown';
+            addSuccessToast('Added comic to category ' + categoryName);
+          }
         })
         .catch(() => {
           submitting = false;
+          addErrorToast('Failed to add comic to library');
         });
     }
 
@@ -112,9 +132,11 @@
         target.totalFollows = target.totalFollows ?? 1 - 1;
         target = target;
         dispatch('update');
+        addSuccessToast('Comic unfollowed');
       })
       .catch(() => {
         submitting = false;
+        addErrorToast('Failed to unfollow comic');
       });
     await tick();
     await delay(200);
@@ -136,7 +158,7 @@
         src={target.cover}
         alt="Cover"
         class="w-16 h-24 aspect-cover shrink-0 rounded"
-        imgClass="w-full h-full rounded"
+        imgClass="w-full h-full aspect-cover object-cover rounded"
         useCdn={true}
       />
       <div class="flex flex-col h-full self-start items-start justify-start text-base font-medium">

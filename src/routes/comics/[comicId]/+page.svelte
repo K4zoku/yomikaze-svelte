@@ -13,7 +13,7 @@
   import formatNumber from '$utils/common';
   import http from '$utils/http';
   import { getProfile } from '$utils/profile-utils.js';
-  import { onMount, tick } from 'svelte';
+  import { getContext, onMount, setContext, tick } from 'svelte';
   import Time from 'svelte-time/Time.svelte';
   import { fly } from 'svelte/transition';
 
@@ -37,6 +37,10 @@
   let ratingAwait: Promise<void> = Promise.resolve();
   let totalRatings = 0;
   let averageRating = 0;
+  const addSuccessToast: (message: string, duration?: number) => void = getContext('addSuccessToast');
+  const addErrorToast: (message: string, duration?: number) => void = getContext('addErrorToast');
+  setContext('addSuccessToast', addSuccessToast); // pass the function to the child components
+  setContext('addErrorToast', addErrorToast); // pass the function to the child components
   async function postRating(e: Event) {
     const target = e.target as HTMLInputElement;
     const rating = parseInt(target.value);
@@ -82,9 +86,7 @@
       })
       .catch((err) => {
         console.error(err);
-        setTimeout(() => {
-          alert('Failed to rate the comic. Please try again later.');
-        }, 200);
+        addErrorToast('Failed to rate the comic. Please try again later.');
       });
   }
 
@@ -92,20 +94,20 @@
 
   let libraryEntry: LibraryEntry | null;
   async function loadLibrary() {
-    const c = await comic;
     if (!libraryManager) return;
-    libraryEntry = await libraryManager.getEntry(c.id).catch(() => null);
-    c.isFollowing = !!libraryEntry;
+    libraryEntry = await libraryManager.getEntry(comic.id).catch(() => null);
+    comic.isFollowing = !!libraryEntry;
   }
 
   let historyContinue: string;
   let isContinue = false;
   async function loadHistory() {
-    const c = await comic;
-    http.get(`/history/comics/${c.id}/continue`).then((res) => {
+    http.get(`/history/comics/${comic.id}/continue`).then((res) => {
       const data = res.data;
-      historyContinue = `/comics/${c.id}/chapters/${data.chapter.number}`;
+      historyContinue = `/comics/${comic.id}/chapters/${data.chapter.number}`;
       isContinue = true;
+    }).catch(() => {
+      isContinue = false;
     });
     historyContinue = '';
   }
@@ -202,23 +204,19 @@
                   <Icon icon="lucide--play" class="text-xl" />
                   Continue Reading
                 </a>
+              {:else if chapters.totals > 0}
+                <a
+                  class="btn btn-wide"
+                  href={`/comics/${comicId}/chapters/${chapters.results[0].number}`}
+                >
+                  <Icon icon="lucide--play" class="text-xl" />
+                  Start Reading
+                </a>
               {:else}
-                {#await chapters then chapters}
-                  {#if chapters.totals > 0}
-                    <a
-                      class="btn btn-wide"
-                      href={`/comics/${comicId}/chapters/${chapters.results[0].number}`}
-                    >
-                      <Icon icon="lucide--play" class="text-xl" />
-                      Start Reading
-                    </a>
-                  {:else}
-                    <button class="btn btn-wide btn-disabled">
-                      <Icon icon="lucide--play" class="text-xl" />
-                      Start Reading
-                    </button>
-                  {/if}
-                {/await}
+                <button class="btn btn-wide btn-disabled">
+                  <Icon icon="lucide--play" class="text-xl" />
+                  Start Reading
+                </button>
               {/if}
             {/await}
             <button class="btn" on:click={() => reportModal.showModal()}>
@@ -299,11 +297,12 @@
           {:then _}
             <div class="flex gap-1 items-center min-w-[0] w-fit" use:ratingInit>
               <div class="rating rating-sm">
-                <input type="radio" name="rating" value="1" class="mask mask-star-2" />
-                <input type="radio" name="rating" value="2" class="mask mask-star-2" />
-                <input type="radio" name="rating" value="3" class="mask mask-star-2" />
-                <input type="radio" name="rating" value="4" class="mask mask-star-2" />
-                <input type="radio" name="rating" value="5" class="mask mask-star-2" />
+                <input type="radio" name="rating" value="0" class="rating-hidden hidden" class:bg-accent={comic.isRated} />
+                <input type="radio" name="rating" value="1" class="mask mask-star-2" class:bg-accent={comic.isRated} />
+                <input type="radio" name="rating" value="2" class="mask mask-star-2" class:bg-accent={comic.isRated} />
+                <input type="radio" name="rating" value="3" class="mask mask-star-2" class:bg-accent={comic.isRated} />
+                <input type="radio" name="rating" value="4" class="mask mask-star-2" class:bg-accent={comic.isRated} />
+                <input type="radio" name="rating" value="5" class="mask mask-star-2" class:bg-accent={comic.isRated} />
               </div>
               <span>
                 {averageRating
@@ -437,180 +436,3 @@
     </div>
   </div>
 </div>
-<!-- <div class="hidden">
-            <div class="flex justify-end w-10/12">
-              <div class="dropdown">
-                <div tabindex="0" role="button" class="btn m-1">
-                  <span class="iconify lucide--filter text-xl"></span>
-                </div>
-                <ul
-                  tabindex="0"
-                  class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow"
-                >
-                  <li><a on:click={() => sortComments('newest')}>Newest</a></li>
-                  <li><a on:click={() => sortComments('oldest')}>Oldest</a></li>
-                </ul>
-              </div>
-            </div>
-
-            {#if comments.length > 0}
-              <ul>
-                {#each comments as comment}
-                  <li class="mb-3 w-10/12">
-                    <div class="flex flex-col border-2 rounded-lg border-accent-content p-4">
-                      <div class="flex justify-between border-b-2 border-base-200 pb-2">
-                        <div class="flex gap-4 items-center">
-                          <div class="avatar">
-                            <div class="w-8 ring-2 ring-offset-2 ring-neutral rounded-full">
-                              <DefaultAvatar></DefaultAvatar>
-                            </div>
-                          </div>
-                          <div class=" leading-none font-medium">{comment.author.name}</div>
-                        </div>
-                        <div class="my-auto">
-                          {formatDate(comment.creationTime)}
-                          <div class="dropdown dropdown-end">
-                            <button tabindex="0" class="btn btn-sm btn-base-200">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="1.25em"
-                                height="1.25em"
-                                viewBox="0 0 24 24"
-                                ><g
-                                  fill="none"
-                                  stroke="currentColor"
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  stroke-width="2"
-                                  ><circle cx="12" cy="12" r="1" /><circle
-                                    cx="19"
-                                    cy="12"
-                                    r="1"
-                                  /><circle cx="5" cy="12" r="1" /></g
-                                ></svg
-                              >
-                            </button>
-                            <ul
-                              tabindex="0"
-                              class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52"
-                            >
-                              <li>
-                                <button on:click={() => deleteComment(comment.id)}>Delete</button>
-                              </li>
-                              <li><button>Edit</button></li>
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="mt-1 break-words">
-                        <span class="text-balance">{comment.content}</span>
-                      </div>
-                      <div class="flex">
-                        <button class="" on:click={() => loadReplies(comment.id)}
-                          >Show Replies</button
-                        >
-                      </div>
-                    </div>
-                    {#if comment.replies}
-                      <div class="ml-12 mt-4">
-                        {#each comment.replies as reply (reply.id)}
-                          <div
-                            class="flex flex-col border-2 rounded-lg border-accent-content p-4 mt-3"
-                          >
-                            <div class="flex justify-between border-b-2 border-base-200 pb-2">
-                              <div class="flex gap-4 items-center">
-                                <div class="avatar">
-                                  <div class="w-8 ring-2 ring-offset-2 ring-neutral rounded-full">
-                                    <DefaultAvatar></DefaultAvatar>
-                                  </div>
-                                </div>
-                                <div class=" leading-none font-medium">{reply.author.name}</div>
-                              </div>
-                              <div class="my-auto">
-                                {formatDate(reply.creationTime)}
-                              </div>
-                            </div>
-                            <div class="mt-1 break-words">
-                              <span class="text-balance">{reply.content}</span>
-                            </div>
-                          </div>
-                        {/each}
-                      </div>
-                    {/if}
-                  </li>
-                {/each}
-              </ul>
-
-              <div class="mt-4 flex justify-center">
-                <button class="btn" on:click={goToFirstPage} disabled={currentPage === 1}
-                  ><span class="iconify lucide--chevrons-left"></span></button
-                >
-
-                <div class="join">
-                  <button
-                    class="join-item btn"
-                    on:click={goToPreviousPage}
-                    disabled={currentPage === 1}
-                    ><span class="iconify lucide--chevron-left"></span></button
-                  >
-                  <button class="join-item btn">Page {currentPage} of {totalPages}</button>
-                  <button
-                    class="join-item btn"
-                    on:click={goToNextPage}
-                    disabled={currentPage === totalPages}
-                    ><span class="iconify lucide--chevron-right"></span></button
-                  >
-                </div>
-                <button class="btn" on:click={goToLastPage} disabled={currentPage === totalPages}
-                  ><span class="iconify lucide--chevrons-right"></span></button
-                >
-              </div>
-            {:else}
-              <p>No comments available.</p>
-            {/if}
-            <div class="flex flex-col justify-center gap-3 mt-3 w-10/12">
-              <div class="text-xl font-bold">Comments</div>
-              <div class="flex flex-col gap-3">
-                <form on:submit|preventDefault={addComment} class="mt-2">
-                  <div class="flex flex-col">
-                    <textarea
-                      class="comment-box textarea textarea-bordered rounded-2xl focus:border-accent-content focus:border-2 h-36 w-75"
-                      bind:value={newComment}
-                      placeholder="Write your comment here..."
-                      on:keypress={handleKeyPress}
-                      on:input={handleInput}
-                      maxlength="1024"
-                    ></textarea>
-                    {#if error}
-                      <p class="text-error font-semibold mt-2">{error}</p>
-                    {/if}
-                  </div>
-
-                  <div class="flex justify-end mt-3">
-                    <button
-                      type="submit"
-                      class=" flex gap-2 bg-base-300 font-semibold rounded-md px-4 py-2 w-fit"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="1.5em"
-                        height="1.5em"
-                        viewBox="0 0 24 24"
-                        ><path
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="m22 2l-7 20l-4-9l-9-4Zm0 0L11 13"
-                        /></svg
-                      > <span class="font-bold">Post</span>
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-      </div>
-    </div>
-  </div> -->

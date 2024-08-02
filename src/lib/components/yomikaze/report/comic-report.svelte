@@ -78,7 +78,7 @@
         src={target.cover}
         alt="Cover"
         class="w-16 h-24 aspect-cover shrink-0 rounded"
-        imgClass="w-full h-full rounded"
+        imgClass="w-full h-full aspect-cover object-cover rounded"
         useCdn={true}
       />
       <div class="flex flex-col justify-start text-base font-medium">

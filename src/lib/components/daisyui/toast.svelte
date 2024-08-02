@@ -1,7 +1,7 @@
 <script lang="ts">
     import Icon from "$components/icon.svelte";
 
-    export let color = 'primary';
+    export let color = 'alert-success';
 
     export let duration = 5000;
 
