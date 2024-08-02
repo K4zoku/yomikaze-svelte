@@ -81,7 +81,6 @@
         <button class="btn btn-sm btn-accent" on:click={postComment}> Post comment </button>
       </div>
     </div>
-    
     {#each comments as comment (comment.id)}
       <CommentComponent {comment} {commentManager} {comicId} {currentUser} />
     {/each}

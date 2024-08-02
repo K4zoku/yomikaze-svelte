@@ -43,6 +43,20 @@
   
   const toasts = writable<ToastProps[]>([]);
   setContext("toasts", toasts);
+  function addSuccessToast(message: string, duration: number = 5000) {
+    toasts.update((toasts) => [
+      ...toasts,
+      { message, color: 'alert-success', duration, icon: 'lucide--check' }
+    ]);
+  }
+  function addErrorToast(message: string, duration: number = 5000) {
+    toasts.update((toasts) => [
+      ...toasts,
+      { message, color: 'alert-error', duration, icon: 'lucide--alert-circle' }
+    ]);
+  }
+  setContext('addSuccessToast', addSuccessToast);
+  setContext('addErrorToast', addErrorToast);
   let path: string;
   $: path = $page.url.pathname;
 
