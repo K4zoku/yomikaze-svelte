@@ -76,7 +76,6 @@
 
 <Sublayout pageName="Roles request management">
   <table class="table">
-    <!-- head -->
     <thead>
       <tr class="text-base font-medium">
         <th>User</th>
@@ -109,8 +108,8 @@
               class:badge-success={request.status === 'Approved'}
               class:badge-error={request.status === 'Rejected'}
             >
-              {request.status}</span
-            >
+              {request.status}
+            </span>
           </td>
           <td>
             {#if request.status === 'Approved' || request.status === 'Rejected'}

@@ -39,11 +39,7 @@
         };
       }
     } catch (error) {
-      if (error.response) {
-        console.error('API error:', error.response.data);
-      } else {
-        console.error('Error:', error.message);
-      }
+      console.log(error)
       return {
         results: [],
         totals: 0

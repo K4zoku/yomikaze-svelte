@@ -12,6 +12,7 @@
 
   let reports = [];
   let reasons = [];
+  let totals: number;
 
   async function getProfileReports() {
     try {
@@ -21,6 +22,7 @@
       ]);
 
       reports = reportsResponse.data.results || [];
+      totals = reportsResponse.data.totals;
       reasons = reasonsResponse.data || [];
 
       const reasonsMap = reasons.reduce((map, reason) => {
@@ -54,7 +56,7 @@
     }
   }
 
-  async function updateReportStatus(reportId, newStatus) {
+  async function updateReportStatus(reportId: string, newStatus: string) {
     try {
       const response = await http.patch(`/reports/profile/${reportId}`, [
         {
@@ -66,13 +68,12 @@
       ]);
       console.log(response.data);
 
-      // Cập nhật trạng thái trong reports
       reports = reports.map((r) => {
         if (r.id === reportId) {
           return {
             ...r,
             status: newStatus,
-            isUpdating: true // Đặt cờ để vô hiệu hóa nút
+            isUpdating: true
           };
         }
         return r;
@@ -86,12 +87,13 @@
     await getProfileReports();
   });
 
-  function isActionDisabled(status) {
+  function isActionDisabled(status: string) {
     return status !== 'Pending';
   }
 </script>
 
 <Sublayout pageName="Profile reports management">
+  <span class="ml-6 text-xl">Totals: {totals}</span>
   <table class="table rounded">
     <thead>
       <tr class="text-base font-semibold bg-base-200 table-pin-rows">
@@ -105,35 +107,34 @@
       </tr>
     </thead>
     <tbody>
-      {#if reports.length > 0}
-        {#each reports as report}
-          <tr class="hover">
-            <td class="p-2">
-              <InlineProfile profile={report.profile}/>
-            </td>
-            <td class="p-2">{report.reasonContent}</td>
-            <td class="p-2">
-              {#if report.description}
-                {report.description}
-              {:else}
-                <span class="text-neutral italic">No description provided.</span>
-              {/if}
-            </td>
-            <td class="p-2">
-              <InlineProfile profile={report.reporter}/>
-            </td>
-            <td class="p-2">
-              <span
-                class="font-semibold badge badge-outline"
-                class:badge-warning={report.status === 'Pending'}
-                class:badge-success={report.status === 'Resolved'}
-                class:badge-error={report.status === 'Dismissed'}>{report.status}</span
-              >
-            </td>
-            <td class="p-2"><Time timestamp={report.creationTime} relative /></td>
-            <td class="p-2">
-              <div class="flex items-center gap-2">
-                <button
+      {#each reports as report}
+        <tr class="hover">
+          <td class="p-2">
+            <InlineProfile profile={report.profile} />
+          </td>
+          <td class="p-2">{report.reasonContent}</td>
+          <td class="p-2">
+            {#if report.description}
+              {report.description}
+            {:else}
+              <span class="text-neutral italic">No description provided.</span>
+            {/if}
+          </td>
+          <td class="p-2">
+            <InlineProfile profile={report.reporter} />
+          </td>
+          <td class="p-2">
+            <span
+              class="font-semibold badge badge-outline"
+              class:badge-warning={report.status === 'Pending'}
+              class:badge-success={report.status === 'Resolved'}
+              class:badge-error={report.status === 'Dismissed'}>{report.status}</span
+            >
+          </td>
+          <td class="p-2"><Time timestamp={report.creationTime} relative /></td>
+          <td class="p-2">
+            <div class="flex items-center gap-2">
+              <button
                 class="btn btn-success btn-sm"
                 disabled={isActionDisabled(report.status) || report.isUpdating}
                 on:click={() => updateReportStatus(report.id, 'Resolved')}
@@ -147,16 +148,14 @@
               >
                 Dismiss
               </button>
-              </div>
-              
-            </td>
-          </tr>
-        {/each}
+            </div>
+          </td>
+        </tr>
       {:else}
         <tr>
           <td colspan="6" class="text-center font-semibold italic">No profile reports found.</td>
         </tr>
-      {/if}
+      {/each}
     </tbody>
   </table>
 </Sublayout>

@@ -153,14 +153,14 @@ export class CommentReportManagement {
         return response.data;
     }
 
-    async getAllCommentReports(page: number = 1, pageSize: number = 10): Promise<PagedResult<CommentReport>> {
+    async getAllCommentReports(page: number = 1, pageSize: number = 100): Promise<PagedResult<CommentReport>> {
         const response = await this.http.get<PagedResult<CommentReport>>(`${COMMENT_REPORT_ENDPOINT}`, {
             params: { page, pageSize },
         });
         return response.data;
     }
 
-    async getCommentReportsWithReasons(page: number = 1, pageSize: number = 10): Promise<PagedResult<CommentReport>> {
+    async getCommentReportsWithReasons(page: number = 1, pageSize: number = 100): Promise<PagedResult<CommentReport>> {
         const pagedReports: PagedResult<CommentReport> = await this.getAllCommentReports(page, pageSize);
         const reasons: Reason[] = await this.getAllReasons();
 

@@ -13,6 +13,7 @@
   let { token } = data;
   http.defaults.headers.common.Authorization = 'Bearer ' + token;
 
+  let totals: number;
   let commentReportService: CommentReportManagement;
   let reports: PagedResult<CommentReport> = {
     currentPage: 0,
@@ -60,6 +61,7 @@
 </script>
 
 <Sublayout pageName="Comment Reports Management">
+  <span class="ml-6 text-xl">Totals: {reports.totals}</span>
   <table class="table">
     <thead>
       <tr class="text-base font-medium">
@@ -97,17 +99,21 @@
             </span></td
           >
           <td>
-            {#if report.status === 'Pending'}
+            <div class="flex flex-wrap justify-center gap-2">
+              {#if report.status === 'Pending'}
               <button class="btn btn-sm btn-success" on:click={() => resolveReport(report.id)}
                 >Resolve</button
               >
-              <button class="btn btn-sm btn-error" on:click={() => dismissReport(report.id)}
+              <button class="btn btn-sm" on:click={() => dismissReport(report.id)}
                 >Dismiss</button
               >
+              <button class="btn btn-sm btn-error">Delete</button>
             {:else}
               <button class="btn btn-sm btn-success" disabled>Resolved</button>
               <button class="btn btn-sm btn-error" disabled>Dismissed</button>
             {/if}
+            </div>
+          
           </td>
         </tr>
       {:else}

@@ -7,7 +7,6 @@
   import { ChapterReportManagement } from '$utils/report-utils';
   import { onMount } from 'svelte';
   import InlineProfile from '../inline-profile.svelte';
-    import { space } from 'postcss/lib/list';
 
   export let data: { token: string; reports: ChapterReport[] };
 
@@ -18,11 +17,13 @@
 
   let dismissalReasonModal: HTMLDialogElement;
   let currentReportId: string | null = null;
+  let totals: number
 
   onMount(async () => {
     const chapterReportManager = new ChapterReportManagement('YOUR_TOKEN');
     try {
       const pagedReports = await chapterReportManager.getChapterReportsWithReasons();
+      totals = pagedReports.totals;
       reports = pagedReports.results;
     } catch (err) {
       console.error(err);
@@ -85,8 +86,8 @@
 </script>
 
 <Sublayout pageName="Chapter reports management">
+  <span class="ml-6 text-xl">Totals: {totals}</span>
   <table class="table">
-    <!-- head -->
     <thead>
       <tr class="text-base font-medium">
         <th>Detail</th>
@@ -161,7 +162,7 @@
             {/if}
           </td>
           <td>
-            <div class="flex gap-2">
+            <div class="flex flex-wrap gap-2 justify-center">
               {#if report.status === 'Pending'}
                 <button
                   class="btn btn-sm btn-success"
@@ -169,10 +170,11 @@
                   disabled={report.status !== 'Pending'}>Resolve</button
                 >
                 <button
-                  class="btn btn-sm btn-error"
+                  class="btn btn-sm "
                   disabled={report.status !== 'Pending'}
                   on:click={() => openDismissalModal(report.id)}>Dismiss</button
                 >
+                <button class="btn btn-sm btn-error">Delete</button>
               {:else}
                 <button class="btn btn-sm btn-success" disabled>Resolve</button>
                 <button class="btn btn-sm btn-error" disabled>Dismiss</button>

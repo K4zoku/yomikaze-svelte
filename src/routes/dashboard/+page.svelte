@@ -16,6 +16,7 @@
     users: number;
     tags: number;
     tagCategories: number;
+    roleRequests: number;
     transactions: number;
     withdrawals: number;
     reports: number;
@@ -30,6 +31,7 @@
     users: 0,
     tags: 0,
     tagCategories: 0,
+    roleRequests: 0,
     transactions: 0,
     withdrawals: 0,
     reports: 0,
@@ -138,7 +140,7 @@
         <div class="flex justify-between items-center">
           <div class="flex flex-col">
             <span>Role Requests</span>
-            <span class="text-xl font-semibold">0</span>
+            <span class="text-xl font-semibold">{statistics.roleRequests}</span>
           </div>
           <div class="rounded flex items-center aspect-square h-full p-1 bg-accent shadow">
             <Icon icon="lucide--file-pen-line" class="text-3xl text-accent-content" />

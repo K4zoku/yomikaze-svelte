@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Picture from '$components/picture.svelte';
+  import Picture from '$components/picture.svelte';
   import type Profile from '$models/Profile';
   export let profile: Profile;
 </script>
