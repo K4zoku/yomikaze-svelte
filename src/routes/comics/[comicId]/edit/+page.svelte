@@ -3,18 +3,19 @@
   import Icon from '$components/icon.svelte';
   import Picture from '$components/picture.svelte';
   import Sublayout from '$components/yomikaze/sublayout.svelte';
+  import type Chapter from '$models/Chapter';
   import type Comic from '$models/Comic';
   import { ComicStatus } from '$models/Comic';
-  import type { JsonPatchEntry } from '$models/JsonPatchDocument.js';
-  import type Tag from '$models/Tag.js';
-  import { debounce } from '$utils/common.js';
+  import type { JsonPatchEntry } from '$models/JsonPatchDocument';
+  import type Tag from '$models/Tag';
+  import { debounce } from '$utils/common';
   import http from '$utils/http';
   import { uploadImage } from '$utils/image-utils';
-  import type { CategorizedTags } from '$utils/tag-utils.js';
-  import { getContext, onDestroy, onMount, tick } from 'svelte';
-  import type { PageData } from './$types';
+  import type { CategorizedTags } from '$utils/tag-utils';
   import dayjs from 'dayjs';
   import Sortable, { type SortableEvent } from 'sortablejs';
+  import { getContext, onDestroy, onMount, tick } from 'svelte';
+  import type { PageData } from './$types';
 
   export let data: PageData;
   let { token, categorizedTags, chapters } = data;
@@ -48,9 +49,8 @@
   const addSuccessToast: (message: string, duration?: number) => void =
     getContext('addSuccessToast');
   const addErrorToast: (message: string, duration?: number) => void = getContext('addErrorToast');
-
   async function editComic() {
-    const patch: JsonPatchEntry[] = [...chapterPatch];
+    const patch: JsonPatchEntry[] = [...chaptersMovePatch, ...chaptersDeletePatch];
     if (comic.name !== originalComic.name)
       patch.push({ op: 'replace', path: '/name', value: comic.name });
     if (comic.aliases?.join(';') !== originalComic.aliases?.join(';'))
@@ -66,7 +66,10 @@
         value: comic.publicationDate ? comic.publicationDate.toString() : null
       });
     const updatedTagIds = comic.tagIds?.sort().join(',') || '';
-    const originalTagIds = originalComic.tags.map((tag) => tag.id).sort().join(',');
+    const originalTagIds = originalComic.tags
+      .map((tag) => tag.id)
+      .sort()
+      .join(',');
     if (updatedTagIds !== originalTagIds)
       patch.push({
         op: 'replace',
@@ -83,6 +86,8 @@
       addErrorToast('No changes detected');
       return;
     }
+    console.log('Patch:', patch);
+
     await http
       .patch('/comics/' + data.comicId, patch)
       .then(() => {
@@ -180,7 +185,7 @@
   onDestroy(() => destroyFilterTags());
   let chapterList: HTMLDivElement;
   let chaptersCopy = [...chapters];
-  let chapterPatch: JsonPatchEntry[] = [];
+  let chaptersMovePatch: JsonPatchEntry[] = [];
   onMount(() => {
     reset();
     new Sortable(chapterList, {
@@ -197,14 +202,23 @@
       swapClass: 'bg-accent-100/50'
     });
   });
-  $: chapterPatch = chaptersCopy
+  $: chaptersMovePatch = chaptersCopy
     .filter((chapter, index) => chapter.number !== index)
     .map((chapter, index) => ({
       op: 'replace',
       path: `/chapters/${chapter.number}/number`,
       value: index
     }));
-  $: console.log(chapterPatch);
+  let chaptersDeletePatch: JsonPatchEntry[] = [];
+
+  let chapterToDelete: Chapter | null = null;
+  let chapterDeleteModal: HTMLDialogElement;
+  async function deleteChapter(chapter: Chapter | null) {
+    if (!chapter) return;
+    chaptersCopy = chaptersCopy.filter((c) => c.id !== chapter.id);
+    chaptersDeletePatch.push({ op: 'remove', path: `/chapters/${chapter.number}` });
+    chapterDeleteModal.close();
+  }
 </script>
 
 <Sublayout pageName="Edit comic {data.comic.name}">
@@ -219,9 +233,10 @@
           </div>
         {/await}
         <label
-          class="w-full h-80 border-2 flex justify-center cursor-pointer
-          border-dashed
-          hover:border-accent bg-base-200 rounded transition-colors duration-500"
+          class="w-full h-80 flex justify-center cursor-pointer
+          border-2 border-dashed hover:border-accent 
+          bg-base-200 hover:bg-base-300
+          rounded transition-colors duration-500"
         >
           <input
             id="banner-input"
@@ -236,7 +251,7 @@
               src={bannerUrl}
               useCdn={true}
               class="w-full h-full"
-              imgClass="w-full h-full object-cover object-top"
+              imgClass="w-full h-full object-cover object-top rounded"
             />
           {:else}
             <div class="flex w-full h-full items-center justify-center gap-2 flex-col">
@@ -264,9 +279,10 @@
             </div>
           {/await}
           <label
-            class="w-48 h-fit aspect-cover border-2 flex justify-center cursor-pointer
-            border-dashed
-            hover:border-accent bg-base-200 rounded transition-colors duration-500"
+            class="w-48 h-fit aspect-cover flex justify-center cursor-pointer
+            border-2 border-dashed hover:border-accent 
+            bg-base-200 hover:bg-base-300
+            rounded transition-colors duration-500"
           >
             <input
               id="cover-input"
@@ -281,7 +297,7 @@
                 src={coverUrl}
                 useCdn={true}
                 class="w-full h-full"
-                imgClass="w-full h-full object-cover object-top"
+                imgClass="w-full h-full object-cover object-top rounded"
               />
             {:else}
               <div class="flex w-full h-full items-center justify-center gap-2 flex-col">
@@ -499,7 +515,7 @@
 
               <div
                 class="dropdown-content z-50 bg-base-100 p-4 rounded
-                shadow-lg mt-2 w-full max-h-56 select-none flex flex-col gap-2"
+                shadow-lg mt-2 w-[140%] max-h-64 select-none flex flex-col gap-2"
               >
                 <div class="flex items-center gap-2 w-full py-2 h-fit shrink-0 justify-end">
                   <label
@@ -522,16 +538,19 @@
                   </button>
                 </div>
                 <div class="flex flex-col gap-4 overflow-y-scroll overflow-x-hidden max-h-full">
-                  {#each Object.entries(filteredTags) as [category, { name, tags }]}
-                    <div class=" p-1 rounded-lg">
+                  {#each Object.entries(categorizedTags) as [category, { name, tags }]}
+                    <div class=" p-1 rounded-lg" class:hidden={!(category in filteredTags)}>
                       <div class="flex gap-2 items-center">
                         <h2 class="text-xl font-bold mb-2">{name}</h2>
                         <hr class="border-1 my-4 flex-grow" />
                       </div>
 
-                      <ul class="list-disc flex flex-wrap gap-2">
+                      <div class="flex flex-wrap gap-2">
                         {#each tags as tag (tag.id)}
-                          <label class="swap">
+                          <label
+                            class="swap"
+                            class:hidden={!tag.name.toLowerCase().includes(tagSearch.toLowerCase())}
+                          >
                             <input type="checkbox" bind:group={selectedTags} value={tag} />
                             <span class="swap-off badge badge-outline badge-neutral"
                               >{tag.name}</span
@@ -539,7 +558,7 @@
                             <span class="swap-on badge badge-outline badge-accent">{tag.name}</span>
                           </label>
                         {/each}
-                      </ul>
+                      </div>
                     </div>
                   {/each}
                 </div>
@@ -605,7 +624,10 @@
             <div class="flex gap-2">
               <button
                 class="btn btn-sm btn-circle btn-ghost hover:text-error transition-colors duration-100"
-                on:click={() => {}}
+                on:click={() => {
+                  chapterToDelete = chapter;
+                  chapterDeleteModal.showModal();
+                }}
               >
                 <Icon icon="lucide--trash" class="text-xl" />
               </button>
@@ -630,3 +652,36 @@
     </div>
   </div>
 </Sublayout>
+<!-- Chapter delete confirmation -->
+<dialog
+  class="modal"
+  bind:this={chapterDeleteModal}
+  on:close={() => setTimeout(() => (chapterToDelete = null), 200)}
+>
+  <div class="modal-box flex flex-col gap-2">
+    <h3 class="text-xl font-semibold">Are you sure you want to delete this chapter?</h3>
+    <h4 class="font-semibold">Chapter</h4>
+    <p class="p-4 bg-base-200 rounded">
+      <strong>#{chapterToDelete?.number} - {chapterToDelete?.name}</strong>
+    </p>
+    <p class="italic text-sm">
+      This action cannot be undone. However, as long as you not press the save button, you can still
+      undo this action by refreshing the page.
+    </p>
+    <div class="modal-action">
+      <button
+        type="button"
+        class="btn btn-error btn-sm"
+        on:click={() => deleteChapter(chapterToDelete)}
+      >
+        Confirm
+      </button>
+      <form method="dialog">
+        <button class="btn btn-sm" on:click={() => (chapterToDelete = null)}>Cancel</button>
+      </form>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>Close</button>
+  </form>
+</dialog>
