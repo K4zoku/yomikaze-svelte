@@ -7,6 +7,7 @@
   import { ChapterReportManagement } from '$utils/report-utils';
   import { onMount } from 'svelte';
   import InlineProfile from '../inline-profile.svelte';
+    import { space } from 'postcss/lib/list';
 
   export let data: { token: string; reports: ChapterReport[] };
 
@@ -46,10 +47,9 @@
 
     if (currentReportId) {
       try {
-        // Cập nhật dữ liệu lên API
         await reportManagement.updateChapterReported(currentReportId, 'Dismissed', dismissalReason);
 
-        // Cập nhật dữ liệu báo cáo sau khi thay đổi
+   
         const updatedReports = await reportManagement.getChapterReportsWithReasons();
         reports = updatedReports.results;
       } catch (err) {
@@ -76,7 +76,6 @@
     try {
       await reportManagement.updateChapterReported(reportId, 'Dismissed', dismissalReason);
 
-      // Cập nhật dữ liệu báo cáo sau khi thay đổi
       const updatedReports = await reportManagement.getChapterReportsWithReasons();
       reports = updatedReports.results;
     } catch (err) {
@@ -137,7 +136,13 @@
           <td><Time timestamp={report.creationTime} relative /></td>
           <td><InlineProfile profile={report.reporter} /></td>
           <td>{report.reason.content}</td>
-          <td>{report.description}</td>
+          <td>
+            {#if report.description}    
+            {report.description}
+            {:else}
+            <span class="text-neutral italic">No description provided.</span>
+            {/if}
+          </td>
           <td>
             <span
               class="font-semibold badge badge-outline"
