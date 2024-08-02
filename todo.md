@@ -4,6 +4,8 @@
 +  [x] Coin shop
    +  [ ] Payment success toast
 + [ ] View Chapter
+  + [ ] Comments modal
+  + [x] Report modal
   + [ ] Reading mode
     + [x] Long strip
     + [ ] Single page
@@ -14,11 +16,10 @@
     + [ ] Toast
     + [ ] View current balance
     + [ ] Submodal ask user to purchase coin or not
-  + [ ] Comment modal
-  + [x] Report modal
 + [ ] Create chapter
+  + [ ] Edit chapter
+
 + [ ] Sidebar dashboard navigation
-+ [ ] Edit chapter
 + [ ] Reports chart with multi color
 + [ ] Website management 
   + [ ] Edit About Us

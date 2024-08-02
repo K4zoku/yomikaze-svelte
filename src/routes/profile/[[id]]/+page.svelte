@@ -633,7 +633,7 @@
       <h3 class="text-lg font-bold flex">Edit Profile</h3>
       <div class="form-control">
         <label class="label" for="name">Name</label>
-        <input id="name" type="text" bind:value={name} class="input input-bordered" />
+        <input id="name" type="text" bind:value={name} class="input input-bordered focus:input-accent" />
       </div>
       <!-- <div class="form-control">
         <label class="label" for="avatar">Avatar</label>
@@ -646,34 +646,32 @@
         />
       </div> -->
 
-      <div class="form-control">
-        <label class="form-control w-full max-w-xs">
-          <div class="label">
-            <span class="label-text">Avatar</span>
-          </div>
-          <input
-            type="file"
-            accept="image/*"
-            on:change={(event) => handleFileChange(event, 'avatar')}
-          />
-        </label>
-      </div>
-      <div class="form-control">
-        <label class="form-control w-full max-w-xs">
-          <div class="label">
-            <span class="label-text">Banner</span>
-          </div>
-          <input
-            type="file"
-            accept="image/*"
-            on:change={(event) => handleFileChange(event, 'banner')}
-          />
-        </label>
-      </div>
+      <label class="form-control w-full">
+        <div class="label">
+          <span class="label-text">Avatar</span>
+        </div>
+        <input
+          type="file"
+          accept="image/*"
+          class="file-input input-bordered file-input-accent w-full"
+          on:change={(event) => handleFileChange(event, 'avatar')}
+        />
+      </label>
+      <label class="form-control w-full">
+        <div class="label">
+          <span class="label-text">Banner</span>
+        </div>
+        <input
+          type="file"
+          accept="image/*"
+          class="file-input input-bordered file-input-accent w-full"
+          on:change={(event) => handleFileChange(event, 'banner')}
+        />
+      </label>
 
       <div class="form-control">
         <label class="label" for="bio">Bio</label>
-        <textarea id="bio" bind:value={bio} class="textarea textarea-bordered resize-none" rows="4"
+        <textarea id="bio" bind:value={bio} class="textarea textarea-bordered focus:textarea-accent resize-none" rows="4"
         ></textarea>
       </div>
 
