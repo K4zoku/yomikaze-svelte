@@ -10,10 +10,12 @@ import type ComicReport from "$models/ComicReport";
 import type ChapterReport from "$models/ChapterReport";
 import type { Reason } from "$models/Reason"
 import type Comic from "$models/Comic";
+import type CommentReport from "$models/CommentReport";
 
 const BASE_URL = PUBLIC_API_BASE_URL ?? 'https://api.yomikaze.org/';
 const COMIC_REPORT_ENDPOINT = '/reports/comics';
 const CHAPTER_REPORT_ENDPOINT = '/reports/chapter';
+const COMMENT_REPORT_ENDPOINT = '/reports/comment';
 
 export class ComicReportManagement {
     private http: AxiosInstance;
@@ -130,5 +132,57 @@ export class ChapterReportManagement {
 
         const response = await this.http.patch(`${CHAPTER_REPORT_ENDPOINT}/${reportId}`, patch);
         return response.data;
+    }
+}
+
+export class CommentReportManagement {
+    private http: AxiosInstance;
+
+    constructor(private token: string) {
+        this.http = axios.create({
+            baseURL: BASE_URL,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+    }
+
+    async getAllReasons(): Promise<Reason[]> {
+        const response = await this.http.get<Reason[]>(`${COMMENT_REPORT_ENDPOINT}/reasons`);
+        return response.data;
+    }
+
+    async getAllCommentReports(page: number = 1, pageSize: number = 10): Promise<PagedResult<CommentReport>> {
+        const response = await this.http.get<PagedResult<CommentReport>>(`${COMMENT_REPORT_ENDPOINT}`, {
+            params: { page, pageSize },
+        });
+        return response.data;
+    }
+
+    async getCommentReportsWithReasons(page: number = 1, pageSize: number = 10): Promise<PagedResult<CommentReport>> {
+        const pagedReports: PagedResult<CommentReport> = await this.getAllCommentReports(page, pageSize);
+        const reasons: Reason[] = await this.getAllReasons();
+
+        // Update each report with its corresponding reason
+        const updatedReports = pagedReports.results.map(report => {
+            const reason = reasons.find(r => r.id === report.reasonId) || { content: 'Unknown reason', id: report.reasonId, creationTime: '', lastModification: '' };
+            return {
+                ...report,
+                reason
+            };
+        });
+
+        return {
+            ...pagedReports,
+            results: updatedReports
+        };
+    }
+
+    async updateCommentReportStatus(reportId: string, status: string): Promise<void> {
+        const patch: JsonPatchEntry[] = [
+            { op: 'replace', path: '/status', value: status }
+        ];
+        await this.http.patch(`${COMMENT_REPORT_ENDPOINT}/${reportId}`, patch);
     }
 }
