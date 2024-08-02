@@ -4,7 +4,9 @@
   import { onMount } from 'svelte';
   import type Comic from '$models/Comic';
   import type { AxiosError } from 'axios';
-    import Sublayout from '$components/yomikaze/sublayout.svelte';
+  import Sublayout from '$components/yomikaze/sublayout.svelte';
+  import ComicCardDetails from '$components/yomikaze/common/comic/comic-card-details.svelte';
+  import Icon from '$components/icon.svelte';
 
   export let data;
   let { token } = data;
@@ -91,6 +93,7 @@
     deleteModal.showModal();
   }
 </script>
+
 <Sublayout pageName="Comics Management">
   <div class="ml-8">
     <a href="/comics/create" class="btn btn-accent">
@@ -103,7 +106,31 @@
 
   <div class="mt-5 mb-10 flex flex-col gap-3 mx-auto w-11/12">
     {#each comics as comic (comic.id)}
-      <div class="card hover:shadow-lg transition duration-300">
+      <ComicCardDetails {comic}>
+        <details
+          slot="actions"
+          class="dropdown dropdown-end dropdown-bottom flex items-center my-auto"
+        >
+          <summary class="btn btn-sm btn-circle">
+            <span class="iconify lucide--ellipsis-vertical text-xl"></span>
+          </summary>
+          <ul class="dropdown-content menu menu-sm bg-base-100 rounded z-[1] w-52 p-2 shadow">
+            <li>
+              <button>
+                <Icon icon="lucide--pencil" class="text-xl" />
+                Edit
+              </button>
+            </li>
+            <li>
+              <button on:click={() => openDeleteModal(comic)}>
+                <Icon icon="lucide--trash-2" class="text-xl" />
+                Delete
+              </button>
+            </li>
+          </ul>
+        </details>
+      </ComicCardDetails>
+      <!-- <div class="card hover:shadow-lg transition duration-300">
         <div class="card-body p-3 bg-base-100 rounded-lg drop-shadow-lg h-44">
           <div class="flex gap-1">
             <a href="/comics/{comic.id}" class="w-28 h-36">
@@ -192,7 +219,7 @@
             </div>
           </div>
         </div>
-      </div>
+      </div> -->
     {/each}
   </div>
 </Sublayout>

@@ -7,12 +7,12 @@
   import ComicStatus from '$components/yomikaze/common/comic/comic-status.svelte';
   import ComicReport from '$components/yomikaze/report/comic-report.svelte';
   import type LibraryEntry from '$models/LibraryEntry';
-    import type Profile from '$models/Profile';
+  import type Profile from '$models/Profile';
   import { rateComic } from '$utils/comic-utils';
   import { ComicCommentManagement } from '$utils/comment-utils';
   import formatNumber from '$utils/common';
   import http from '$utils/http';
-    import { getProfile } from '$utils/profile-utils.js';
+  import { getProfile } from '$utils/profile-utils.js';
   import { onMount, tick } from 'svelte';
   import Time from 'svelte-time/Time.svelte';
   import { fly } from 'svelte/transition';
@@ -122,39 +122,6 @@
     }
   });
 </script>
-
-<!-- <div class="w-full relative h-96 bg-base-100">
-    <div class="absolute top-28 left-0 w-full">
-      <div class="container-80 flex gap-6">
-        <div class="w-fit h-72 aspect-cover skeleton"></div>
-        <div class="grow flex flex-col gap-2 justify-start">
-          <div class="max-h-52 h-52 flex flex-col gap-2">
-            <div class="flex flex-col gap-2 grow">
-              <div class="h-12 w-full skeleton"></div>
-              <div class="h-12 w-4/5 skeleton"></div>
-            </div>
-
-            <div class="w-3/4 h-8 skeleton"></div>
-            <div class="flex gap-2">
-              {#each { length: 2 } as _}
-                <span class="w-24 h-8 skeleton"></span>
-              {/each}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="h-16"></div>
-  <div class="container-80 bg-base-100">
-    <div class="whitespace-pre-wrap leading-6 py-2 mb-6">
-      <p class="max-h-48 min-h-16 overflow-y-scroll">
-        {#each { length: 4 } as _}
-          <span class="w-full h-4 skeleton"></span>
-        {/each}
-      </p>
-    </div>
-  </div> -->
 
 <div class="w-full relative h-96 bg-base-100">
   <div class="absolute w-full h-fit">
@@ -363,8 +330,8 @@
 </div>
 <div class="container-80 bg-base-100">
   <div class="flex gap-4 items-start">
-    {#await comic then comic}
-      <div class="flex flex-wrap gap-4 shrink-0 w-1/4">
+    <div class="flex flex-wrap gap-4 shrink-0 w-1/4">
+      {#if comic.authors?.length > 0}
         <div class="py-2">
           <div class="text-xl font-bold">Authors</div>
           <div class="flex flex-wrap gap-2">
@@ -373,22 +340,29 @@
             {/each}
           </div>
         </div>
-        {#each tagCategories as category}
-          {#if comic.tags.some((tag) => tag.category.id == category.id)}
-            <div class="py-2">
-              <div class="text-xl font-bold">{category.name}</div>
-              <div class="flex flex-wrap gap-2">
-                {#each comic.tags.filter((tag) => tag.category.id == category.id) as tag}
-                  <span class="btn btn-xs no-animation font-medium text-nowrap w-fit"
-                    >{tag.name}</span
-                  >
-                {/each}
-              </div>
-            </div>
-          {/if}
-        {/each}
+      {/if}
+      <div class="py-2">
+        <div class="text-xl font-bold">Publisher</div>
+        <div class="flex flex-wrap gap-2">
+          <span class="btn btn-xs no-animation font-medium text-nowrap w-fit">
+            <a href="/search?publisher={comic.publisher.name}">{comic.publisher.name}</a>
+          </span>
+        </div>
       </div>
-    {/await}
+      {#each tagCategories as category}
+        {#if comic.tags.some((tag) => tag.category.id == category.id)}
+          <div class="py-2">
+            <div class="text-xl font-bold">{category.name}</div>
+            <div class="flex flex-wrap gap-2">
+              {#each comic.tags.filter((tag) => tag.category.id == category.id) as tag}
+                <span class="btn btn-xs no-animation font-medium text-nowrap w-fit">{tag.name}</span
+                >
+              {/each}
+            </div>
+          </div>
+        {/if}
+      {/each}
+    </div>
     <div class="flex flex-col grow">
       <div role="tablist" class="tabs tabs-boxed gap-1 w-fit p-2 shadow-inner mb-4">
         <button on:click={() => (tab = true)} class="tab" class:tab-active={tab}>
