@@ -10,11 +10,14 @@
   import { getComics, type GetComicsOptions } from '$utils/comic-utils.js';
   import http from '$utils/http';
   import type { AxiosError } from 'axios';
-  import { getContext, tick } from 'svelte';
+  import { createEventDispatcher, getContext, onDestroy, tick } from 'svelte';
   import Time from 'svelte-time/Time.svelte';
   import type { Writable } from 'svelte/store';
   import type { ToastProps } from '~/routes/+layout.svelte';
   import { postRoleRequest } from '$utils/role-request-utils';
+  import { changePassword, updateProfile } from '$utils/profile-utils.js';
+  import httpImage from '$utils/httpImage.js';
+  import { debounce } from '$utils/common.js';
 
   export let data;
   let { profile, token } = data;
@@ -31,6 +34,19 @@
 
   let amountErr = '';
   let errorMess = '';
+
+  let bannerImageUrl: string | null = null;
+  let avatarImageUrl: string | null = null;
+  let bio = profile.bio;
+  let name = profile.name;
+
+  let currentPassword = '';
+  let newPassword = '';
+  let confirmPassword = '';
+  let errors = { currentPassword: '', newPassword: '', confirmPassword: '', _: '' };
+  let showCurrentPassword = false;
+  let showNewPassword = false;
+  let showConfirmPassword = false;
 
   let reason: string;
 
@@ -143,6 +159,162 @@
     }
   }
 
+  const dispatch = createEventDispatcher();
+
+  async function handleSave() {
+    try {
+      const payload = [
+        { value: bio, path: '/bio', op: 'replace' },
+        { value: name, path: '/name', op: 'replace' }
+      ];
+
+      if (avatarImageUrl) {
+        payload.push({ value: avatarImageUrl, path: '/avatar', op: 'replace' });
+      }
+
+      if (bannerImageUrl) {
+        payload.push({ value: bannerImageUrl, path: '/banner', op: 'replace' });
+      }
+
+      profile = await updateProfile(payload, token);
+      dispatch('update', profile);
+      addToast('Profile updated successfully!');
+      editModal.close();
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  async function handleFileChange(event: Event, type: 'avatar' | 'banner') {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (file) {
+      // Kiểm tra định dạng file
+      if (file.type !== 'image/svg+xml') {
+        alert('Only SVG files are allowed.');
+        return;
+      }
+
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await httpImage.post('/images', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+
+        if (response.status === 201) {
+          const imageUrl = response.data.url; // Adjust according to your API response structure
+
+          // Cập nhật URL hình ảnh dựa trên loại
+          if (type === 'banner') {
+            bannerImageUrl = imageUrl;
+          } else if (type === 'avatar') {
+            avatarImageUrl = imageUrl;
+          }
+        } else {
+          console.error('Failed to upload image:', response.data);
+          alert('Failed to upload image. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        alert('An error occurred while uploading image.');
+      }
+    }
+  }
+
+  async function validateCurrentPassword(): Promise<boolean> {
+    let valid = true;
+    if (!currentPassword) {
+      errors.currentPassword = 'Current password is required';
+      valid = false;
+    } else {
+      errors.currentPassword = '';
+    }
+    return valid;
+  }
+
+  async function validateNewPassword(): Promise<boolean> {
+    let valid = true;
+    if (!newPassword) {
+      errors.newPassword = 'New password is required';
+      valid = false;
+    } else if (newPassword.length < 8) {
+      errors.newPassword = 'New password must be at least 8 characters long';
+      valid = false;
+    } else {
+      errors.newPassword = '';
+    }
+    return valid;
+  }
+
+  async function validateConfirmPassword(): Promise<boolean> {
+    let valid = true;
+    if (newPassword !== confirmPassword) {
+      errors.confirmPassword = 'New password and confirmation do not match';
+      valid = false;
+    } else {
+      errors.confirmPassword = '';
+    }
+    return valid;
+  }
+
+  const debouncedValidateCurrentPassword = debounce(validateCurrentPassword, 500);
+  const debouncedValidateNewPassword = debounce(validateNewPassword, 500);
+  const debouncedValidateConfirmPassword = debounce(validateConfirmPassword, 500);
+
+  onDestroy(() => {
+    debouncedValidateCurrentPassword;
+    debouncedValidateNewPassword;
+    debouncedValidateConfirmPassword;
+  });
+
+  async function handleChangePassword() {
+    const isCurrentPasswordValid = await validateCurrentPassword();
+    const isNewPasswordValid = await validateNewPassword();
+    const isConfirmPasswordValid = await validateConfirmPassword();
+
+    if (isCurrentPasswordValid && isNewPasswordValid && isConfirmPasswordValid) {
+      try {
+        await changePassword(currentPassword, newPassword, token);
+        addToast('Password changed successfully!');
+        changePasswordModal.close();
+        dispatch('passwordChanged');
+      } catch (error) {
+        const axiosError = error as AxiosError;
+        const { response } = axiosError;
+        if (response) {
+          let data = response.data as Problem;
+          for (let key of Object.keys(data.errors)) {
+            switch (key) {
+              case 'currentPassword':
+                errors.currentPassword = data.errors[key].at(0) ?? '';
+                break;
+              case 'newPassword':
+                errors.newPassword = data.errors[key].at(0) ?? '';
+                break;
+              case 'confirmPassword':
+                errors.confirmPassword = data.errors[key].at(0) ?? '';
+                break;
+              default:
+                errors._ = 'Unknown Error';
+                break;
+            }
+          }
+        } else {
+          errors._ = 'Unknown Error';
+        }
+      }
+    }
+  }
+
+  function openEditModal() {
+    editModal.showModal();
+  }
+
   function openAddModal() {
     addModal?.showModal();
   }
@@ -156,6 +328,13 @@
     toasts.update((toasts) => [
       ...toasts,
       { message, color: 'alert-success', icon: 'lucide--circle-check-big' }
+    ]);
+  }
+
+  function addErrToast(message: string) {
+    toasts.update((toasts) => [
+      ...toasts,
+      { message, color: 'alert-error', icon: 'lucide--circle-x' }
     ]);
   }
 
@@ -240,7 +419,7 @@
         Share Profile
       </a>
       {#if isSelf}
-        <button class="btn w-full" on:click={() => editModal.showModal()}>
+        <button class="btn w-full" on:click={openEditModal}>
           <Icon icon="lucide--edit" class="text-xl" />
           Edit Profile
         </button>
@@ -451,37 +630,194 @@
   <!--! Modal edit profile -->
   <dialog bind:this={editModal} class="modal">
     <div class="modal-box">
-      <h3 class="text-lg font-bold flex">
-        <Icon icon="lucide--edit" class="text-xl text-center" />Edit Profile
-      </h3>
-      <p class="py-4">Press ESC key or click the button below to close</p>
+      <h3 class="text-lg font-bold flex">Edit Profile</h3>
+      <div class="form-control">
+        <label class="label" for="name">Name</label>
+        <input id="name" type="text" bind:value={name} class="input input-bordered" />
+      </div>
+      <!-- <div class="form-control">
+        <label class="label" for="avatar">Avatar</label>
+        <input
+          id="avatar"
+          type="file"
+          accept="image/*"
+          on:change={(e) => (avatarFile = e.target.files[0])}
+          class="input input-bordered"
+        />
+      </div> -->
+
+      <div class="form-control">
+        <label class="form-control w-full max-w-xs">
+          <div class="label">
+            <span class="label-text">Avatar</span>
+          </div>
+          <input
+            type="file"
+            accept="image/*"
+            on:change={(event) => handleFileChange(event, 'avatar')}
+          />
+        </label>
+      </div>
+      <div class="form-control">
+        <label class="form-control w-full max-w-xs">
+          <div class="label">
+            <span class="label-text">Banner</span>
+          </div>
+          <input
+            type="file"
+            accept="image/*"
+            on:change={(event) => handleFileChange(event, 'banner')}
+          />
+        </label>
+      </div>
+
+      <div class="form-control">
+        <label class="label" for="bio">Bio</label>
+        <textarea id="bio" bind:value={bio} class="textarea textarea-bordered resize-none" rows="4"
+        ></textarea>
+      </div>
+
       <div class="modal-action">
-        <form method="dialog">
-          <!-- if there is a button in form, it will close the modal -->
-          <button class="btn">Close</button>
-        </form>
+        <button class="btn btn-accent btn-sm" on:click={handleSave}>Save</button>
+        <button class="btn btn-sm" on:click={() => editModal.close()}>Close</button>
       </div>
     </div>
-    <form method="dialog" class="modal-backdrop">
-      <button>close</button>
-    </form>
   </dialog>
 
   <!--! Modal change password -->
-  <dialog bind:this={changePasswordModal} class="modal">
+  <dialog id="changePasswordModal" class="modal" bind:this={changePasswordModal}>
     <div class="modal-box">
       <h3 class="text-lg font-bold">Change Password</h3>
-      <p class="py-4">Press ESC key or click the button below to close</p>
-      <div class="modal-action">
-        <form method="dialog">
-          <!-- if there is a button in form, it will close the modal -->
-          <button class="btn">Close</button>
-        </form>
-      </div>
+      <form method="dialog" on:submit|preventDefault={handleChangePassword}>
+        <div class="py-4">
+          <label class="form-control">
+            <div class="label">
+              <span class="label-text">Current Password</span>
+            </div>
+            <div class="input input-bordered flex items-center gap-2">
+              <Icon icon="lucide--key" class="text-lg" />
+              {#if showCurrentPassword}
+                <input
+                  type="text"
+                  class="grow"
+                  placeholder="Enter your current password"
+                  bind:value={currentPassword}
+                />
+              {:else}
+                <input
+                  type="password"
+                  class="grow"
+                  placeholder="Enter your current password"
+                  bind:value={currentPassword}
+                />
+              {/if}
+              <button
+                type="button"
+                class="flex items-center justify-center"
+                on:click={() => (showCurrentPassword = !showCurrentPassword)}
+              >
+                {#if showCurrentPassword}
+                  <Icon icon="lucide--eye-off" class="text-xl" />
+                {:else}
+                  <Icon icon="lucide--eye" class="text-xl" />
+                {/if}
+              </button>
+            </div>
+            <div class="label">
+              <span class="label-text-alt text-error">
+                {errors.currentPassword}
+              </span>
+            </div>
+          </label>
+
+          <label class="form-control">
+            <div class="label">
+              <span class="label-text">New Password</span>
+            </div>
+            <div class="input input-bordered flex items-center gap-2">
+              <Icon icon="lucide--key" class="text-lg" />
+              {#if showNewPassword}
+                <input
+                  type="text"
+                  class="grow"
+                  placeholder="Enter your new password"
+                  bind:value={newPassword}
+                />
+              {:else}
+                <input
+                  type="password"
+                  class="grow"
+                  placeholder="Enter your new password"
+                  bind:value={newPassword}
+                />
+              {/if}
+              <button
+                type="button"
+                class="flex items-center justify-center"
+                on:click={() => (showNewPassword = !showNewPassword)}
+              >
+                {#if showNewPassword}
+                  <Icon icon="lucide--eye-off" class="text-xl" />
+                {:else}
+                  <Icon icon="lucide--eye" class="text-xl" />
+                {/if}
+              </button>
+            </div>
+            <div class="label">
+              <span class="label-text-alt text-error">
+                {errors.newPassword}
+              </span>
+            </div>
+          </label>
+
+          <label class="form-control">
+            <div class="label">
+              <span class="label-text">Confirm New Password</span>
+            </div>
+            <div class="input input-bordered flex items-center gap-2">
+              <Icon icon="lucide--key" class="text-lg" />
+              {#if showConfirmPassword}
+                <input
+                  type="text"
+                  class="grow"
+                  placeholder="Re-enter your new password"
+                  bind:value={confirmPassword}
+                />
+              {:else}
+                <input
+                  type="password"
+                  class="grow"
+                  placeholder="Re-enter your new password"
+                  bind:value={confirmPassword}
+                />
+              {/if}
+              <button
+                type="button"
+                class="flex items-center justify-center"
+                on:click={() => (showConfirmPassword = !showConfirmPassword)}
+              >
+                {#if showConfirmPassword}
+                  <Icon icon="lucide--eye-off" class="text-xl" />
+                {:else}
+                  <Icon icon="lucide--eye" class="text-xl" />
+                {/if}
+              </button>
+            </div>
+            <div class="label">
+              <span class="label-text-alt text-error">
+                {errors.confirmPassword}
+              </span>
+            </div>
+          </label>
+        </div>
+        <div class="modal-action">
+          <button type="submit" class="btn btn-accent btn-sm">Change Password</button>
+          <button type="button" class="btn btn-sm" on:click={() => changePasswordModal.close()}
+            >Cancel</button
+          >
+        </div>
+      </form>
     </div>
-    <form method="dialog" class="modal-backdrop">
-      <button>close</button>
-    </form>
   </dialog>
 
   {#if profile.roles.includes('Publisher') && profile.balance > 0}
