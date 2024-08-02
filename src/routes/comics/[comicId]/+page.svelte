@@ -37,7 +37,8 @@
   let ratingAwait: Promise<void> = Promise.resolve();
   let totalRatings = 0;
   let averageRating = 0;
-  const addSuccessToast: (message: string, duration?: number) => void = getContext('addSuccessToast');
+  const addSuccessToast: (message: string, duration?: number) => void =
+    getContext('addSuccessToast');
   const addErrorToast: (message: string, duration?: number) => void = getContext('addErrorToast');
   setContext('addSuccessToast', addSuccessToast); // pass the function to the child components
   setContext('addErrorToast', addErrorToast); // pass the function to the child components
@@ -102,13 +103,17 @@
   let historyContinue: string;
   let isContinue = false;
   async function loadHistory() {
-    http.get(`/history/comics/${comic.id}/continue`).then((res) => {
-      const data = res.data;
+    const response = await http
+      .get(`/history/comics/${comic.id}/continue`)
+      .catch((error) => {
+        isContinue = false;
+        return error.response;
+      });
+    if (response.status.toString().startsWith('2')) {
+      const data = response.data;
       historyContinue = `/comics/${comic.id}/chapters/${data.chapter.number}`;
       isContinue = true;
-    }).catch(() => {
-      isContinue = false;
-    });
+    }
     historyContinue = '';
   }
 
@@ -158,13 +163,13 @@
           >
             {comic.aliases && comic.aliases.length > 0 ? comic.aliases[0] : ''}
           </h3>
-          <div class="text-nowrap text-ellipsis overflow-hidden align-middle w-full py-3">
+          <div
+            class="text-nowrap text-ellipsis overflow-hidden align-middle w-full py-3 text-accent-content"
+          >
             {#each comic.authors as author, i}
               {#if i > 0},
               {/if}
-              <a href="/search?Author={author}" class="font-normal text-accent-content italic"
-                >{author}</a
-              >
+              <a href="/search?Author={author}" class="font-normal italic">{author}</a>
             {:else}
               <span class="font-normal text-accent-content italic">Unknown author</span>
             {/each}
@@ -224,32 +229,34 @@
               Report
             </button>
             <ComicReport target={comic} bind:modal={reportModal} {http} />
-            <details class="dropdown">
-              <summary class="btn">
-                <Icon icon="lucide--settings" class="text-xl" />
-                Manage
-              </summary>
-              <ul class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                <li>
-                  <a href="/comics/{comicId}/chapters/create">
-                    <Icon icon="lucide--file-plus" class="text-xl" />
-                    Create Chapter
-                  </a>
-                </li>
-                <li>
-                  <a href="/comics/{comicId}">
-                    <Icon icon="lucide--edit" class="text-xl" />
-                    Edit Comic
-                  </a>
-                </li>
-                <li>
-                  <button>
-                    <Icon icon="lucide--trash" class="text-xl" />
-                    Delete Comic
-                  </button>
-                </li>
-              </ul>
-            </details>
+            {#if currentUser && (currentUser.roles.includes('Administrator') || currentUser.roles.includes('Publisher') && currentUser.id === comic.publisher.id)}
+              <details class="dropdown">
+                <summary class="btn">
+                  <Icon icon="lucide--settings" class="text-xl" />
+                  Manage
+                </summary>
+                <ul class="dropdown-content z-[1] menu menu-sm p-2 shadow bg-base-100 rounded w-52">
+                  <li>
+                    <a href="/comics/{comicId}/chapters/create">
+                      <Icon icon="lucide--file-plus" class="text-xl" />
+                      Create Chapter
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/comics/{comicId}/edit">
+                      <Icon icon="lucide--edit" class="text-xl" />
+                      Edit Comic
+                    </a>
+                  </li>
+                  <li>
+                    <button>
+                      <Icon icon="lucide--trash" class="text-xl" />
+                      Delete Comic
+                    </button>
+                  </li>
+                </ul>
+              </details>
+            {/if}
           </div>
         </div>
         <div class="flex gap-2">
@@ -297,12 +304,48 @@
           {:then _}
             <div class="flex gap-1 items-center min-w-[0] w-fit" use:ratingInit>
               <div class="rating rating-sm">
-                <input type="radio" name="rating" value="0" class="rating-hidden hidden" class:bg-accent={comic.isRated} />
-                <input type="radio" name="rating" value="1" class="mask mask-star-2" class:bg-accent={comic.isRated} />
-                <input type="radio" name="rating" value="2" class="mask mask-star-2" class:bg-accent={comic.isRated} />
-                <input type="radio" name="rating" value="3" class="mask mask-star-2" class:bg-accent={comic.isRated} />
-                <input type="radio" name="rating" value="4" class="mask mask-star-2" class:bg-accent={comic.isRated} />
-                <input type="radio" name="rating" value="5" class="mask mask-star-2" class:bg-accent={comic.isRated} />
+                <input
+                  type="radio"
+                  name="rating"
+                  value="0"
+                  class="rating-hidden hidden"
+                  class:bg-accent={comic.isRated}
+                />
+                <input
+                  type="radio"
+                  name="rating"
+                  value="1"
+                  class="mask mask-star-2"
+                  class:bg-accent={comic.isRated}
+                />
+                <input
+                  type="radio"
+                  name="rating"
+                  value="2"
+                  class="mask mask-star-2"
+                  class:bg-accent={comic.isRated}
+                />
+                <input
+                  type="radio"
+                  name="rating"
+                  value="3"
+                  class="mask mask-star-2"
+                  class:bg-accent={comic.isRated}
+                />
+                <input
+                  type="radio"
+                  name="rating"
+                  value="4"
+                  class="mask mask-star-2"
+                  class:bg-accent={comic.isRated}
+                />
+                <input
+                  type="radio"
+                  name="rating"
+                  value="5"
+                  class="mask mask-star-2"
+                  class:bg-accent={comic.isRated}
+                />
               </div>
               <span>
                 {averageRating
