@@ -1,3 +1,4 @@
+import type { JsonPatchEntry } from "$models/JsonPatchDocument";
 import type Profile from "$models/Profile";
 import http from "./http";
 import httpImage from './httpImage';
@@ -11,7 +12,7 @@ export async function getProfile({ token, id }: GetProfileOptions): Promise<Prof
     return await http.get(url, { headers }).then(response => response.data);
 }
 
-export async function updateProfile(payload: any[], token: string): Promise<Profile> {
+export async function updateProfile(payload: JsonPatchEntry[], token: string): Promise<Profile> {
     const headers = { Authorization: `Bearer ${token}` };
     return await http.patch('/profile', payload, { headers }).then(response => response.data);
 }

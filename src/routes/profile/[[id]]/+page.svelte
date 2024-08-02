@@ -175,9 +175,16 @@
       if (bannerImageUrl) {
         payload.push({ value: bannerImageUrl, path: '/banner', op: 'replace' });
       }
-
-      profile = await updateProfile(payload, token);
-      dispatch('update', profile);
+      if (!token) return;
+      await updateProfile(payload, token);
+      profile.bio = bio;
+      profile.name = name;
+      if (avatarImageUrl) {
+        profile.avatar = avatarImageUrl;
+      }
+      if (bannerImageUrl) {
+        profile.banner = bannerImageUrl;
+      }
       addToast('Profile updated successfully!');
       editModal.close();
     } catch (err) {
@@ -190,12 +197,6 @@
     const file = input.files?.[0];
 
     if (file) {
-      // Kiểm tra định dạng file
-      if (file.type !== 'image/svg+xml') {
-        alert('Only SVG files are allowed.');
-        return;
-      }
-
       try {
         const formData = new FormData();
         formData.append('file', file);
@@ -207,7 +208,7 @@
         });
 
         if (response.status === 201) {
-          const imageUrl = response.data.url; // Adjust according to your API response structure
+          const imageUrl = response.data.images[0]; // Adjust according to your API response structure
 
           // Cập nhật URL hình ảnh dựa trên loại
           if (type === 'banner') {
