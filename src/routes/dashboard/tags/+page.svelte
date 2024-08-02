@@ -4,11 +4,11 @@
   import { getContext, onMount, tick } from 'svelte';
   import type Tag from '$models/Tag';
   import type TagCategory from '$models/TagCategory';
-
+  import Sublayout from '$components/yomikaze/sublayout.svelte';
   import type { AxiosError } from 'axios';
   import type Problem from '$models/ProblemResponse.js';
-    import type { Writable } from 'svelte/store';
-    import type { ToastProps } from '~/routes/+layout.svelte';
+  import type { Writable } from 'svelte/store';
+  import type { ToastProps } from '~/routes/+layout.svelte';
 
   let tags: Array<Tag> = [];
   let tagToDelete: Tag | null = null;
@@ -24,6 +24,7 @@
   let tagEditNameInput: string = '';
   let tagEditDescription: string = '';
   let tagEditCateID: string = '';
+  let tagTotals: number;
 
   let tagNameErr = '';
   let categoryErr = '';
@@ -61,7 +62,8 @@
         }
       });
 
-      tags = response.data.results; // Lưu tags vào biến
+      tags = response.data.results;
+      tagTotals = response.data.totals;
     } catch (error) {
       if (error.response) {
         console.error('API error:', error.response.data);
@@ -77,7 +79,7 @@
 
       tags = tags.filter((tag) => tag.id !== key);
 
-      message = 'Tag deleted successfully'
+      message = 'Tag deleted successfully';
     } catch (error) {
       if (error.response) {
         console.error('API error:', error.response.data);
@@ -156,7 +158,7 @@
         tags[index] = response.data;
       }
 
-      addToast('Tag updated successfully')
+      addToast('Tag updated successfully');
       // message = 'Tag updated successfully'
       tagToEdit = null;
       tagEditNameInput = '';
@@ -188,7 +190,10 @@
 
   const toasts = getContext<Writable<ToastProps[]>>('toasts');
   function addToast(message: string) {
-    toasts.update((toasts) => [...toasts, { message, color: 'alert-success', icon: 'lucide--circle-check-big' }]);
+    toasts.update((toasts) => [
+      ...toasts,
+      { message, color: 'alert-success', icon: 'lucide--circle-check-big' }
+    ]);
   }
 
   onMount(() => {
@@ -197,21 +202,11 @@
   });
 </script>
 
-<div class="container mx-auto mt-16">
-  <div class="flex my-3 gap-2 pb-10 border-b border-accent-content">
-    <button on:click={goBack}>
-      <span class="iconify lucide--arrow-left text-5xl"></span>
-    </button>
-    <div>
-      <span class="text-3xl font-semibold">Tags Management</span>
-    </div>
-    <hr />
-  </div>
-
+<Sublayout pageName="Tags management">
   <div>
     <div class="p-4">
       <div class="flex justify-between">
-        <span class="text-2xl font-bold">List of tags</span>
+        <span class="text-xl">Totals: {tagTotals}</span>
         <button class="btn btn-success btn-sm" on:click={() => openAddModal()}
           ><span class="text-secondary-content">Create New Tag</span></button
         >
@@ -247,8 +242,6 @@
                       <span class="iconify lucide--trash-2 text-xl"></span>
                     </button>
                   </div>
-                  
-                  
                 </td>
               </tr>
             {/each}
@@ -257,7 +250,7 @@
       </div>
     </div>
   </div>
-</div>
+</Sublayout>
 
 <!--! modal delete tag -->
 <dialog id="delete_modal" bind:this={deleteModal} class="modal">

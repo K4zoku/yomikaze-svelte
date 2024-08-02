@@ -67,8 +67,7 @@
 
   onMount(async () => {
     try {
-     const  roleRespone = await getRoleRequests();
-
+      roleRequests = await getRoleRequests();
     } catch (err) {
       error = err as Error;
     }
@@ -76,9 +75,7 @@
 </script>
 
 <Sublayout pageName="Roles request management">
-  <span class="ml-6 text-xl">Totals: {totals}</span>
   <table class="table">
-    <!-- head -->
     <thead>
       <tr class="text-base font-medium">
         <th>User</th>
@@ -111,8 +108,8 @@
               class:badge-success={request.status === 'Approved'}
               class:badge-error={request.status === 'Rejected'}
             >
-              {request.status}</span
-            >
+              {request.status}
+            </span>
           </td>
           <td>
             {#if request.status === 'Approved' || request.status === 'Rejected'}

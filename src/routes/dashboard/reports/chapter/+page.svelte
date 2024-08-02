@@ -88,7 +88,6 @@
 <Sublayout pageName="Chapter reports management">
   <span class="ml-6 text-xl">Totals: {totals}</span>
   <table class="table">
-    <!-- head -->
     <thead>
       <tr class="text-base font-medium">
         <th>Detail</th>

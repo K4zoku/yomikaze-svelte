@@ -44,8 +44,6 @@
       coinData = await getCoin(pagination);
     } catch (err) {
       error = err;
-    } finally {
-      loading = false;
     }
   }
 

@@ -12,7 +12,7 @@
   http.defaults.headers.common.Authorization = 'Bearer ' + token;
 
   let comicReports: Array<ComicReport> = [];
-  let deleteModal: any;
+  let deleteModal: HTMLDialogElement;
   let comicName = '';
   let comicCover = '';
   let comicId = '';
@@ -106,7 +106,7 @@
                 {report.dismissalReason}
               {:else}
                 <span class="text-neutral italic">No dismissal reason provided.</span>
-              {/if} 
+              {/if}
             </span>
           </td>
           <td>
@@ -126,8 +126,8 @@
       {:else}
         <tr>
           <td colspan="7" class="text-center text-base-300 italic font-bold">
-            <span>No Report Comic.</span></td
-          >
+            <span>No Report Comic.</span>
+          </td>
         </tr>
       {/each}
     </tbody>
