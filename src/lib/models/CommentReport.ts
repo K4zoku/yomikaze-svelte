@@ -1,6 +1,7 @@
-import type Model from "./Model";
-import type Profile from "./Profile";
-import type { Reason } from "./Reason";
+import type Model from "$models/Model";
+import type Profile from "$models/Profile";
+import type { Reason } from "$models/Reason";
+import type Comment from "$models/Comment";
 
 export default interface CommentReport extends Model {
     comment: Comment;

@@ -12,6 +12,7 @@
 
   let reports = [];
   let reasons = [];
+  let totals: number;
 
   async function getProfileReports() {
     try {
@@ -21,6 +22,7 @@
       ]);
 
       reports = reportsResponse.data.results || [];
+      totals = reportsResponse.data.totals;
       reasons = reasonsResponse.data || [];
 
       const reasonsMap = reasons.reduce((map, reason) => {
@@ -54,7 +56,7 @@
     }
   }
 
-  async function updateReportStatus(reportId, newStatus) {
+  async function updateReportStatus(reportId: string, newStatus: string) {
     try {
       const response = await http.patch(`/reports/profile/${reportId}`, [
         {
@@ -92,6 +94,7 @@
 </script>
 
 <Sublayout pageName="Profile reports management">
+  <span class="ml-6 text-xl">Totals: {totals}</span>
   <table class="table rounded">
     <thead>
       <tr class="text-base font-semibold bg-base-200 table-pin-rows">

@@ -67,7 +67,8 @@
 
   onMount(async () => {
     try {
-      roleRequests = await getRoleRequests();
+     const  roleRespone = await getRoleRequests();
+
     } catch (err) {
       error = err as Error;
     }
@@ -75,6 +76,7 @@
 </script>
 
 <Sublayout pageName="Roles request management">
+  <span class="ml-6 text-xl">Totals: {totals}</span>
   <table class="table">
     <!-- head -->
     <thead>

@@ -18,17 +18,15 @@
   let comicId = '';
   let reportToDelete: any = null;
   let reportDetails: ComicReport | null = null;
+  let comicTotals: number;
 
   async function getComicReports() {
     try {
       const response = await http.get('/reports/comic');
+      comicTotals = response.data.totals;
       comicReports = response.data.results;
     } catch (error) {
-      if (error.response) {
-        console.error('API error:', error.response.data);
-      } else {
-        console.error('Error:', error.message);
-      }
+      console.log(error);
     }
   }
 
@@ -38,6 +36,8 @@
 </script>
 
 <Sublayout pageName="Comic reports management">
+  <span class="ml-6 text-xl">Totals: {comicTotals}</span>
+
   <table class="table lg:table-lg sm:table-sm xs:table-xs md:table-md">
     <thead>
       <tr class="text-base font-medium">
@@ -101,15 +101,24 @@
             </span>
           </td>
           <td>
-            <span> Dismissal Reason </span>
+            <span
+              >{#if report.dismissalReason}
+                {report.dismissalReason}
+              {:else}
+                <span class="text-neutral italic">No dismissal reason provided.</span>
+              {/if} 
+            </span>
           </td>
           <td>
-            <div class="flex gap-1 items-center">
+            <div class="flex flex-wrap gap-2 justify-center">
               <button class="btn btn-sm btn-success">
                 <span>Resolve</span>
               </button>
-              <button class="btn btn-sm btn-error">
+              <button class="btn btn-sm">
                 <span>Dismiss</span>
+              </button>
+              <button class="btn btn-sm btn-error">
+                <span>Delete</span>
               </button>
             </div>
           </td>
@@ -156,5 +165,3 @@
     </div>
   </div>
 </dialog>
-
-<!-- ToDo Modal Comment Chapter -->
