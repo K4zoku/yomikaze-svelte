@@ -4,7 +4,7 @@
   import http from '$utils/http';
   import { onMount } from 'svelte';
   import Time from 'svelte-time/Time.svelte';
-    import InlineProfile from '../inline-profile.svelte';
+  import InlineProfile from '../inline-profile.svelte';
 
   export let data;
   let { token } = data;

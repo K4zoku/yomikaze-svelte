@@ -1,16 +1,69 @@
 <script lang="ts">
   import http from '$utils/http.js';
   import Sublayout from '$components/yomikaze/sublayout.svelte';
-  import { getRoleRequests } from '$utils/role-request-utils';
+  import {
+    approveRoleRequest,
+    rejectRoleRequest,
+    getRoleRequests
+  } from '$utils/role-request-utils';
   import type RoleRequest from '$models/RoleRequest';
-  import { onMount } from 'svelte';
+  import { getContext, onMount } from 'svelte';
+  import Time from 'svelte-time/Time.svelte';
+  import InlineProfile from '../reports/inline-profile.svelte';
+  import type { Writable } from 'svelte/store';
+  import type { ToastProps } from '~/routes/+layout.svelte';
 
   export let data;
   let { token } = data;
   http.defaults.headers.common.Authorization = 'Bearer ' + token;
 
   let roleRequests: RoleRequest[] = [];
+  let totalRequests: number = 0;
   let error: Error | null = null;
+
+  async function handleApproveRequest(id: string) {
+    try {
+      await approveRoleRequest(id);
+
+      roleRequests = roleRequests.map((request) =>
+        request.id === id ? { ...request, status: 'Approved' } : request
+      );
+
+      addToast('Role request has been successfully approved!');
+    } catch (err) {
+      error = err as Error;
+
+      addErrToast('Failed to approve role request.');
+    }
+  }
+
+  async function handleRejectRequest(id: string) {
+    try {
+      await rejectRoleRequest(id);
+      roleRequests = roleRequests.map((request) =>
+        request.id === id ? { ...request, status: 'Rejected' } : request
+      );
+      addToast('Role request has been successfully rejected!');
+    } catch (err) {
+      error = err as Error;
+      addErrToast('Failed to reject role request.');
+    }
+  }
+
+  const toasts = getContext<Writable<ToastProps[]>>('toasts');
+  function addToast(message: string) {
+    toasts.update((toasts) => [
+      ...toasts,
+      { message, color: 'alert-success', icon: 'lucide--circle-check-big' }
+    ]);
+  }
+
+  function addErrToast(message: string) {
+    toasts.update((toasts) => [
+      ...toasts,
+      { message, color: 'alert-error', icon: 'lucide--circle-x' }
+    ]);
+  }
 
   onMount(async () => {
     try {
@@ -26,70 +79,59 @@
     <!-- head -->
     <thead>
       <tr class="text-base font-medium">
-        <th>Detail</th>
-        <th>Time</th>
-        <th>Reporter</th>
+        <th>User</th>
+        <th>Role Current</th>
         <th>Reason</th>
+        <th>Time</th>
         <th>Status</th>
-        <th>Dismissal Reason</th>
         <th>Action</th>
       </tr>
     </thead>
     <tbody>
-      <!-- row 1 -->
-      <tr>
-        <!-- <td>
-            <a href="/comics/{report.chapter.comicId}/chapters/{report.chapter.number}">
-              <div class="flex gap-2">
-                src={report.comic.cover}
-                <Picture
-                  src="/"
-                  class="w-24 h-fit aspect-cover shrink-0"
-                  imgClass="w-24 h-fit aspect-cover boject-cover rounded-lg"
-                  useCdn={true}
-                ></Picture>
-  
-                <div class="flex flex-col justify-between">
-                  <div>
-                    <span class="font-bold text-ellipsis line-clamp-2 p-1">
-                      {report.comic.name}
-                    </span>
-                    <span class="text-sm text-ellipsis line-clamp-1">
-                      {report.comic.aliases}
-                    </span>
-                  </div>
-                  <div>
-                      <span>
-                          {report.comic.chapter}
-                      </span>
-                  </div>
-                  <span class="text-ellipsis line-clamp-1 italic">{report.comic.authors}</span>
-                </div>
-              </div>
-            </a>
-          </td> -->
-        <td>Cy Ganderton</td>
-        <td>Quality Control Specialist</td>
-        <td>
-          <!-- <InlineProfile profile={report.reporter} /> -->
-          Blue</td
-        >
-        <td>Blue</td>
-        <td
-          >Blue
-          <!-- <span
+      {#each roleRequests as request (request.id)}
+        <tr class="hover">
+          <td>
+            <InlineProfile profile={request.user} />
+          </td>
+
+          <td>
+            {#each request.user.roles as role}
+              <span class="badge badge-outline mx-1">{role} </span>
+            {/each}
+          </td>
+
+          <td>{request.reason}</td>
+          <td><Time timestamp={request.creationTime} relative /></td>
+          <td>
+            <span
               class="font-semibold badge badge-outline"
-              class:badge-warning={report.status === 'Pending'}
-              class:badge-success={report.status === 'Resolved'}
-              class:badge-error={report.status === 'Dismissed'}>{report.status}</span
-            > -->
-        </td>
-        <td>Blue</td>
-        <td
-          ><button class="btn btn-sm btn-success">1</button>
-          <button class="btn btn-sm btn-error">2</button></td
-        >
-      </tr>
+              class:badge-warning={request.status === 'Pending'}
+              class:badge-success={request.status === 'Approved'}
+              class:badge-error={request.status === 'Rejected'}
+            >
+              {request.status}</span
+            >
+          </td>
+          <td>
+            {#if request.status === 'Approved' || request.status === 'Rejected'}
+              <button class="btn btn-sm btn-accent" disabled> Approved </button>
+              <button class="btn btn-sm btn-error" disabled>Rejected</button>
+            {:else}
+              <button
+                on:click={() => handleApproveRequest(request.id)}
+                class="btn btn-sm btn-success"
+              >
+                Approve
+              </button>
+              <button on:click={() => handleRejectRequest(request.id)} class="btn btn-sm btn-error"
+                >Reject</button
+              >
+            {/if}
+          </td>
+        </tr>
+      {:else}
+        <span class="text-neutral italic">No request yet.</span>
+      {/each}
     </tbody>
   </table>
 </Sublayout>
