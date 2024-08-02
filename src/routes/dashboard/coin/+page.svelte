@@ -157,7 +157,9 @@
           <td>{coin.amount} coins</td>
           <td>{coin.price}$</td>
           <td>{coin.currency}</td>
-          <td> <Time timestamp={coin.creationTime} relative /></td>
+          <td>  <span>
+            Chapter {report.chapter.number}
+          </span></td>
           <td>
             <div class="flex gap-2">
               <button class="btn btn-sm" on:click={() => openEditModal(coin)}>Edit</button>
