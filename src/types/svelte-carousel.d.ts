@@ -58,10 +58,6 @@ declare module "svelte-carousel" {
        * Number of elements to scroll
        */
       particlesToScroll?: number;
-
-      goToNext: () => void;
-
-      goToPrev: () => void;
     }
   
     interface CarouselEvents {

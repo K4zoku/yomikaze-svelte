@@ -10,16 +10,13 @@ export async function load({ data }) {
     .then(normalizeComic)
     .catch(e => { throw error(e.response.status, e.response.statusText); });
     const chapters = await getChapters(data.comicId, data.token);
-    // const comments = getComments(data.comicId);
     const tagCategories = await getTagCategories().catch(() => []);
     let resutls = {...data, comic, chapters, tagCategories};
     if (data.token) {
         const libraryManager = new LibraryManagement(data.token);
-        const libraryEntry = libraryManager.getEntry(data.comicId).catch(() => null);
         return {
             ...resutls,
             libraryManager,
-            libraryEntry
         }
     }
     return {

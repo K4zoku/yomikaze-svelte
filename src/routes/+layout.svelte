@@ -21,13 +21,73 @@
   import type Comic from '$models/Comic';
   import type Profile from '$models/Profile';
   import { debounce } from '$utils/common';
-  import { onDestroy, setContext } from 'svelte';
+  import { onDestroy, onMount, setContext } from 'svelte';
   import { writable, type Writable } from 'svelte/store';
 
   import Toast from '$components/daisyui/toast.svelte';
   import http from '$utils/http';
   import type { LayoutData } from './$types';
 
+  import { initializeApp } from 'firebase/app';
+  import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+  const firebaseConfig = {
+    apiKey: 'AIzaSyAwyUISr1yPSHVjaZ6wXaioAzyTyJcjboQ',
+    authDomain: 'yomikaze-fcm.firebaseapp.com',
+    projectId: 'yomikaze-fcm',
+    storageBucket: 'yomikaze-fcm.appspot.com',
+    messagingSenderId: '664668404741',
+    appId: '1:664668404741:web:1e0d145913810d9c97306c'
+  };
+  const vapidKey =
+    'BF5hvOgZKv26Q7BmwhPglOfYpIGcn1AY6WqD-gQsC8j-lfQaI6RgxnMxffEwnSoNpz7tFuK0O-wvKt_-endRW-g';
+  import { dev } from '$app/environment';
+
+  onMount(async () => {
+    const app = initializeApp(firebaseConfig);
+    const messaging = getMessaging(app);
+
+    onMessage(messaging, function (payload) {
+      console.log('Received Notification:', payload);
+      // refresh or do something here...
+    });
+    const broadcast = new BroadcastChannel('yomikaze-worker');
+    broadcast.onmessage = (event) => {
+      if (event.data && event.data.type === 'notification') {
+        console.log('Received Notification from worker:', event.data);
+        alert('Received Notification from worker');
+        // refresh or do something here
+      }
+    };
+    async function registerToken() {
+      const serviceWorkerRegistration = await navigator.serviceWorker.register('/service-worker.js', {
+        type: dev ? 'module' : 'classic'
+      });
+      const options = {
+        vapidKey,
+        serviceWorkerRegistration
+      };
+      const token = await getToken(messaging, options);
+      console.log('Token', token);
+    }
+    function grantedCallback() {
+      console.log('Notification permission granted');
+      registerToken();
+    }
+    function requestPermission() {
+      if (!('Notification' in window)) {
+        console.warn('This browser does not support notification!');
+      } else if (Notification.permission === 'granted') {
+        grantedCallback();
+      } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission().then((permission) => {
+          if (permission === 'granted') {
+            grantedCallback();
+          }
+        });
+      }
+    }
+    requestPermission();
+  });
   export let data: LayoutData;
   const user: Writable<Profile | null> = writable();
   const token: Writable<string | null> = writable();
@@ -40,9 +100,9 @@
   if (localStorage.getItem('token')) {
     token.set(localStorage.getItem('token'));
   }
-  
+
   const toasts = writable<ToastProps[]>([]);
-  setContext("toasts", toasts);
+  setContext('toasts', toasts);
   function addSuccessToast(message: string, duration: number = 5000) {
     toasts.update((toasts) => [
       ...toasts,
@@ -199,7 +259,9 @@
                   <a href="/shop" class:active={path === '/shop'}> Coins Shop </a>
                 </li>
                 <li>
-                  <a href="/dashboard/withdrawals" class:active={path === '/dashboard/withdrawals'}> Withdrawal </a>
+                  <a href="/dashboard/withdrawals" class:active={path === '/dashboard/withdrawals'}>
+                    Withdrawal
+                  </a>
                 </li>
               </ul>
             </details>
@@ -347,7 +409,8 @@
                 </label>
                 <button class="hidden" type="submit"></button>
               </form>
-              <div role="dialog"
+              <div
+                role="dialog"
                 class="dropdown-content mt-4 w-full max-h-96 overflow-y-scroll bg-base-200 rounded shadow-lg"
                 on:mouseenter={() => (searchResultsHovering = true)}
                 on:mouseleave={() => (searchResultsHovering = false)}
@@ -362,7 +425,9 @@
                   {#await searchResults}
                     {#each { length: 5 } as _}
                       <li>
-                        <div class="flex items-center max-w-full gap-2 p-2 bg-base-100 h-fit shadow-sm">
+                        <div
+                          class="flex items-center max-w-full gap-2 p-2 bg-base-100 h-fit shadow-sm"
+                        >
                           <div class="w-12 h-16 aspect-cover rounded-lg shrink-0 skeleton"></div>
                           <div class="flex flex-col grow w-full gap-1 justify-between">
                             <div class="h-4 w-4/5 skeleton"></div>
@@ -386,7 +451,9 @@
                             imgClass="rounded object-cover w-full h-full"
                           />
                           <div class="flex flex-col gap-1 justify-between">
-                            <div class="text-lg font-bold text-ellipsis max-h-full line-clamp-2 grow">
+                            <div
+                              class="text-lg font-bold text-ellipsis max-h-full line-clamp-2 grow"
+                            >
                               {comic.name}
                             </div>
                             <div class="text-sm shrink-0">{comic.authors.join(', ')}</div>

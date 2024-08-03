@@ -424,9 +424,9 @@
               title="Read Chapter {chapter.number}"
               class="flex justify-start btn btn-block no-animation"
             >
-              <span>
+              <span class="shrink-0">
                 {#if chapter.hasLock}
-                  {#if chapter.isUnlocked}
+                  {#if chapter.isUnlocked || currentUser?.id === comic.publisher.id}
                     <Icon icon="lucide--lock-open" class="text-xl text-success" />
                   {:else}
                     <Icon icon="lucide--lock" class="text-xl text-error" />
@@ -435,22 +435,29 @@
                   <Icon icon="lucide--lock-open" class="text-xl text-neutral" />
                 {/if}
               </span>
-              <div class="flex gap-2 grow">
+              <span class="flex gap-2 grow">
                 #{chapter.number + 1} - {chapter.name}
-              </div>
-              <div class="flex gap-6">
-                <div class="flex gap-1 items-center">
+              </span>
+              <!-- Pricing -->
+              {#if chapter.hasLock && !chapter.isUnlocked}
+                <span class="flex gap-1 items-center badge text-warning">
+                  <Icon icon="la--coins" class="text-lg" />
+                  <span>{chapter.price} coin{chapter.price > 1 ? 's' : ''}</span>
+                </span>
+              {/if}
+              <div class="flex gap-6 basis-3/12">
+                <div class="flex gap-1 items-center basis-2/3">
                   <Icon icon="lucide--clock" class="text-lg" />
                   <Time timestamp={chapter.creationTime} relative />
                 </div>
-                <div class="flex flex-col justify-between">
+                <div class="flex flex-col justify-between basis-1/3">
                   <div class="flex gap-1 items-center">
                     <Icon icon="lucide--eye" class="text-lg" />
-                    <span>{chapter.views}</span>
+                    <span>{formatNumber(chapter.views)}</span>
                   </div>
                   <div class="flex gap-1 items-center">
                     <Icon icon="lucide--message-square" class="text-lg" />
-                    <span>{chapter.totalComments}</span>
+                    <span>{formatNumber(chapter.totalComments)}</span>
                   </div>
                 </div>
               </div>
