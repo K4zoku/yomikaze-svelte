@@ -3,21 +3,18 @@
 /// <reference no-default-lib="true"/>
 /// <reference lib="esnext" />
 /// <reference lib="webworker" />
+
+const sw = self as unknown as ServiceWorkerGlobalScope;
+
+// firebase
 import { initializeApp } from "firebase/app";
 import { getMessaging, onBackgroundMessage } from "firebase/messaging/sw";
+import firebaseOptions from './firebase.json';
 
-const app = initializeApp({
-    apiKey: "AIzaSyAwyUISr1yPSHVjaZ6wXaioAzyTyJcjboQ",
-    authDomain: "yomikaze-fcm.firebaseapp.com",
-    projectId: "yomikaze-fcm",
-    storageBucket: "yomikaze-fcm.appspot.com",
-    messagingSenderId: "664668404741",
-    appId: "1:664668404741:web:1e0d145913810d9c97306c"
-});
+const app = initializeApp(firebaseOptions);
 const messaging = getMessaging(app);
 
 const broadcast = new BroadcastChannel('yomikaze-worker');
-const sw = self as unknown as ServiceWorkerGlobalScope;
 
 onBackgroundMessage(messaging, payload => {
     console.log("Received push notification", payload);

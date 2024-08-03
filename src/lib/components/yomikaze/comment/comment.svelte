@@ -26,7 +26,6 @@
   }
   onMount(() => {
     comicId ||= (parentComment ? parentComment.comicId : comment.comicId) ?? '0';
-    console.log('comicId', comicId);
   });
   let editing = false;
   let newContent = '';
@@ -251,7 +250,7 @@
             </div>
           {:else}
             <div class="prose">
-              {@html insane(marked(comment.content))}
+              {@html insane(marked(comment.content).toString())}
               <!-- {comment.content} -->
             </div>
           {/if}

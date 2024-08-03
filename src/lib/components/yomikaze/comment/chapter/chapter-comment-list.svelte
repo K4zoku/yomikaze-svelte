@@ -19,9 +19,7 @@
     pagination: PaginationModel
   ) => {
     pagination ??= { page: 1, size: 3 };
-    let result = await commentManager.getComments(comicId, chapterNumber, { page: pagination.page, size: 3 });
-    console.log(result);
-    return result;
+    return await commentManager.getComments(comicId, chapterNumber, { page: pagination.page, size: 3 });
   };
   export let currentPage = 1;
 

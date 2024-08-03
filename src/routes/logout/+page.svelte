@@ -2,6 +2,8 @@
     import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
     onMount(async () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('fcmToken');
         await goto('/', { invalidateAll: true });
     });
 </script>

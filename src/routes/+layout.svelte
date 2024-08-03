@@ -30,64 +30,76 @@
 
   import { initializeApp } from 'firebase/app';
   import { getMessaging, getToken, onMessage } from 'firebase/messaging';
-  const firebaseConfig = {
-    apiKey: 'AIzaSyAwyUISr1yPSHVjaZ6wXaioAzyTyJcjboQ',
-    authDomain: 'yomikaze-fcm.firebaseapp.com',
-    projectId: 'yomikaze-fcm',
-    storageBucket: 'yomikaze-fcm.appspot.com',
-    messagingSenderId: '664668404741',
-    appId: '1:664668404741:web:1e0d145913810d9c97306c'
-  };
-  const vapidKey =
-    'BF5hvOgZKv26Q7BmwhPglOfYpIGcn1AY6WqD-gQsC8j-lfQaI6RgxnMxffEwnSoNpz7tFuK0O-wvKt_-endRW-g';
+  import firebaseConfig from '~/firebase.json';
+  import { PUBLIC_FIREBASE_VAPID_KEY } from '$env/static/public';
   import { dev } from '$app/environment';
+  import type NotificationModel from '$models/Notification';
+  import Time from 'svelte-time/Time.svelte';
 
-  onMount(async () => {
-    const app = initializeApp(firebaseConfig);
-    const messaging = getMessaging(app);
+  const vapidKey = PUBLIC_FIREBASE_VAPID_KEY;
 
-    onMessage(messaging, function (payload) {
-      console.log('Received Notification:', payload);
-      // refresh or do something here...
-    });
-    const broadcast = new BroadcastChannel('yomikaze-worker');
-    broadcast.onmessage = (event) => {
-      if (event.data && event.data.type === 'notification') {
-        console.log('Received Notification from worker:', event.data);
-        alert('Received Notification from worker');
-        // refresh or do something here
-      }
-    };
-    async function registerToken() {
-      const serviceWorkerRegistration = await navigator.serviceWorker.register('/service-worker.js', {
-        type: dev ? 'module' : 'classic'
-      });
-      const options = {
-        vapidKey,
-        serviceWorkerRegistration
-      };
-      const token = await getToken(messaging, options);
-      console.log('Token', token);
-    }
-    function grantedCallback() {
-      console.log('Notification permission granted');
-      registerToken();
-    }
-    function requestPermission() {
-      if (!('Notification' in window)) {
-        console.warn('This browser does not support notification!');
-      } else if (Notification.permission === 'granted') {
-        grantedCallback();
-      } else if (Notification.permission !== 'denied') {
-        Notification.requestPermission().then((permission) => {
-          if (permission === 'granted') {
-            grantedCallback();
-          }
-        });
-      }
-    }
-    requestPermission();
+  const app = initializeApp(firebaseConfig);
+  const messaging = getMessaging(app);
+
+  onMessage(messaging, function (payload) {
+    console.log('Received Notification: ', payload);
+    loadNotifications();
   });
+  const broadcast = new BroadcastChannel('yomikaze-worker');
+  broadcast.onmessage = (event) => {
+    if (event.data && event.data.type === 'notification') {
+      console.log('Received Notification from worker:', event.data);
+      loadNotifications();
+    }
+  };
+  async function registerToken() {
+    const serviceWorkerRegistration = await navigator.serviceWorker.register('/service-worker.js', {
+      type: dev ? 'module' : 'classic'
+    });
+    const options = {
+      vapidKey,
+      serviceWorkerRegistration
+    };
+    const fcmToken = await getToken(messaging, options);
+    localStorage.setItem('fcm', fcmToken);
+    const formData = new FormData();
+    formData.set('fcmToken', fcmToken);
+    await http.post('/notification/subscribe', formData, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Authorization: $token ? `Bearer ${$token}` : undefined
+      }
+    });
+  }
+  async function requestPermission() {
+    if (!('Notification' in window)) {
+      console.warn('This browser does not support notification!');
+      return;
+    }
+    if (Notification.permission === 'granted') {
+      registerToken();
+    } else if (Notification.permission !== 'denied') {
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        registerToken();
+      }
+    }
+  }
+
+  let notifications: NotificationModel[] = [];
+
+  async function loadNotifications() {
+    const response = await http.get('/notification', {
+      headers: {
+        Authorization: $token ? `Bearer ${$token}` : undefined
+      }
+    });
+    notifications = response.data;
+  }
+  onMount(() => {
+    loadNotifications();
+  });
+
   export let data: LayoutData;
   const user: Writable<Profile | null> = writable();
   const token: Writable<string | null> = writable();
@@ -483,13 +495,28 @@
           <div class="flex gap-4 items-center pe-2">
             {#if !!$token}
               <details class="dropdown dropdown-end">
-                <summary class="btn btn-circle">
+                <summary class="btn btn-circle" on:click={() => requestPermission()}>
                   <Icon icon="lucide--bell" class="text-2xl" />
                 </summary>
                 <div
-                  class="dropdown-content bg-base-100 mt-2 rounded z-[1] w-80 min-h-16 p-2 shadow flex flex-col justify-center items-center"
+                  class="dropdown-content bg-base-200 mt-2 rounded z-[1] w-80 min-h-16 p-2 shadow flex justify-center items-center"
                 >
-                  <div></div>
+                  <div class="flex flex-col gap-2 max-h-64 overflow-y-scroll">
+                    {#each notifications as notification (notification.id)}
+                      <div class="flex flex-col gap-1 w-full bg-base-100 rounded p-2">
+                        <div class="text-sm font-medium">
+                          {notification.title}
+                        </div>
+                        <div class="text-xs">
+                          {notification.content}
+                        </div>
+                        <div class="flex gap-1 justify-end text-xs">
+                          <Icon icon="lucide--clock" class="text-sm" />
+                          <Time timestamp={notification.creationTime} relative />
+                        </div>
+                      </div>
+                    {/each}
+                  </div>
                 </div>
               </details>
             {/if}
