@@ -1,17 +1,16 @@
 <script lang="ts">
-  import Icon from '$components/icon.svelte';
   import http from '$utils/http';
-  import Picture from '$components/picture.svelte';
   import Time from 'svelte-time/Time.svelte';
   import { onMount } from 'svelte';
   import Sublayout from '$components/yomikaze/sublayout.svelte';
   import InlineProfile from '../reports/inline-profile.svelte';
+  import type { Withdrawal } from '$models/Withdrawal';
 
   export let data;
   let { token } = data;
   http.defaults.headers.common.Authorization = 'Bearer ' + token;
 
-  let withdrawals = [];
+  let withdrawals: Array<Withdrawal> = [];
 
   async function getProfile(userId: string) {
     try {
@@ -27,7 +26,6 @@
     try {
       const response = await http.get('/withdrawal');
       let w = response.data.results || [];
-      // console.log(withdrawals);
 
       withdrawals = await Promise.all(
         w.map(async (withdrawal: any) => {
@@ -35,7 +33,7 @@
           return {
             ...withdrawal,
             profile: profile || {
-              avatar: 'default-avatar-url', // URL avatar mặc định
+              avatar: 'default-avatar-url',
               name: 'Unknown'
             },
             isUpdating: withdrawal.status !== 'Pending'
@@ -47,28 +45,37 @@
     }
   }
 
-  async function updateStatus(withdrawalId: string, status: string) {
+  async function approveWithdrawal(withdrawalId: string) {
     try {
-      const response = await http.patch(`/withdrawal/${withdrawalId}`, [
-        {
-          value: status,
-          path: '/status',
-          op: 'replace',
-          from: ''
-        }
-      ]);
+      const response = await http.put(`/withdrawal/${withdrawalId}/approve`);
       console.log(response.data);
 
-      // Cập nhật trạng thái trong withdrawals
       let index = withdrawals.findIndex((w) => w.id === withdrawalId);
       withdrawals[index] = {
         ...withdrawals[index],
-        status: status,
-        isUpdating: true // Đặt cờ để vô hiệu hóa nút
+        status: 'Approved',
+        isUpdating: true
       };
-      withdrawals = withdrawals; //trigger reactive
+      withdrawals = withdrawals; // trigger reactive update
     } catch (err) {
-      console.error('Error updating withdrawal status:', err);
+      console.error('Error approving withdrawal:', err);
+    }
+  }
+
+  async function rejectWithdrawal(withdrawalId: string) {
+    try {
+      const response = await http.put(`/withdrawal/${withdrawalId}/reject`);
+      console.log(response.data);
+
+      let index = withdrawals.findIndex((w) => w.id === withdrawalId);
+      withdrawals[index] = {
+        ...withdrawals[index],
+        status: 'Rejected',
+        isUpdating: true
+      };
+      withdrawals = withdrawals; // trigger reactive update
+    } catch (err) {
+      console.error('Error rejecting withdrawal:', err);
     }
   }
 
@@ -102,30 +109,30 @@
           <td><Time timestamp={withdrawal.creationTime} relative /> </td>
           <td
             ><span
-              class="font-semibold"
-              class:text-warning={withdrawal.status === 'Pending'}
-              class:text-success={withdrawal.status === 'Approved'}
-              class:text-error={withdrawal.status === 'Rejected'}>{withdrawal.status}</span
+              class="font-semibold badge badge-outline"
+              class:badge-warning={withdrawal.status === 'Pending'}
+              class:badge-success={withdrawal.status === 'Approved'}
+              class:badge-error={withdrawal.status === 'Rejected'}>{withdrawal.status}</span
             ></td
           >
-          <td >
+          <td>
             <div class="flex gap-2">
               {#if !withdrawal.isUpdating}
                 <button
                   class="btn btn-success btn-sm"
-                  on:click={() => updateStatus(withdrawal.id, 'Approved')}
+                  on:click={() => approveWithdrawal(withdrawal.id)}
                 >
                   Approve
                 </button>
                 <button
                   class="btn btn-error btn-sm"
-                  on:click={() => updateStatus(withdrawal.id, 'Rejected')}
+                  on:click={() => rejectWithdrawal(withdrawal.id)}
                 >
                   Reject
                 </button>
               {:else}
-                <button class="btn btn-disabled btn-sm" disabled> Approve </button>
-                <button class="btn btn-disabled btn-sm" disabled> Reject </button>
+                <button class="btn btn-disabled btn-sm" disabled> Approved </button>
+                <button class="btn btn-disabled btn-sm" disabled> Rejected </button>
               {/if}
             </div>
           </td>

@@ -1,12 +1,14 @@
 <script lang="ts">
   import http from '$lib/utils/http';
-  import { onMount, tick } from 'svelte';
+  import { getContext, onMount, tick } from 'svelte';
   import type ComicReport from '$models/ComicReport';
   import Time from 'svelte-time/Time.svelte';
   import Sublayout from '$components/yomikaze/sublayout.svelte';
   import Picture from '$components/picture.svelte';
   import InlineProfile from '../inline-profile.svelte';
   import type { Reason } from '$models/Reason';
+    import type { Writable } from 'svelte/store';
+    import type { ToastProps } from '~/routes/+layout.svelte';
 
   export let data;
   let { token } = data;
@@ -53,6 +55,7 @@
     try {
       await http.delete(`/reports/comic/${id}`);
       comicReports = comicReports.filter((report) => report.id !== id);
+      addToast('Delete comic successful.')
       deleteModal.close();
     } catch (error) {
       console.log(error);
@@ -68,6 +71,7 @@
           op: 'replace'
         }
       ]);
+      addToast('Update status successfull.')
       await getComicReports();
     } catch (error) {
       console.log(error);
@@ -90,6 +94,7 @@
       ]);
       await getComicReports();
       dismissalReason = '';
+      addToast('Update status successfull.')
       dismissModal.close();
     } catch (error) {
       console.log(error);
@@ -107,6 +112,21 @@
     comicCover = report.comic.cover;
     reportDetails = report;
     deleteModal.showModal();
+  }
+
+  const toasts = getContext<Writable<ToastProps[]>>('toasts');
+  function addToast(message: string) {
+    toasts.update((toasts) => [
+      ...toasts,
+      { message, color: 'alert-success', icon: 'lucide--circle-check-big' }
+    ]);
+  }
+
+  function addErrToast(message: string) {
+    toasts.update((toasts) => [
+      ...toasts,
+      { message, color: 'alert-error', icon: 'lucide--circle-x' }
+    ]);
   }
 
   onMount(() => {
