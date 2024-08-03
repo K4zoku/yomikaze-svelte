@@ -6,16 +6,21 @@
   import Sublayout from '$components/yomikaze/sublayout.svelte';
   import Picture from '$components/picture.svelte';
   import InlineProfile from '../inline-profile.svelte';
+  import type { Reason } from '$models/Reason';
 
   export let data;
   let { token } = data;
   http.defaults.headers.common.Authorization = 'Bearer ' + token;
 
   let comicReports: Array<ComicReport> = [];
+  let reasons: Array<Reason> = [];
+  let reportToDismiss: ComicReport | null = null;
   let deleteModal: HTMLDialogElement;
+  let dismissModal: HTMLDialogElement;
   let comicName = '';
-  let comicCover = '';
+  let comicCover: string = '';
   let comicId = '';
+  let dismissalReason: string = '';
   let reportToDelete: any = null;
   let reportDetails: ComicReport | null = null;
   let comicTotals: number;
@@ -30,8 +35,83 @@
     }
   }
 
+  async function getReasons() {
+    try {
+      const response = await http.get('/reports/comic/reasons');
+      reasons = response.data;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  function getReasonContent(reasonId: string): string {
+    const reason = reasons.find((r) => r.id === reasonId);
+    return reason ? reason.content : 'Unknown reason';
+  }
+
+  async function deleteReport(id: string) {
+    try {
+      await http.delete(`/reports/comic/${id}`);
+      comicReports = comicReports.filter((report) => report.id !== id);
+      deleteModal.close();
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async function resolveReport(reportId: string) {
+    try {
+      await http.patch(`/reports/comic/${reportId}`, [
+        {
+          value: 'Resolved',
+          path: '/status',
+          op: 'replace'
+        }
+      ]);
+      await getComicReports();
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async function dismissReport(reportId: string) {
+    try {
+      await http.patch(`/reports/comic/${reportId}`, [
+        {
+          value: 'Dismissed',
+          path: '/status',
+          op: 'replace'
+        },
+        {
+          value: dismissalReason,
+          path: '/dismissalReason',
+          op: 'replace'
+        }
+      ]);
+      await getComicReports();
+      dismissalReason = '';
+      dismissModal.close();
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  function openDismissModal(report: ComicReport) {
+    reportToDismiss = report;
+    dismissModal.showModal();
+  }
+
+  function openDeleteModal(report: ComicReport) {
+    reportToDelete = report;
+    comicName = report.comic.name;
+    comicCover = report.comic.cover;
+    reportDetails = report;
+    deleteModal.showModal();
+  }
+
   onMount(() => {
     getComicReports();
+    getReasons();
   });
 </script>
 
@@ -82,7 +162,7 @@
 
           <td><Time timestamp={report.creationTime} relative /></td>
           <td><InlineProfile profile={report.reporter} /> </td>
-          <td>reason</td>
+          <td>{getReasonContent(report.reasonId)}</td>
           <td>
             {#if report.description}
               {report.description}
@@ -111,13 +191,13 @@
           </td>
           <td>
             <div class="flex flex-wrap gap-2 justify-center">
-              <button class="btn btn-sm btn-success">
+              <button class="btn btn-sm btn-success" on:click={() => resolveReport(report.id)}>
                 <span>Resolve</span>
               </button>
-              <button class="btn btn-sm">
+              <button class="btn btn-sm" on:click={() => openDismissModal(report)}>
                 <span>Dismiss</span>
               </button>
-              <button class="btn btn-sm btn-error">
+              <button class="btn btn-sm btn-error" on:click={() => openDeleteModal(report)}>
                 <span>Delete</span>
               </button>
             </div>
@@ -139,15 +219,18 @@
   <div class="modal-box">
     <h3 class="text-xl font-bold">Are you sure you want to delete this comic?</h3>
     <div class="flex gap-2 pt-3">
-      <picture class="w-24 h-32 float-left"
-        ><source class="w-24 h-32" srcset={comicCover} />
-        <img class="float-left" src="https://placehold.co/84x120" alt="" />
-      </picture>
+      <Picture
+        src={comicCover}
+        class="w-fit h-40 aspect-cover shrink-0"
+        imgClass="w-fit h-40 aspect-cover boject-cover rounded-lg"
+        useCdn={true}
+      ></Picture>
       <div>
         <p>Comic: <strong>{comicName}</strong></p>
         {#if reportDetails}
-          <p>Reporter: {reportDetails.reporter.name}</p>
-          <p>Reason: {reportDetails.description}</p>
+          <p>Reporter: <strong>{reportDetails.reporter.name}</strong></p>
+          <p>Reason: <strong> {getReasonContent(reportDetails.reasonId)}</strong></p>
+          <p>Description: <strong>{reportDetails.description}</strong></p>
         {/if}
       </div>
     </div>
@@ -158,6 +241,35 @@
         on:click={() => {
           deleteReport(reportToDelete.id);
         }}>Confirm</button
+      >
+      <form method="dialog">
+        <button class="btn btn-sm">Cancel</button>
+      </form>
+    </div>
+  </div>
+</dialog>
+
+<!--! Dismiss Modal -->
+<dialog id="dismiss_modal" class="modal" bind:this={dismissModal}>
+  <div class="modal-box">
+    <h3 class="text-xl font-bold">Enter dismissal reason for this comic report</h3>
+    <div class="flex gap-2 pt-3">
+      <textarea
+        bind:value={dismissalReason}
+        class="textarea textarea-accent w-full resize-none"
+        placeholder="Enter dismissal reason ..."
+        rows="4"
+      ></textarea>
+    </div>
+
+    <div class="modal-action">
+      <button
+        class="btn btn-warning btn-sm"
+        on:click={() => {
+          if (reportToDismiss) {
+            dismissReport(reportToDismiss.id, dismissalReason);
+          }
+        }}>Dismiss</button
       >
       <form method="dialog">
         <button class="btn btn-sm">Cancel</button>

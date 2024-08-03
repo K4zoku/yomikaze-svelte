@@ -7,7 +7,9 @@ export default interface ComicReport extends Model{
     images: string;
     categoryId: string;
     reporterId: string;
+    reasonId: string;
     reason: string;
+    dismissalReason: string;
     status: string;
     readonly comic: Comic;
     readonly reporter: Profile;
