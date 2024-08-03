@@ -1,12 +1,8 @@
 <script lang="ts">
   import http from '$lib/utils/http';
-  import { goto } from '$app/navigation';
   import { getContext, onMount } from 'svelte';
   import type Comic from '$models/Comic';
-  import type { AxiosError } from 'axios';
   import Sublayout from '$components/yomikaze/sublayout.svelte';
-  import ComicCardDetails from '$components/yomikaze/common/comic/comic-card-details.svelte';
-  import Icon from '$components/icon.svelte';
   import Picture from '$components/picture.svelte';
   import Time from 'svelte-time/Time.svelte';
   import InlineProfile from '../../reports/inline-profile.svelte';
@@ -28,7 +24,7 @@
 
   const getComics = async (size = 1000) => {
     try {
-      const response = await http.get('/comics?status=OnGoing', {
+      const response = await http.get('/comics?status=Pending', {
         params: {
           Size: size
         }
@@ -175,8 +171,10 @@
             </div>
           </td>
         </tr>
-      {:else}
-        <span class="text-neutral italic"></span>
+        {:else}
+        <tr>
+          <td colspan="5" class="text-center text-neutral italic">No comics need approval.</td>
+        </tr>
       {/each}
     </tbody>
   </table>
