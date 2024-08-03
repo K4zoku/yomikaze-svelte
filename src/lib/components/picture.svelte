@@ -47,23 +47,23 @@
   {#await loadImage(src)}
     <slot name="loading">
       <div class={$$props.class ? $$props.class : ''}>
-        <div class="flex justify-center items-center bg-base-200 {imgClass}">
+        <div class="flex justify-center items-center {imgClass}">
           <span class="loading loading-dots"></span>
         </div>
       </div>
     </slot>
   {:then src}
-    <picture class={$$props.class ? $$props.class : ''} data-src={src}>
-      <source class={imgClass} srcset={src} />
+    <picture class={$$props.class ? $$props.class : ''} data-src={src} draggable="false">
+      <source class={imgClass} srcset={src} draggable="false"/>
       <slot name="fallback">
-        <img class={imgClass} src="/images/default.svg" alt="" />
+        <img class={imgClass} src="/images/default.svg" alt="" draggable="false"/>
       </slot>
     </picture>
   {:catch}
     <slot name="error">
-      <picture class={$$props.class ? $$props.class : ''} data-src={src}>
-        <source class={imgClass} src="/images/broken-image.svg" type="image/svg+xml" />
-        <img class={imgClass} src="/images/broken-image@2x.png" alt="" />
+      <picture class={$$props.class ? $$props.class : ''} data-src={src} draggable="false">
+        <source class={imgClass} src="/images/broken-image.svg" type="image/svg+xml" draggable="false"/>
+        <img class={imgClass} src="/images/broken-image@2x.png" alt="" draggable="false"/>
       </picture>
     </slot>
   {/await}

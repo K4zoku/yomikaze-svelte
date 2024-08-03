@@ -4,14 +4,14 @@
 +  [x] Coin shop
    +  [ ] Payment success toast
 + [ ] View Chapter
-  + [ ] Comments modal
+  + [x] Comments modal
   + [x] Report modal
   + [ ] Reading mode
     + [x] Long strip
     + [ ] Single page
-  + [ ] Navigation
-    + [ ] Chapters navigation
-    + [ ] Pages navigation
+  + [x] Navigation
+    + [x] Chapters navigation
+    + [x] Pages navigation
   + [x] Unlock modal
     + [ ] Toast
     + [ ] View current balance

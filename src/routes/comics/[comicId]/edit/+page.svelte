@@ -16,6 +16,7 @@
   import Sortable, { type SortableEvent } from 'sortablejs';
   import { getContext, onDestroy, onMount, tick } from 'svelte';
   import type { PageData } from './$types';
+    import { slide } from 'svelte/transition';
 
   export let data: PageData;
   let { token, categorizedTags, chapters } = data;
@@ -219,6 +220,8 @@
     chaptersDeletePatch.push({ op: 'remove', path: `/chapters/${chapter.number}` });
     chapterDeleteModal.close();
   }
+
+  let showChapters = false;
 </script>
 
 <Sublayout pageName="Edit comic {data.comic.name}">
@@ -607,8 +610,15 @@
     <!-- Chapters -->
     <div class="flex flex-col gap-2 min-w-[0]">
       <span class="font-medium">Chapters</span>
-      <a href="/comics/{comic.id}/chapters/create" class="btn">Add new chapter</a>
-      <div bind:this={chapterList} class="flex flex-col gap-2 w-full items-center">
+      <a href="/comics/{comic.id}/chapters/create" class="btn btn-accent">
+        <Icon icon="lucide--plus-square" class="text-xl" />
+        Add new chapter
+      </a>
+      <button type="button" class="btn" on:click={() => showChapters = !showChapters}>
+        {showChapters ? 'Hide' : 'Show'} chapters
+      </button>
+      {#if showChapters}
+      <div in:slide out:slide bind:this={chapterList} class="flex flex-col gap-2 w-full items-center">
         {#each chaptersCopy as chapter (chapter.id)}
           <div
             class="flex items-center justify-between w-full btn-ghost p-2 rounded bg-base-200"
@@ -635,6 +645,7 @@
           </div>
         {/each}
       </div>
+      {/if}
     </div>
 
     <!-- Actions -->
@@ -677,7 +688,7 @@
         Confirm
       </button>
       <form method="dialog">
-        <button class="btn btn-sm" on:click={() => (chapterToDelete = null)}>Cancel</button>
+        <button class="btn btn-sm">Cancel</button>
       </form>
     </div>
   </div>

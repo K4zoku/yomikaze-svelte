@@ -280,7 +280,7 @@
 
     if (isCurrentPasswordValid && isNewPasswordValid && isConfirmPasswordValid) {
       try {
-        await changePassword(currentPassword, newPassword, token);
+        await changePassword(currentPassword, newPassword, token as string);
         addToast('Password changed successfully!');
         changePasswordModal.close();
         dispatch('passwordChanged');
@@ -408,7 +408,7 @@
     </div>
   </div>
 </div>
-<div class="container">
+<div class="container mb-16">
   <div class="flex gap-8">
     <div class="flex flex-col mt-12 gap-2 w-1/6 shrink-0">
       <a
@@ -634,7 +634,12 @@
       <h3 class="text-lg font-bold flex">Edit Profile</h3>
       <div class="form-control">
         <label class="label" for="name">Name</label>
-        <input id="name" type="text" bind:value={name} class="input input-bordered focus:input-accent" />
+        <input
+          id="name"
+          type="text"
+          bind:value={name}
+          class="input input-bordered focus:input-accent"
+        />
       </div>
       <!-- <div class="form-control">
         <label class="label" for="avatar">Avatar</label>
@@ -672,7 +677,11 @@
 
       <div class="form-control">
         <label class="label" for="bio">Bio</label>
-        <textarea id="bio" bind:value={bio} class="textarea textarea-bordered focus:textarea-accent resize-none" rows="4"
+        <textarea
+          id="bio"
+          bind:value={bio}
+          class="textarea textarea-bordered focus:textarea-accent resize-none"
+          rows="4"
         ></textarea>
       </div>
 

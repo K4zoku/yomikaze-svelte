@@ -1,267 +1,282 @@
 <script lang="ts">
+  import { goto } from '$app/navigation';
+  import Icon from '$components/icon.svelte';
   import Picture from '$components/picture.svelte';
-  import ComicStatus from '$components/yomikaze/common/comic/comic-status.svelte';
   import Sublayout from '$components/yomikaze/sublayout.svelte';
+  import type Chapter from '$models/Chapter';
   import type { ChapterCreate } from '$models/Chapter';
-  import chapterManagement from '$utils/chapter-utils';
-  import httpImage from '$utils/httpImage';
+  import http from '$utils/http';
+  import { uploadImage } from '$utils/image-utils';
   import { SortableList } from '@jhubbardsf/svelte-sortablejs';
-  import { onMount } from 'svelte';
-  export let data;
+  import type { SortableEvent } from 'sortablejs';
+  import { getContext } from 'svelte';
+  import type { PageData } from './$types';
+
+  export let data: PageData;
+
   let { token, comicId, comic } = data;
-  let pageName = 'Create Chapter';
-  let postChapter = new chapterManagement(token, comicId);
-  let images: Array<string> = [];
-  let imageUrl: string;
-  let chapterData: ChapterCreate = {
-    number: comic.totalChapters + 1,
-    name: '',
-    pages: [] as Array<string>,
-    price: 0,
+  $: ({ comicId, comic, token } = data);
+  $: http.defaults.headers.common.Authorization = `Bearer ${token}`;
+
+  const DEFAULTS: ChapterCreate = {
+    name: 'Chapter ',
+    number: comic.totalChapters ?? 0,
+    pages: [] as string[],
+    price: 0
   };
-  function handleChange(event) {
-    chapterData.price = event.target.value;
+  DEFAULTS.name = `Chapter ${DEFAULTS.number}`;
+
+  let chapter: ChapterCreate = { ...DEFAULTS };
+
+  let guideLines: HTMLDivElement;
+  let pages: { url: string; uploading: boolean; input: HTMLInputElement }[] = [];
+
+  async function onPageEditChangeFile(index: number) {
+    const page = pages[index];
+    if (!page.input.files || page.input.files.length === 0) return;
+    const file = page.input.files[0];
+    page.url = URL.createObjectURL(file);
+    page.uploading = true;
+    page.url = await uploadImage(file);
+    page.uploading = false;
   }
-  function scrollToGuide() {
-    const element = document.getElementById('guide-element');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+
+  async function onChooseFiles(event: Event & { currentTarget: HTMLInputElement }) {
+    const input = event.currentTarget;
+    const files = input.files;
+    if (!files || files.length === 0) return;
+    const promises: Promise<string>[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const url = URL.createObjectURL(file);
+      pages.push({ url, uploading: true, sortedIndex: i } as any);
+      const promise = uploadImage(file);
+      promises.push(promise);
+    }
+    pages = pages; // trigger reactivity
+    const result = await Promise.all(promises); // wait for all uploads to finish
+    pages = result.map((url) => ({ url, uploading: false }) as any); // update pages with uploaded urls
+  }
+
+  function onSortEnd(event: SortableEvent) {
+    const { newIndex, oldIndex } = event;
+    if (oldIndex === newIndex || oldIndex === undefined || newIndex === undefined) return;
+    const [moved] = pages.splice(oldIndex, 1);
+    pages.splice(newIndex, 0, moved);
+    pages = pages; // trigger reactivity
+  }
+
+  const addSuccessToast = getContext<(message: string) => void>('addSuccessToast');
+  const addErrorToast = getContext<(message: string) => void>('addErrorToast');
+
+  async function createChapter() {
+    chapter.pages = pages.map((page) => page.url);
+    try {
+      const response = await http.post(`/comics/${comicId}/chapters`, chapter);
+      addSuccessToast('Chapter created successfully');
+      return response.data as Chapter;
+    } catch (error) {
+      addErrorToast('Failed to create chapter');
+      return false;
     }
   }
-  // async function getComicInfor() {
-  //   comicInformation = getComic(comicId,token);
-  //   console.log(comicInformation)
-  // }
-  async function uploadImage(file, comicId: string) {
-    if (typeof comicId !== 'string') {
-      comicId = String(comicId);
+
+  async function handleSubmit() {
+    const createdChapter = await createChapter();
+    if (!createdChapter) return;
+    if (!continueAdding) {
+      goto(`/comics/${comicId}/chapters/${createdChapter.number}`);
+      return;
     }
-    let formData = new FormData();
-    formData.set('File', file);
-    formData.set('ComicId', comicId);
-    let response = await httpImage.post('/images', formData);
-    if (response.status === 201) {
-      let imageUrl = response.data.images[0];
-      return imageUrl;
-    } else {
-      console.log(response.status, response.data);
-      console.log(comicId);
-    }
+
+    continueAdding = false;
+    DEFAULTS.number = createdChapter.number + 1;
+    DEFAULTS.name = `Chapter ${DEFAULTS.number}`;
+    DEFAULTS.pages = [];
+    console.log(DEFAULTS);
+    chapter = { ...DEFAULTS };
+    pages = [];
   }
-  async function createChapterFinal() {
-    await postChapter
-      .createChapter(chapterData)
-      .then((response) => {
-        alert('create successfully!');
-      })
-      .catch((error) => alert('Create fail!'));
-  }
-  // Xử lý sự kiện khi người dùng chọn tệp hình ảnh
-  async function handleFileUpload(event: Event) {
-    if (
-      (event.target as HTMLInputElement).files &&
-      (event.target as HTMLInputElement).files.length
-    ) {
-      const files = event.target.files; // Lấy danh sách các tệp tin từ sự kiện
 
-      if (files.length > 0) {
-        for (const file of files) {
-          let image = await uploadImage(file, comicId);
-
-          // Đọc nội dung tệp hình ảnh dưới dạng URL
-          const reader = new FileReader();
-          reader.onload = function (event) {
-            const imageUrl = image; // Lưu URL của hình ảnh vào biến imageUrl
-
-            // Thêm hình ảnh vào mảng images
-            images = [...images, imageUrl];
-          };
-
-          reader.readAsDataURL(file); // Đọc dữ liệu của tệp hình ảnh
-        }
-      }
-      chapterData.pages = images;
-    }
-  }
-  async function editFileUpload(event: Event) {
-    const file = event.target.files[0];
-
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const newImageUrl = e.target.result; // Lưu URL của ảnh mới vào biến newImageUrl
-
-        // Tìm và cập nhật URL của ảnh trong mảng images
-        const indexToUpdate = images.findIndex((imgUrl) => imgUrl === imageUrl);
-        if (indexToUpdate !== -1) {
-          images[indexToUpdate] = newImageUrl;
-        }
-
-        imageUrl = newImageUrl; // Cập nhật imageUrl để hiển thị ảnh mới
-      };
-      reader.readAsDataURL(file); // Đọc và chuyển đổi dữ liệu hình ảnh sang dạng URL
-    }
-  }
-  function removeImage(imageUrlToRemove: string) {
-    images = images.filter((imageUrl) => imageUrl !== imageUrlToRemove);
-  }
-  onMount(async () => {
-    console.log('thisis' + comic);
-  });
+  let continueAdding = false;
 </script>
 
-<svelte:head>
-  <title>{pageName}</title>
-</svelte:head>
-<Sublayout {pageName}>
-  {#await comic then comic}
-    <div class="flex justify-center">
-      <div class="ml-10 w-9/12 aspect-[20/6]">
-        <button on:click={scrollToGuide} class="btn btn-block bg-orange-500 hover:bg-orange-600">
-          <p class="text-white">Make sure to read the guidelines!</p>
-        </button>
-        <div class="mt-10">
-          <p class="text-xl font-bold">Details</p>
-        </div>
-        <div class="bg-base-200 flex items-center gap-3">
+<Sublayout pageName="Create new chapter">
+  <div class="flex flex-col gap-6 container-80">
+    <button
+      on:click={() => guideLines.scrollIntoView({ behavior: 'smooth' })}
+      class="btn btn-block btn-accent"
+    >
+      Make sure to read the guidelines!
+    </button>
+    <div class="flex flex-col gap-6">
+      <div class="flex flex-col gap-2">
+        <h2 class="font-header text-2xl font-semibold">Comic</h2>
+        <a
+          href="/comics/{comicId}"
+          class="flex items-start justify-start p-4 gap-4 bg-base-200 rounded h-40"
+        >
           <Picture
             src={comic.cover}
-            useCdn={true}
-            class="h-28 w-fit aspect-cover"
-            imgClass="rounded-md shadow object-contain w-full h-full"
-          ></Picture>
-          <div class="">
-            <p class="text-xl font-bold">{comic.name}</p>
-            <p class="text-sm mb-2">{comic.authors}</p>
-            <ComicStatus status={comic.status}></ComicStatus>
+            class="w-fit h-full aspect-cover rounded"
+            imgClass="w-full h-full aspect-cover object-cover rounded"
+          />
+          <div class="flex flex-col grow h-full justify-between items-start gap-2">
+            <h3
+              class="font-header text-xl font-semibold h-16 max-w-full text-ellipsis overflow-hidden line-clamp-2"
+            >
+              {comic.name}
+            </h3>
+            <p class="italic">{comic.authors.join(', ')}</p>
           </div>
-        </div>
-
-        <form on:submit|preventDefault={createChapterFinal}>
-          <div class="mt-7">
-            <div class="flex justify-between mt-7">
-              <input
-                bind:value={chapterData.number}
-                type="number"
-                placeholder="Chapter Number"
-                class="w-72 input input-bordered focus:input-accent"
-                readonly
-              />
-              <select
-                bind:value={chapterData.price}
-                class="select select-bordered focus:select-accent w-72"
+        </a>
+      </div>
+      <form class="flex flex-col gap-6" on:submit|preventDefault={handleSubmit}>
+        <label class="form-control">
+          <span class="label">
+            <span>Chapter name <span class="text-error">*</span></span>
+          </span>
+          <div class="input input-bordered focus-within:input-accent flex items-center">
+            <input type="text" bind:value={chapter.name} required />
+          </div>
+        </label>
+        <div class="grid grid-cols-2 gap-8">
+          <label class="form-control">
+            <span class="label flex justify-start gap-2">
+              Chapter number
+              <span
+                class="no-animation btn btn-xs btn-circle flex items-center tooltip"
+                data-tip="Chapter number is automatically set to the next number in the series. You can reorder chapters in the comic settings."
               >
-                <option disabled selected>Choose coin</option>
-                {#each { length: 16 } as _, i}
-                  {#if i === 0}
-                    <option value={i} selected>Free</option>
-                  {:else if i === 1}
-                    <option value={i}>{i} coin</option>
-                  {:else}
-                    <option value={i}>{i} coins</option>
-                  {/if}
-                {/each}
-              </select>
+                <Icon icon="lucide--info" class="text-xl" />
+              </span>
+            </span>
+            <div class="input input-bordered focus-within:input-accent flex items-center">
+              <input type="number" bind:value={chapter.number} disabled />
             </div>
-            <input
-              bind:value={chapterData.name}
-              type="text"
-              placeholder="Chapter Title"
-              class="w-full input input-bordered focus:input-accent mt-6"
-            />
-          </div>
-          <div class="mt-10 grid grid-cols-5 gap-4">
-            <SortableList class="contents" animation={150}>
-              <!-- Vòng lặp để hiển thị các hình ảnh đã tải lên -->
-              {#each images as imgUrl}
-                <div class=" indicator min-w-40 min-h-52 w-40 h-52 shadow bg-base-200">
-                  <span class=" indicator-item indicator-end">
-                    <button
-                      class="btn btn-xs btn-circle btn-error"
-                      on:click={() => removeImage(imgUrl)}
-                    >
-                      <span class="iconify lucide--x"></span>
-                    </button>
-                  </span>
+          </label>
+          <label class="form-control">
+            <span class="label">Price</span>
+            <select class="select select-bordered focus:select-accent" bind:value={chapter.price}>
+              <option value={0} selected>Free</option>
+              {#each { length: 15 } as _, i (i)}
+                <option value={i + 1}
+                  >{i + 1} coin{#if i !== 0}s{/if}</option
+                >
+              {/each}
+            </select>
+          </label>
+        </div>
+        <div class="flex flex-col">
+          <span class="label">
+            <span>Chapter pages <span class="text-error">*</span></span>
+          </span>
+          <div class="grid grid-cols-5 gap-4 rounded bg-base-200 shadow-inner p-6">
+            <SortableList class="contents" animation={150} onEnd={onSortEnd} handle=".cursor-move">
+              {#each pages as page, index (page.url)}
+                <div class="indicator w-fit h-56 aspect-cover m-2" data-index={index}>
                   <span class="indicator-item indicator-start">
                     <button
-                      class="btn btn-xs btn-circle btn-warning"
+                      class="btn btn-sm btn-circle btn-warning shadow"
                       type="button"
-                      on:click={() => document.getElementById('edit-image-' + imgUrl).click()}
+                      on:click={() => page.input.click()}
                     >
-                      <span class="iconify lucide--edit-3"></span>
+                      <Icon icon="lucide--edit" class="text-lg" />
                     </button>
                     <input
                       type="file"
-                      id={'edit-image-' + imgUrl}
-                      on:change={editFileUpload}
                       class="hidden"
+                      bind:this={page.input}
+                      on:change={() => onPageEditChangeFile(index)}
                     />
                   </span>
-                  <!-- Hiển thị hình
-                ảnh -->
-                  <img
-                    src={'https://i.yomikaze.org' + imgUrl}
-                    alt="Uploaded Image"
-                    class="w-full h-full object-contain"
+                  <span class="indicator-item indicator-end">
+                    <button
+                      class="btn btn-sm btn-circle btn-error shadow"
+                      on:click={() =>
+                        (pages = pages.slice(0, index).concat(pages.slice(index + 1)))}
+                    >
+                      <Icon icon="lucide--trash" class="text-lg" />
+                    </button>
+                  </span>
+                  {#if page.uploading}
+                    <span
+                      class="indicator-item indicator-center indicator-middle loading loading-lg bg-base-100"
+                    >
+                    </span>
+                  {:else}
+                    <span
+                      class="indicator-item indicator-center indicator-middle flex items-center justify-center opacity-30 hover:opacity-100 transition-opacity duration-200"
+                    >
+                      <span class="btn btn-circle no-animation cursor-move">
+                        <Icon icon="lucide--move" class="text-xl" />
+                      </span>
+                    </span>
+                  {/if}
+                  <Picture
+                    src={page.url}
+                    class="w-full h-full"
+                    imgClass="w-full h-full object-cover shadow rounded{page.uploading
+                      ? ' blur-sm'
+                      : ''}"
+                    useCdn={true}
                   />
+                  <span
+                    class="indicator-item indicator-bottom indicator-center bg-neutral-700/80 backdrop-blur-sm rounded w-full text-sm text-accent-content px-2 py-1"
+                  >
+                    Pg.{index + 1} - {page.uploading ? 'Uploading...' : 'Uploaded'}
+                  </span>
                 </div>
               {/each}
             </SortableList>
-            <div
-              class="relative inline-block w-40 h-52 border-dotted border-2 border-neutral flex justify-center items-center self-center rounded-md"
+            <label
+              class="w-fit h-56 m-2 aspect-cover border-dashed border-2 border-neutral hover:border-accent focus-within:border-accent flex transition-colors duration-500 bg-base-100 justify-center items-center self-center rounded"
             >
-              <!-- Hiển thị hình ảnh -->
-              <input
-                type="file"
-                id="file-input"
-                class="absolute inset-0 opacity-0 cursor-pointer"
-                on:change={handleFileUpload}
-                multiple
-              />
-              <label for="file-input" class="btn btn-circle btn-neutral"
-                ><span class="iconify lucide--plus text-2xl"></span></label
-              >
-            </div>
-          </div>
-          <div class="flex gap-5 mt-10 justify-end">
-            <button class="btn btn-wide btn-ghost hover:bg-red-100"
-              ><p class="text-orange-600 text-sm">Upload and add another chapter</p>
-            </button>
-            <button class="btn btn-wide bg-orange-600 hover:bg-orange-700" type="submit"
-              ><p class="text-white text-lg">Upload</p>
-            </button>
-          </div>
-        </form>
-        <div id="guide-element" class="mt-10 ml-5 pb-12">
-          <div class="prose">
-            <h3 class="">Chapter Upload Guidelines</h3>
-            <h4 class="text-orange-700 mt-7">Do not upload</h4>
-            <ul>
-              <li>Western comics (e.g. Marvel, DC, ...).</li>
-              <li>
-                Official releases, including raws, unless they fall under the exceptions in site
-                rules section 1.2.1.
-              </li>
-              <li>Bulk chapters (e.g. Combining 10 chapters into 1).</li>
-              <li><p>Images from aggregator websites if an original source is available.</p></li>
-            </ul>
-            <h4 class="font-bold">File requirements and limits:</h4>
-            <ul>
-              <li>An image can be at most (10000 x 10000) pixels.</li>
-              <li>The maximum size per image file is 8MB.</li>
-              <li>The only allowed image formats are JPEG, PNG, and GIF.</li>
-              <li><p>The maximum total size of your chapter may not exceed 100MB.</p></li>
-            </ul>
+              <div class="btn btn-circle">
+                <Icon icon="lucide--plus" class="text-2xl" />
+              </div>
+              <input type="file" class="hidden" on:change={onChooseFiles} multiple />
+            </label>
           </div>
         </div>
-      </div>
+        <div class="flex justify-end gap-4">
+          <button
+            type="submit"
+            class="btn text-accent hover:text-base-content"
+            disabled={!pages.length || !chapter.name}
+            on:click={() => (continueAdding = true)}
+          >
+            Create and add another chapter
+          </button>
+          <button
+            type="submit"
+            class="btn btn-accent"
+            disabled={!pages.length || !chapter.name}
+          >
+            Create chapter
+          </button>
+        </div>
+      </form>
     </div>
-  {/await}
+    <div class="px-16 py-8 prose text-base-content" bind:this={guideLines}>
+      <h3>Chapter Upload Guidelines</h3>
+      <h4 class="text-warning">Do not upload</h4>
+      <ul>
+        <li>Western comics (e.g. Marvel, DC, ...).</li>
+        <li>
+          Official releases, including raws, unless they fall under the exceptions in site rules
+          section 1.2.1.
+        </li>
+        <li>Bulk chapters (e.g. Combining 10 chapters into 1).</li>
+        <li><p>Images from aggregator websites if an original source is available.</p></li>
+      </ul>
+      <h4>File requirements and limits:</h4>
+      <ul>
+        <li>An image can be at most (10000 x 10000) pixels.</li>
+        <li>The maximum size per image file is 8MB.</li>
+        <li>The only allowed image formats are JPEG, PNG, and GIF.</li>
+        <li>The maximum total size of your chapter may not exceed 100MB.</li>
+      </ul>
+    </div>
+  </div>
 </Sublayout>
-
-<style>
-  .custom-input::placeholder {
-    color: #070707; /* Thay đổi màu chữ placeholder ở đây */
-  }
-</style>

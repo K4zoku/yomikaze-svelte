@@ -2,19 +2,19 @@
   import { goto } from '$app/navigation';
   import Swap from '$components/daisyui/actions/swap.svelte';
   import Icon from '$components/icon.svelte';
-  import http from '$utils/http';
-  import { onMount, type ComponentType } from 'svelte';
-  import LongStripMode from './long-strip-mode.svelte';
-  import SinglePageMode from './single-page-mode.svelte';
-  import ChapterReport from '$components/yomikaze/report/chapter-report.svelte';
+  import Picture from '$components/picture.svelte';
   import ChapterCommentList from '$components/yomikaze/comment/chapter/chapter-comment-list.svelte';
+  import ChapterReport from '$components/yomikaze/report/chapter-report.svelte';
   import type Profile from '$models/Profile';
   import { ChapterCommentManagement } from '$utils/chapter-comment-utils';
+  import { delay } from '$utils/common';
+  import http from '$utils/http';
+  import { onMount, tick } from 'svelte';
 
   export let data;
   let { chapter, chapters, comic, comicId, number, token } = data;
   $: ({ chapter, chapters, comic, comicId, number, token } = data);
-  http.defaults.headers.common.Authorization = 'Bearer ' + token;
+  $: http.defaults.headers.common.Authorization = `Bearer ${token}`;
 
   let currentUser: Profile;
   let commentManager = new ChapterCommentManagement(token as string);
@@ -23,15 +23,12 @@
   });
   let active = true;
 
-  let readingMode = 'Long Strip';
-  function toggleReadingMode() {
-    readingMode = readingMode === 'Single Page' ? 'Long Strip' : 'Single Page';
-  }
   let currentPage: number = 0;
 
   function goToPrevPage() {
     if (currentPage > 0) {
       currentPage--;
+      handleChange();
     }
   }
 
@@ -39,6 +36,7 @@
     if (chapter) {
       if (currentPage < chapter.pages.length - 1) {
         currentPage++;
+        handleChange();
       }
     }
   }
@@ -58,17 +56,6 @@
       }
     }
   }
-
-  const readingModes: {
-    [key: string | 'Single Page' | 'Long Strip']: { component: ComponentType };
-  } = {
-    'Single Page': {
-      component: SinglePageMode
-    },
-    'Long Strip': {
-      component: LongStripMode
-    }
-  };
 
   let unlockDialog: HTMLDialogElement;
   async function handleUnlockClose() {
@@ -97,8 +84,31 @@
 
   let chapterReportModal: HTMLDialogElement;
   let commentsModal: HTMLDialogElement;
+
+  let elements: Array<HTMLElement> = Array(chapter ? chapter.pages.length : 0);
+  let inputting: boolean = false;
+  function handleScroll() {
+    if (inputting) return; // ignore scroll event when user is inputting
+    const index = elements.findLastIndex((element) => {
+      let box = element.getBoundingClientRect();
+      return box.top <= 16 * 16;
+    });
+    currentPage = index;
+  }
+
+  async function handleChange() {
+    await tick();
+    inputting = true;
+    const element = elements[currentPage];
+    element.scrollIntoView();
+    element.focus({ preventScroll: true });
+    await delay(500);
+    inputting = false;
+  }
 </script>
 
+<svelte:window on:scroll={handleScroll} />
+<svelte:body style:scroll-behavior="smooth" />
 <div class="container w-full h-screen mt-16">
   {#if chapter && chapter.pages && chapter.pages.length > 0}
     <div class="flex items-center gap-2 mb-6 mt-2">
@@ -118,7 +128,7 @@
         </Swap>
       </div>
       <aside
-        class="bg-base-200 rounded p-4 fixed shadow right-0 w-96 h-full top-16 transition-[right] duration-150 flex flex-col gap-4"
+        class="bg-base-100 p-4 fixed shadow-inner right-0 w-96 h-full top-16 transition-[right] duration-150 flex flex-col gap-4"
         class:-right-96={!active}
         class:right-0={active}
       >
@@ -157,9 +167,10 @@
             <select
               class="select select-bordered focus:select-accent grow"
               bind:value={currentPage}
+              on:change={handleChange}
             >
               {#each chapter.pages as _, index}
-                <option class="bg-base-200" value={index}>Pg.{index + 1}</option>
+                <option class="bg-base-200" value={index}>Page {index + 1}</option>
               {/each}
             </select>
             <button
@@ -203,17 +214,6 @@
             <Icon icon="lucide--chevron-right" class="text-2xl" />
           </button>
         </div>
-        <div class="flex items-center gap-4">
-          <div class="font-bold shrink-0">Reading Mode</div>
-          <button class="btn gap-2 grow items-center justify-start" on:click={toggleReadingMode}>
-            {#if readingMode == 'Single Page'}
-              <Icon icon="lucide--file" class="text-2xl" />
-            {:else}
-              <Icon icon="lucide--gallery-vertical" class="text-2xl" />
-            {/if}
-            {readingMode}
-          </button>
-        </div>
         <div class="flex flex-col gap-5 mt-5">
           <a
             href="/comics/{comic.id}/chapters/{chapter.number}/translations"
@@ -228,12 +228,36 @@
           </button>
         </div>
       </aside>
-      <div class="min-h-screen h-fit pb-1 transition-margin duration-150" class:mr-96={active}>
-        <svelte:component
-          this={readingModes[readingMode].component}
-          bind:pages={chapter.pages}
-          bind:currentPage
-        />
+      <div class="min-h-screen h-fit pb-1 transition-margin duration-150 px-2" class:mr-96={active}>
+        <div class="w-full">
+          {#each chapter.pages as page, index (page)}
+            <div class="w-full" data-index={index} bind:this={elements[index]}>
+              <Picture
+                src={page}
+                useCdn={true}
+                class="w-full h-fit select-none"
+                imgClass="w-full h-full object-contain"
+              >
+                <div
+                  class="flex justify-center items-center w-full aspect-cover"
+                  slot="loading"
+                >
+                  <span class="loading loading-lg"></span>
+                </div>
+              </Picture>
+            </div>
+          {/each}
+          <input
+            type="range"
+            min={0}
+            max={chapter.pages.length - 1}
+            bind:value={currentPage}
+            on:input={handleChange}
+            class="range range-accent opacity-50 hover:opacity-100 transition-opacity duration-300 sticky bottom-2 mt-2"
+            step="1"
+          />
+        </div>
+
         <div class="flex w-full">
           <!-- check if has next chapter add next chap button -->
           {#if chapter && chapter.number < chapters.length - 1}
@@ -268,7 +292,7 @@
         <p class="mt-4">This <strong>chapter</strong> is locked. Please unlock it to read.</p>
         <p><strong>Unlock</strong> this chapter for <strong>{chapter.price}</strong> coins.</p>
         <div class="mt-4">
-          <button class="btn btn-primary" on:click={handleUnlock}>Unlock</button>
+          <button class="btn btn-accent" on:click={handleUnlock}>Unlock</button>
         </div>
       </div>
     </dialog>
