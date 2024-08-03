@@ -22,11 +22,11 @@
     totalPages: 0,
     results: []
   };
-  let loading = true;
+
   let error = null;
 
-  let newAmount: number = 0;
-  let newPrice: number = 0;
+  let newAmount: number = 1;
+  let newPrice: number = 1;
 
   let addModal: HTMLDialogElement;
   let deleteModal: HTMLDialogElement;
@@ -60,6 +60,7 @@
       dispatch('update');
     } catch (err) {
       error = err as Error;
+      addErrToast("Unknown error");
     }
   }
 
@@ -76,6 +77,7 @@
         dispatch('update');
       } catch (err) {
         error = err as Error;
+        addErrToast('Unknown error')
       }
     }
   }
@@ -91,11 +93,12 @@
         await patchCoinPricing(coinToEdit.id, patchData);
         coinToEdit.amount = editAmount;
         coinToEdit.price = editPrice;
-        editModal.close();
         addToast('Edit coin pricing successful');
+        editModal.close();
         dispatch('update');
       } catch (err) {
-        error = err as Error;
+        addErrToast("Unknown error");
+        console.log(err)
       }
     }
   }

@@ -101,7 +101,7 @@
       reason = '';
     } catch (err) {
       console.error('Error requesting role:', err);
-      // addErrToast('Failed to submit role request');
+      addErrToast('Failed to submit role request');
     }
   }
 
@@ -210,7 +210,7 @@
         if (response.status === 201) {
           const imageUrl = response.data.images[0]; // Adjust according to your API response structure
 
-          // Cập nhật URL hình ảnh dựa trên loại
+
           if (type === 'banner') {
             bannerImageUrl = imageUrl;
           } else if (type === 'avatar') {
@@ -291,9 +291,6 @@
           let data = response.data as Problem;
           for (let key of Object.keys(data.errors)) {
             switch (key) {
-              case 'currentPassword':
-                errors.currentPassword = data.errors[key].at(0) ?? '';
-                break;
               case 'newPassword':
                 errors.newPassword = data.errors[key].at(0) ?? '';
                 break;
