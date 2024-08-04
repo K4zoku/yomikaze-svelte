@@ -24,7 +24,7 @@
     banner: '',
     publicationDate: '',
     authors: [''],
-    status: ComicStatus.OnGoing,
+    status: ComicStatus.Pending,
     tagIds: []
   };
 
@@ -475,16 +475,20 @@
           <!-- Status -->
           <div class="flex flex-col gap-2 basis-1/4 min-w-[0]">
             <label for="status" class="font-medium">Status</label>
-            <select
-              id="status"
-              class="select select-bordered focus:select-accent"
-              bind:value={comic.status}
-            >
-              <option value={ComicStatus.OnGoing}>On Going</option>
-              <option value={ComicStatus.Completed}>Completed</option>
-              <option value={ComicStatus.Hiatus}>Hiatus</option>
-              <option value={ComicStatus.Cancelled}>Cancelled</option>
-            </select>
+            <div class="tooltip w-full" data-tip="The status automatically set to Pending, you can change it after approval">
+              <select
+                id="status"
+                class="select select-bordered focus:select-accent w-full"
+                bind:value={comic.status}
+                disabled
+              >
+                <option value={ComicStatus.Pending}>Pending</option>
+                <option value={ComicStatus.OnGoing} disabled>On Going</option>
+                <option value={ComicStatus.Completed} disabled>Completed</option>
+                <option value={ComicStatus.Hiatus} disabled>Hiatus</option>
+                <option value={ComicStatus.Cancelled} disabled>Cancelled</option>
+              </select>
+            </div>
           </div>
           <!-- Publication Date -->
           <div class="flex flex-col gap-2 basis-1/4 min-w-[0]">

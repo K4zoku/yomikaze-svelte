@@ -41,5 +41,6 @@ export enum ComicStatus {
     OnGoing = 'OnGoing', 
     Completed = 'Completed', 
     Hiatus = 'Hiatus', 
-    Cancelled = 'Cancelled'
+    Cancelled = 'Cancelled',
+    Pending = 'Pending'
 }
