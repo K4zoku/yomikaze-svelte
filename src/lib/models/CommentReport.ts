@@ -9,7 +9,7 @@ export default interface CommentReport extends Model {
     reasonId: string;
     description: string;
     author: Profile;
-    status: 'Pending' | 'Resolved' | 'Dismissed';
+    status: string;
     dismissalReason: string;
     reason: Reason;
     reporter: Profile;
