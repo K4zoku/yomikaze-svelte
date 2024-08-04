@@ -30,6 +30,7 @@
         <th>Roles</th>
         <th>Bio</th>
         <th>Birthday</th>
+        <th>Action</th>
       </tr>
     </thead>
     <tbody>
@@ -55,6 +56,7 @@
               <span class="text-neutral italic">No birthday provided</span>
             {/if}
           </td>
+          <td><button class="btn btn-error btn-sm">Ban</button></td>
         </tr>
       {:else}
         <tr>
