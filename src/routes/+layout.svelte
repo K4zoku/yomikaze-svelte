@@ -20,7 +20,7 @@
   import type AuthDataStore from '$models/AuthDataStore';
   import type Comic from '$models/Comic';
   import type Profile from '$models/Profile';
-  import { debounce } from '$utils/common';
+  import formatNumber, { debounce } from '$utils/common';
   import { onDestroy, onMount, setContext } from 'svelte';
   import { writable, type Writable } from 'svelte/store';
 
@@ -87,7 +87,7 @@
   }
 
   let notifications: NotificationModel[] = [];
-
+  let unreadCount: number = 0;
   async function loadNotifications() {
     const response = await http.get('/notification', {
       headers: {
@@ -95,10 +95,20 @@
       }
     });
     notifications = response.data;
+    unreadCount = notifications.filter((notification) => !notification.read).length;
   }
+
   onMount(() => {
     loadNotifications();
   });
+
+  async function readNotification(notificationId: string) {
+    await http.put(`/notification/${notificationId}/read`, null, {
+      headers: {
+        Authorization: $token ? `Bearer ${$token}` : undefined
+      }
+    });
+  }
 
   export let data: LayoutData;
   const user: Writable<Profile | null> = writable();
@@ -496,25 +506,39 @@
             {#if !!$token}
               <details class="dropdown dropdown-end">
                 <summary class="btn btn-circle" on:click={() => requestPermission()}>
-                  <Icon icon="lucide--bell" class="text-2xl" />
+                  <div class="indicator">
+                    {#if unreadCount > 0}
+                      <span class="indicator-item indicator-end badge badge-sm badge-error">
+                        {formatNumber(unreadCount)}
+                      </span>
+                    {/if}
+                    <Icon icon="lucide--bell" class="text-2xl" />
+                  </div>
                 </summary>
                 <div
-                  class="dropdown-content bg-base-200 mt-2 rounded z-[1] w-80 min-h-16 p-2 shadow flex justify-center items-center"
+                  class="dropdown-content bg-base-100 mt-2 rounded z-[1] w-80 min-h-16 p-2 shadow flex justify-center items-center"
                 >
                   <div class="flex flex-col gap-2 max-h-64 overflow-y-scroll">
                     {#each notifications as notification (notification.id)}
-                      <div class="flex flex-col gap-1 w-full bg-base-100 rounded p-2">
+                      <button
+                        type="button"
+                        class="flex flex-col gap-1 w-full rounded p-2 justify-start shadow hover:bg-base-200 hover:shadow-lg border transition-colors duration-150"
+                        class:active:shadow-inner={!notification.read}
+                        class:bg-base-300={!notification.read}
+                        disabled={notification.read}
+                        on:click={() => notification.read ? undefined : readNotification(notification.id).then(() => loadNotifications())}
+                      >
                         <div class="text-sm font-medium">
                           {notification.title}
                         </div>
-                        <div class="text-xs">
+                        <div class="text-xs text-left">
                           {notification.content}
                         </div>
-                        <div class="flex gap-1 justify-end text-xs">
+                        <div class="flex gap-1 justify-end text-xs self-end">
                           <Icon icon="lucide--clock" class="text-sm" />
                           <Time timestamp={notification.creationTime} relative />
                         </div>
-                      </div>
+                      </button>
                     {/each}
                   </div>
                 </div>

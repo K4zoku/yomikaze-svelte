@@ -6,7 +6,7 @@
   import { getCoin } from '$utils/coin-utils';
   import http from '$utils/http';
   import { loadStripe, type Stripe } from '@stripe/stripe-js';
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { EmbeddedCheckout } from 'svelte-stripe';
   let pageName = 'Coin Shop';
   async function getCoins(): Promise<CoinPricing[]> {
@@ -22,7 +22,7 @@
   let stripe: Stripe;
 
   onMount(async () => {
-    stripe = await loadStripe(PUBLIC_STRIPE_KEY) as Stripe;
+    stripe = (await loadStripe(PUBLIC_STRIPE_KEY)) as Stripe;
   });
 
   async function getClientSecret(priceId: string): Promise<string> {
@@ -34,9 +34,10 @@
   }
 
   let checkoutModal: HTMLDialogElement;
-  let selectedPriceId: string;
-  function handleClick(priceId: string) {
+  let selectedPriceId: string | null = null;
+  async function handleClick(priceId: string) {
     selectedPriceId = priceId;
+    await tick();
     checkoutModal.showModal();
   }
 </script>
@@ -74,30 +75,37 @@
       </div>
     {/await}
 
-    <dialog class="modal" bind:this={checkoutModal}>
+    <dialog
+      class="modal"
+      bind:this={checkoutModal}
+      on:close={() => setTimeout(() => (selectedPriceId = null), 500)}
+    >
       <div class="modal-box">
         <form method="dialog">
           <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
             <Icon icon="lucide--x" class="text-lg" />
           </button>
         </form>
-          {#await getClientSecret(selectedPriceId)}
-            <div class="flex items-center justify-center h-64">
-              <div class="loading loading-lg loading-ring">
+        {#key selectedPriceId}
+          {#if selectedPriceId}
+            {#await getClientSecret(selectedPriceId)}
+              <div class="flex items-center justify-center h-64">
+                <div class="loading loading-lg loading-ring"></div>
               </div>
-            </div>
-          {:then clientSecret}
-            <EmbeddedCheckout {stripe} {clientSecret} />
-          {:catch error}
-            <div class="flex items-center justify-center h-64">
-              <div class="flex gap-2 items-center">
-                <Icon icon="lucide--alert-circle" class="text-4xl text-error" />
-                <span class="text-xl text-error">
-                  {error.message || 'An error occurred'}
-                </span>
+            {:then clientSecret}
+              <EmbeddedCheckout {stripe} {clientSecret} />
+            {:catch error}
+              <div class="flex items-center justify-center h-64">
+                <div class="flex gap-2 items-center">
+                  <Icon icon="lucide--alert-circle" class="text-4xl text-error" />
+                  <span class="text-xl text-error">
+                    {error.message || 'An error occurred'}
+                  </span>
+                </div>
               </div>
-            </div>
-          {/await}
+            {/await}
+          {/if}
+        {/key}
       </div>
     </dialog>
   </div>
