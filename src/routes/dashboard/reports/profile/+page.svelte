@@ -2,9 +2,10 @@
   import Picture from '$components/picture.svelte';
   import Sublayout from '$components/yomikaze/sublayout.svelte';
   import http from '$utils/http';
-  import { onMount } from 'svelte';
+  import { getContext, onMount } from 'svelte';
   import Time from 'svelte-time/Time.svelte';
   import InlineProfile from '../inline-profile.svelte';
+    import { writable, type Writable } from 'svelte/store';
 
   export let data;
   let { token } = data;
@@ -13,6 +14,9 @@
   let reports = [];
   let reasons = [];
   let totals: number;
+  let dismissalReasonModal: HTMLDialogElement;
+  const dismissalReason = writable("");
+  let currentReportId: string | null = null;
 
   async function getProfileReports() {
     try {
@@ -56,12 +60,18 @@
     }
   }
 
-  async function updateReportStatus(reportId: string, newStatus: string) {
+  async function updateReportStatus(reportId: string, newStatus: string, reason: string = '') {
     try {
       const response = await http.patch(`/reports/profile/${reportId}`, [
         {
           value: newStatus,
           path: '/status',
+          op: 'replace',
+          from: ''
+        },
+        {
+          value: reason,
+          path: '/dismissalReason',
           op: 'replace',
           from: ''
         }
@@ -73,19 +83,48 @@
           return {
             ...r,
             status: newStatus,
+            dismissalReason: reason,
             isUpdating: true
           };
         }
         return r;
       });
+      addToast('Update status successful.');
     } catch (err) {
       console.error('Error updating report status:', err);
+    }
+  }
+
+  function openDismissalModal(reportId: string) {
+    currentReportId = reportId;
+    dismissalReasonModal.showModal();
+  }
+
+  async function submitDismissalReason() {
+    const reason = $dismissalReason.trim();
+
+    if (reason === '') {
+      alert('Dismissal reason cannot be empty.');
+      return;
+    }
+
+    if (currentReportId) {
+      await updateReportStatus(currentReportId, 'Dismissed', reason);
+      dismissalReasonModal.close();
     }
   }
 
   onMount(async () => {
     await getProfileReports();
   });
+
+  const toasts = getContext<Writable<any[]>>('toasts');
+  function addToast(message: string) {
+    toasts.update((toasts) => [
+      ...toasts,
+      { message, color: 'alert-success', icon: 'lucide--circle-check-big' }
+    ]);
+  }
 
   function isActionDisabled(status: string) {
     return status !== 'Pending';
@@ -102,6 +141,7 @@
         <th>Description</th>
         <th>Reporter Name</th>
         <th>Status</th>
+        <th>Dismissal Reason</th>
         <th>Report Date</th>
         <th>Action</th>
       </tr>
@@ -131,6 +171,15 @@
               class:badge-error={report.status === 'Dismissed'}>{report.status}</span
             >
           </td>
+          <td>
+            <span
+              >{#if report.dismissalReason}
+                {report.dismissalReason}
+              {:else}
+                <span class="text-neutral italic">No dismissal reason provided.</span>
+              {/if}
+            </span>
+          </td>
           <td class="p-2"><Time timestamp={report.creationTime} relative /></td>
           <td class="p-2">
             <div class="flex items-center gap-2">
@@ -144,7 +193,7 @@
               <button
                 class="btn btn-error btn-sm"
                 disabled={isActionDisabled(report.status) || report.isUpdating}
-                on:click={() => updateReportStatus(report.id, 'Dismissed')}
+                on:click={() => openDismissalModal(report.id)}
               >
                 Dismiss
               </button>
@@ -159,3 +208,20 @@
     </tbody>
   </table>
 </Sublayout>
+
+
+<dialog id="dismissalModal" class="modal" bind:this={dismissalReasonModal}>
+  <div class="modal-box">
+    <h3 class="text-lg font-bold">Enter Dismissal Reason</h3>
+    <textarea
+      bind:value={$dismissalReason}
+      class="w-full border rounded p-2 resize-none"
+      rows="4"
+      placeholder="Enter dismissal reason..."
+    ></textarea>
+    <div class="modal-action">
+      <button class="btn btn-sm btn-success" on:click={submitDismissalReason}>Submit</button>
+      <button class="btn btn-sm" on:click={() => dismissalReasonModal.close()}>Cancel</button>
+    </div>
+  </div>
+</dialog>

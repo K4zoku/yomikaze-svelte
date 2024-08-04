@@ -119,6 +119,7 @@ export class ChapterReportManagement {
             ...pagedReports,
             results: updatedReports
         };
+
     }
 
     async updateChapterReported(reportId: string, status: string, dismissalReason?: string): Promise<ChapterReport> {
@@ -132,6 +133,10 @@ export class ChapterReportManagement {
 
         const response = await this.http.patch(`${CHAPTER_REPORT_ENDPOINT}/${reportId}`, patch);
         return response.data;
+    }
+
+    async deleteChapterReport(reportId: string): Promise<void> {
+        await this.http.delete(`${CHAPTER_REPORT_ENDPOINT}/${reportId}`);
     }
 }
 
@@ -179,10 +184,18 @@ export class CommentReportManagement {
         };
     }
 
-    async updateCommentReportStatus(reportId: string, status: string): Promise<void> {
+    async updateCommentReportStatus(reportId: string, status: string, dismissalReason?: string): Promise<void> {
         const patch: JsonPatchEntry[] = [
             { op: 'replace', path: '/status', value: status }
         ];
+        if (status === 'Dismissed' && dismissalReason) {
+            patch.push({ op: 'replace', path: '/dismissalReason', value: dismissalReason });
+        }
+
         await this.http.patch(`${COMMENT_REPORT_ENDPOINT}/${reportId}`, patch);
+    }
+
+    async deleteCommentReport(reportId: string): Promise<void> {
+        await this.http.delete(`${COMMENT_REPORT_ENDPOINT}/${reportId}`);
     }
 }
