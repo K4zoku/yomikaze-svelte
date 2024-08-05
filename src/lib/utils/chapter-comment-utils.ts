@@ -37,7 +37,7 @@ export class ChapterCommentManagement {
   }
 
   async getComment(comicId: string, chapterNumber: number, commentId: string): Promise<ChapterComment> {
-    const response = await this.http.get(`${CHAPTER_COMMENT_ENDPOINT}/${comicId}/chapters/${chapterNumber}/${commentId}`
+    const response = await this.http.get(`${CHAPTER_COMMENT_ENDPOINT}/${comicId}/chapters/${chapterNumber}/comments/${commentId}`
     );
     return response.data;
   }
