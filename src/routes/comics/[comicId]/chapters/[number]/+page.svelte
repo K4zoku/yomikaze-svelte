@@ -220,7 +220,7 @@
             class="btn btn-block btn-primary"
           >
             <Icon icon="lucide--languages" class="text-2xl" />
-            Translate
+            Translation Editor
           </a>
           <button class="btn btn-accent btn-block" on:click={() => commentsModal.showModal()}>
             <Icon icon="lucide--messages-square" class="text-2xl" />
