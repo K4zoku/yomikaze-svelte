@@ -184,12 +184,10 @@
   }
   const [debouncedFilterTags, destroyFilterTags] = debounce<void>(filterTags, 300);
   onDestroy(() => destroyFilterTags());
-  let chapterList: HTMLDivElement;
   let chaptersCopy = [...chapters];
   let chaptersMovePatch: JsonPatchEntry[] = [];
-  onMount(() => {
-    reset();
-    new Sortable(chapterList, {
+  function initChapterList(element: HTMLElement) {
+    const sortable = new Sortable(element, {
       animation: 150,
       ghostClass: 'bg-accent-100/50',
       dataIdAttr: 'data-id',
@@ -202,6 +200,13 @@
       swap: true,
       swapClass: 'bg-accent-100/50'
     });
+    return {
+      destroy: () => sortable.destroy()
+    };
+  }
+
+  onMount(() => {
+    reset();
   });
   $: chaptersMovePatch = chaptersCopy
     .filter((chapter, index) => chapter.number !== index)
@@ -618,7 +623,7 @@
         {showChapters ? 'Hide' : 'Show'} chapters
       </button>
       {#if showChapters}
-      <div in:slide out:slide bind:this={chapterList} class="flex flex-col gap-2 w-full items-center">
+      <div in:slide out:slide use:initChapterList class="flex flex-col gap-2 w-full items-center">
         {#each chaptersCopy as chapter (chapter.id)}
           <div
             class="flex items-center justify-between w-full btn-ghost p-2 rounded bg-base-200"
