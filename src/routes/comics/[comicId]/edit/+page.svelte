@@ -45,6 +45,7 @@
       originalComic.authors && originalComic.authors.length > 0 ? [...originalComic.authors] : [''];
     selectedTags = [];
     selectedTags = tags.filter((tag) => originalComic.tags.find((ctag) => ctag.id === tag.id));
+    chaptersCopy = [...chapters];
   }
 
   const addSuccessToast: (message: string, duration?: number) => void =
