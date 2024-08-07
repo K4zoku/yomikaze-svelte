@@ -211,6 +211,7 @@
           </td>
           <td>
             <div class="flex flex-wrap gap-2 justify-center">
+              {#if report.status === 'Pending'}
               <button class="btn btn-sm btn-success" on:click={() => resolveReport(report.id)}>
                 <span>Resolve</span>
               </button>
@@ -220,6 +221,13 @@
               <button class="btn btn-sm btn-error" on:click={() => openDeleteModal(report)}>
                 <span>Delete</span>
               </button>
+              {:else}
+              <button class="btn btn-sm btn-success" disabled>Resolve</button>
+              <button class="btn btn-sm btn-error" disabled>Dismiss</button>
+              <button class="btn btn-sm btn-error" on:click={() => openDeleteModal(report)}
+                >Delete</button
+              >
+              {/if}
             </div>
           </td>
         </tr>
