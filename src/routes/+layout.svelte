@@ -285,6 +285,11 @@
                     Withdrawal
                   </a>
                 </li>
+                <li>
+                  <a href="/dashboard/coin" class:active={path === '/dashboard/coin'}>
+                    Coin Pricing Management
+                  </a>
+                </li>
               </ul>
             </details>
           </li>
