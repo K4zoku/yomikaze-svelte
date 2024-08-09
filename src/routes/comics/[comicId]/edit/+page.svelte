@@ -682,8 +682,8 @@
       <strong>#{chapterToDelete?.number} - {chapterToDelete?.name}</strong>
     </p>
     <p class="italic text-sm">
-      This action cannot be undone. However, as long as you not press the save button, you can still
-      undo this action by refreshing the page.
+      This action <b>can</b> be undone as long as you  not press the <b>Save</b> button, you can still
+      undo this action by press the Reset button.
     </p>
     <div class="modal-action">
       <button
