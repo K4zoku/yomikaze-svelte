@@ -19,6 +19,10 @@
         icon: 'fluent--presence-away-16-filled',
         color: 'text-warning',
     },
+    [ComicStatus.Pending]: {
+        icon: 'fluent--presence-away-16-filled',
+        color: 'text-warning',
+    },
   };
 
   export let status: ComicStatus | ComicStatus.OnGoing | ComicStatus.Completed | ComicStatus.Cancelled | ComicStatus.Hiatus;

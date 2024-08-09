@@ -8,6 +8,7 @@
   import InlineProfile from '../../reports/inline-profile.svelte';
   import type { Writable } from 'svelte/store';
   import type { ToastProps } from '~/routes/+layout.svelte';
+    import type { JsonPatchEntry } from '$models/JsonPatchDocument';
 
   export let data;
   let { token } = data;
@@ -82,9 +83,13 @@
 
   const approveComic = async (key: string) => {
     try {
-      await http.patch(`/comics/${key}`, {
-        status: 'OnGoing'
-      });
+      let data:JsonPatchEntry[]=[
+        {op: 'replace',
+          value: 'OnGoing',
+          path:'/status'
+        }
+      ]
+      await http.patch(`/comics/${key}`, data);
       comics = comics.filter((comic) => comic.id !== key);
       addToast('Comic status has been updated successfully');
     } catch (error) {
