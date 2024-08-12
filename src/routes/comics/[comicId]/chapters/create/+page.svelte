@@ -45,17 +45,18 @@
     const input = event.currentTarget;
     const files = input.files;
     if (!files || files.length === 0) return;
+    const existing = [...pages];
     const promises: Promise<string>[] = [];
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const url = URL.createObjectURL(file);
-      pages.push({ url, uploading: true, sortedIndex: i } as any);
+      pages.push({ url, uploading: true } as any);
       const promise = uploadImage(file);
       promises.push(promise);
     }
-    pages = pages; // trigger reactivity
     const result = await Promise.all(promises); // wait for all uploads to finish
-    pages = result.map((url) => ({ url, uploading: false }) as any); // update pages with uploaded urls
+    // append to pages array, update existing uploading & url properties
+    pages = [...existing, ...result.map((url, index) => ({ url, uploading: false } as any))];
   }
 
   function onSortEnd(event: SortableEvent) {
