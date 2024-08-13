@@ -21,6 +21,7 @@
   let dismissModal: HTMLDialogElement;
   let comicName = '';
   let comicCover: string = '';
+  let comicDescription: string = '';
   let comicId = '';
   let dismissalReason: string = '';
   let reportToDelete: any = null;
@@ -111,6 +112,7 @@
     reportToDelete = report;
     comicName = report.comic.name;
     comicCover = report.comic.cover;
+    comicDescription = report.comic.description;
     reportDetails = report;
     deleteModal.showModal();
   }
@@ -259,8 +261,12 @@
         {#if reportDetails}
           <p>Reporter: <strong>{reportDetails.reporter.name}</strong></p>
           <p>Reason: <strong> {getReasonContent(reportDetails.reasonId)}</strong></p>
-          <p>Description: <strong>{reportDetails.description}</strong></p>
-        {/if}
+          {/if}
+          <p>Description:</p>
+          <div class="max-h-20 h-20 overflow-y-auto">
+            <strong >{comicDescription}</strong>
+          </div>
+         
       </div>
     </div>
 

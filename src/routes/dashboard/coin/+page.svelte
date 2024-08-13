@@ -51,6 +51,7 @@
     try {
       const newCoin = await postCoinPricing(newAmount, newPrice);
       coinData.results.push(newCoin);
+      coinData.results = [newCoin, ...coinData.results];
       coinData.totals += 1;
       coinData.totalPages = Math.ceil(coinData.totals / coinData.pageSize);
       addModal.close();
@@ -60,7 +61,7 @@
       dispatch('update');
     } catch (err) {
       error = err as Error;
-      addErrToast("Unknown error");
+      addErrToast('Unknown error');
     }
   }
 
@@ -77,7 +78,7 @@
         dispatch('update');
       } catch (err) {
         error = err as Error;
-        addErrToast('Unknown error')
+        addErrToast('Unknown error');
       }
     }
   }
@@ -91,14 +92,17 @@
         ];
 
         await patchCoinPricing(coinToEdit.id, patchData);
+        
         coinToEdit.amount = editAmount;
         coinToEdit.price = editPrice;
+        coinData = coinData;
+
         addToast('Edit coin pricing successful');
         editModal.close();
         dispatch('update');
       } catch (err) {
-        addErrToast("Unknown error");
-        console.log(err)
+        addErrToast('Unknown error');
+        console.log(err);
       }
     }
   }
@@ -158,7 +162,7 @@
           <td>{coin.amount} coins</td>
           <td>{coin.price}$</td>
           <td>{coin.currency}</td>
-          <td>  <Time timestamp={coin.creationTime} relative /></td>
+          <td> <Time timestamp={coin.creationTime} relative /></td>
           <td>
             <div class="flex gap-2">
               <button class="btn btn-sm" on:click={() => openEditModal(coin)}>Edit</button>
@@ -272,12 +276,7 @@
       </div>
       <div class="form-control mt-4">
         <label class="label" for="editPrice">Currency</label>
-        <input
-          class="input input-bordered"
-          type="text"
-          value="USD"
-         readonly
-        />
+        <input class="input input-bordered" type="text" value="USD" readonly />
       </div>
     </div>
 
