@@ -29,7 +29,12 @@
   let chapter: ChapterCreate = { ...DEFAULTS };
 
   let guideLines: HTMLDivElement;
-  let pages: { url: string; uploading: boolean; input: HTMLInputElement }[] = [];
+  let pages: {
+    url: string;
+    uploading: boolean;
+    input: HTMLInputElement;
+    error: string | undefined;
+  }[] = [];
 
   async function onPageEditChangeFile(index: number) {
     const page = pages[index];
@@ -46,19 +51,32 @@
     const files = input.files;
     if (!files || files.length === 0) return;
     const existing = [...pages];
-    const promises: Promise<string | boolean>[] = [];
+    const promises: Promise<any>[] = [];
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const url = URL.createObjectURL(file);
       pages.push({ url, uploading: true } as any);
-      const promise = uploadImage(file).catch(() => false);
+      const promise = uploadImage(file)
+        .then((u) => {
+          return {
+            url: u,
+            uploading: false
+          } as any;
+        })
+        .catch(() => {
+          return {
+            url,
+            uploading: false,
+            error: 'Upload failed'
+          };
+        });
       promises.push(promise);
     }
     pages = pages; // trigger reactivity before upload completes
     await tick();
-    const result = (await Promise.all(promises)).filter(x => !!x); // wait for all uploads to finish
+    const result = await Promise.all(promises); // wait for all uploads to finish
     // append to pages array, update existing uploading & url properties
-    pages = [...existing, ...result.map((url, index) => ({ url, uploading: false } as any))]; // update upload status and url, trigger reactivity
+    pages = [...existing, ...result]; // update upload status and url, trigger reactivity
   }
 
   function onSortEnd(event: SortableEvent) {
@@ -73,7 +91,9 @@
   const addErrorToast = getContext<(message: string) => void>('addErrorToast');
 
   async function createChapter() {
-    chapter.pages = pages.map((page) => page.url);
+    chapter.pages = pages
+    .filter((page) => !page.uploading && !page.error)
+    .map((page) => page.url);
     try {
       const response = await http.post(`/comics/${comicId}/chapters`, chapter);
       addSuccessToast('Chapter created successfully');
@@ -231,7 +251,13 @@
                   <span
                     class="indicator-item indicator-bottom indicator-center bg-neutral-700/80 backdrop-blur-sm rounded w-full text-sm text-accent-content px-2 py-1"
                   >
-                    Pg.{index + 1} - {page.uploading ? 'Uploading...' : 'Uploaded'}
+                    {#if page.error}
+                      <span class="text-error">
+                        Pg.{index + 1} - {page.error}
+                      </span>
+                    {:else}
+                      Pg.{index + 1} - {page.uploading ? 'Uploading...' : 'Uploaded'}
+                    {/if}
                   </span>
                 </div>
               {/each}
@@ -250,16 +276,12 @@
           <button
             type="submit"
             class="btn text-accent hover:text-base-content"
-            disabled={!pages.length || !chapter.name}
+            disabled={!pages.length || !chapter.name || pages.some((page) => page.uploading)}
             on:click={() => (continueAdding = true)}
           >
             Create and add another chapter
           </button>
-          <button
-            type="submit"
-            class="btn btn-accent"
-            disabled={!pages.length || !chapter.name}
-          >
+          <button type="submit" class="btn btn-accent" disabled={!pages.length || !chapter.name || pages.some((page) => page.uploading)}>
             Create chapter
           </button>
         </div>
