@@ -455,13 +455,15 @@
       </label>
       <!-- Remember me and forgot password -->
       <div class="flex items-center justify-end w-full pb-4">
-        <!-- <div class="form-control">
-        <label class="label cursor-pointer flex gap-2">
-          <span class="label-text">Remember me</span>
-          <input type="checkbox" checked class="checkbox checkbox-sm" />
-        </label>
-      </div> -->
-        <a href="/password/reset" class="link link-accent text-sm link-hover">Forgot password?</a>
+        <div class="form-control">
+          <label class="label cursor-pointer">
+            <span class="label-text">
+              By registering, you agree to our <a href="/term-of-service" class="link link-accent">Terms of Service</a> and <a href="/privacy-policy" class="link link-accent">Privacy Policy</a>
+            </span>
+            <input type="checkbox" required checked class="checkbox checkbox-accent" />
+          </label>
+        </div>
+        <!-- <a href="/password/reset" class="link link-accent text-sm link-hover">Forgot password?</a> -->
       </div>
 
       <!-- Login button -->

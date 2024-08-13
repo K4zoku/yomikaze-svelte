@@ -222,8 +222,11 @@
   let chapterDeleteModal: HTMLDialogElement;
   async function deleteChapter(chapter: Chapter | null) {
     if (!chapter) return;
-    chaptersCopy = chaptersCopy.filter((c) => c.id !== chapter.id);
-    chaptersDeletePatch.push({ op: 'remove', path: `/chapters/${chapter.number}` });
+    const index = chaptersCopy.findIndex((c) => c.id === chapter.id);
+    chaptersCopy.splice(index, 1);
+    chaptersCopy = chaptersCopy;
+    // chaptersCopy = chaptersCopy.filter((c) => c.id !== chapter.id);
+    chaptersDeletePatch.push({ op: 'remove', path: `/chapters/${index}` });
     chapterDeleteModal.close();
   }
 
@@ -682,8 +685,8 @@
       <strong>#{chapterToDelete?.number} - {chapterToDelete?.name}</strong>
     </p>
     <p class="italic text-sm">
-      This action cannot be undone. However, as long as you not press the save button, you can still
-      undo this action by refreshing the page.
+      This action <b>can</b> be undone as long as you  not press the <b>Save</b> button, you can still
+      undo this action by press the Reset button.
     </p>
     <div class="modal-action">
       <button

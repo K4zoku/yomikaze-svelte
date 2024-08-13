@@ -3,7 +3,7 @@
 
 +  [x] Coin shop
    +  [ ] Payment success toast
-+ [ ] View Chapter
++ [x] View Chapter
   + [x] Comments modal
   + [x] Report modal
   + [x] Reading mode
@@ -16,11 +16,14 @@
     + [ ] View current balance
     + [ ] Submodal ask user to purchase coin or not
 + [x] Create chapter
-  + [ ] Edit chapter
-
+  + [x] Edit chapter
++ [ ] Guest should not see the report & translate button
++ [ ] Href to user profile in comment
++ [ ] Tag edit bug
++ [ ] Delete comic modal
 + [ ] Sidebar dashboard navigation
 + [ ] Reports chart with multi color
-+ [ ] Website management 
-  + [ ] Edit About Us
-  + [ ] Edit ToS
-  + [ ] Edit Privacy policy
++ [ ] ~~Website management~~ 
+  + [ ] ~~Edit About Us~~
+  + [ ] ~~Edit ToS~~
+  + [ ] ~~Edit Privacy policy~~
