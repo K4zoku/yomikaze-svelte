@@ -55,6 +55,7 @@
     try {
       await http.delete(`/reports/comic/${id}`);
       comicReports = comicReports.filter((report) => report.id !== id);
+      comicTotals--;
       addToast('Delete comic successful.')
       deleteModal.close();
     } catch (error) {
@@ -245,7 +246,7 @@
 <!--! modal delete Comic -->
 <dialog id="delete_modal" class="modal" bind:this={deleteModal}>
   <div class="modal-box">
-    <h3 class="text-xl font-bold">Are you sure you want to delete this comic?</h3>
+    <h3 class="text-xl font-bold">Are you sure you want to delete this report?</h3>
     <div class="flex gap-2 pt-3">
       <Picture
         src={comicCover}

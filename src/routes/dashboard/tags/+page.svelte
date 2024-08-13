@@ -10,13 +10,17 @@
   import type { Writable } from 'svelte/store';
   import type { ToastProps } from '~/routes/+layout.svelte';
 
+  export let data;
+  let { token } = data;
+  http.defaults.headers.common.Authorization = 'Bearer ' + token;
+
   let tags: Array<Tag> = [];
   let tagToDelete: Tag | null = null;
   let tagToEdit: Tag | null = null;
   let tagName = '';
-  let deleteModal;
-  let addModal;
-  let editModal;
+  let deleteModal: HTMLDialogElement;
+  let addModal: HTMLDialogElement;
+  let editModal: HTMLDialogElement;
   let categories: Array<TagCategory> = [];
   let categoryId: string = '';
   let tagNameInput: string = '';
@@ -44,17 +48,14 @@
     try {
       const response = await http.get('/tags/categories');
       categories = response.data.results;
-      categoryName = response.data.results.name;
     } catch {
-      if (error.response) {
-        console.error('API error:', error.response.data);
-      } else {
-        console.error('Error:', error.message);
+      if (error) {
+        console.log(error);
       }
     }
   }
 
-  async function fetchTags(size = 100) {
+  async function fetchTags(size = 1000) {
     try {
       const response = await http.get('/tags', {
         params: {
@@ -65,24 +66,22 @@
       tags = response.data.results;
       tagTotals = response.data.totals;
     } catch (error) {
-      if (error.response) {
-        console.error('API error:', error.response.data);
-      } else {
-        console.error('Error:', error.message);
+      if (error) {
+        console.log(error);
       }
     }
   }
 
   async function deleteTag(key: string | bigint) {
     try {
-      const response = await http.delete(`/tags/${key}`);
+      await http.delete(`/tags/${key}`);
 
       tags = tags.filter((tag) => tag.id !== key);
-
-      message = 'Tag deleted successfully';
+      tagTotals--;
+      addToast('Tag deleted successfully');
     } catch (error) {
-      if (error.response) {
-        console.error('API error:', error.response.data);
+      if (error) {
+        console.log(error);
       }
     } finally {
       tagToDelete = null;
@@ -101,11 +100,15 @@
 
     try {
       const response = await http.post('/tags', payload);
-      console.log('Response:', response);
+      console.log('Create Response:', response.data);
 
-      tags.push(response.data);
+      let tag = { ...response.data, category: categories.find((c) => c.id === payload.categoryId) };
+      tags = [tag, ...tags];
+      console.log('Current: ', tags);
+      tagTotals++;
+      await tick();
 
-      message = 'Tag created successfully';
+      addToast('Tag created successfully');
       tagNameInput = '';
       tagDescription = '';
       categoryId = '';
@@ -144,8 +147,8 @@
 
     const payload = [
       { op: 'replace', path: '/name', value: tagEditNameInput },
-      { op: 'replace', path: '/description', value: tagEditDescription }
-      // { op: 'replace', path: '/categoryId', value: tagEditCateID }
+      { op: 'replace', path: '/description', value: tagEditDescription },
+      { op: 'replace', path: '/categoryId', value: tagEditCateID }
     ];
     console.log('Payload:', JSON.stringify(payload, null, 2));
 
@@ -155,18 +158,23 @@
 
       const index = tags.findIndex((tag) => tag.id === tagToEdit.id);
       if (index !== -1) {
-        tags[index] = response.data;
+        tags[index] = {
+          ...tags[index],
+          category: categories.find((c) => c.id === tagEditCateID),
+          name: tagEditNameInput,
+          description: tagEditDescription
+        };
+        tags = tags;
       }
 
       addToast('Tag updated successfully');
-      // message = 'Tag updated successfully'
       tagToEdit = null;
       tagEditNameInput = '';
       tagEditDescription = '';
       editModal.close();
     } catch (error) {
-      if (error.response) {
-        console.error('API error:', error.response.data);
+      if (error) {
+        console.log(error);
       }
     }
   };
@@ -181,9 +189,10 @@
     addModal.showModal();
   }
 
-  function openEditModal(tag) {
+  function openEditModal(tag: any) {
     tagToEdit = tag;
     tagEditNameInput = tag.name;
+    tagEditCateID = tag.category.id;
     tagEditDescription = tag.description;
     editModal.showModal();
   }
@@ -353,14 +362,35 @@
       <h2 class="text-2xl mb-4 font-bold">Edit Tag</h2>
     </div>
     <form on:submit|preventDefault={updateTag}>
-      <label class=" form-control">
-        <div class="label">
-          <span class="label-text">Tag Name</span>
-        </div>
-        <div class="input input-bordered flex items-center w-full">
-          <input id="tag-name" type="text" bind:value={tagEditNameInput} />
-        </div>
-      </label>
+      <div class="grid grid-cols-2 gap-2">
+        <label class=" form-control">
+          <div class="label">
+            <span class="label-text">Tag Name</span>
+          </div>
+          <div class="input input-bordered flex items-center w-full">
+            <input id="tag-name" type="text" bind:value={tagEditNameInput} />
+          </div>
+        </label>
+
+        <label class=" form-control">
+          <div class="label">
+            <span class="label-text">Category</span>
+          </div>
+
+          <select bind:value={tagEditCateID} class="select w-full select-bordered">
+            <option disabled selected>Select Category</option>
+            {#each categories as category (category.id)}
+              <option value={category.id}>{category.name}</option>
+            {/each}
+          </select>
+
+          {#if !!categoryErr}
+            <div class="label">
+              <span class="label-text text-error">{categoryErr}</span>
+            </div>
+          {/if}
+        </label>
+      </div>
 
       <label class=" form-control">
         <div class="label">
