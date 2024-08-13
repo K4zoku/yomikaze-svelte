@@ -141,7 +141,7 @@
                             {#each comic.authors as author, i}
                               {#if i > 0},
                               {/if}
-                              <a href="/search?Author={author}" class="font-normal italic"
+                              <a href="/search?authors={author}" class="font-normal italic"
                                 >{author}</a
                               >
                             {:else}
@@ -149,7 +149,7 @@
                             {/each}
                           </span>
                         </span>
-                        <span class="inline-flex gap-1 items-center flex-none">
+                        <span class="inline-flex gap-1 items-center flex-none" data-last-modified={comic.lastModified}>
                           <Icon icon="lucide--clock" />
                           <Time timestamp={comic.lastModified ?? comic.creationTime} relative />
                         </span>

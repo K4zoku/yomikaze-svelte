@@ -11,7 +11,7 @@
   import type { CategorizedTags, TagCategoryExtended } from '$utils/tag-utils';
   import { onDestroy, onMount, tick } from 'svelte';
   import { expoInOut } from 'svelte/easing';
-  import { slide } from 'svelte/transition';
+  import { fade, slide } from 'svelte/transition';
 
   export let data;
   let { categories, tagMap } = data;
@@ -65,8 +65,11 @@
     }
     orderBy = search.orderBy?.[0] ?? 'Name';
   }
-
-  onMount(() => loadSearchFromQuery());
+  let mounted: boolean = false;
+  onMount(() => {
+    loadSearchFromQuery();
+    mounted = true;
+  });
 
   function updateSearchParams() {
     let params = new URLSearchParams();
@@ -307,7 +310,7 @@
                   Reset tag filter
                 </button>
               </div>
-              <div class="flex flex-col gap-4 overflow-y-scroll overflow-x-hidden max-h-full">
+              <div class="flex flex-col gap-4 overflow-y-scroll py-4 overflow-x-hidden max-h-full">
                 {#each Object.keys(categorizedTags).sort() as categoryId (categoryId)}
                   <div class="flex flex-col gap-1 w-full">
                     <div class="flex gap-2 items-center">
@@ -439,7 +442,9 @@
       Search
     </button>
   </div>
-  <div class="w-full mt-4">
-    <ComicList loadFn={loadComics} bind:reload={reloadSearchResults} bind:currentPage />
-  </div>
+  {#if mounted}
+    <div class="w-full mt-4" in:fade={{ duration: 150, easing: expoInOut }}>
+      <ComicList loadFn={loadComics} bind:reload={reloadSearchResults} bind:currentPage />
+    </div>
+  {/if}
 </Sublayout>

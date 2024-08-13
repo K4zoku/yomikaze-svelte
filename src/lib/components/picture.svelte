@@ -56,7 +56,8 @@
     <picture class={$$props.class ? $$props.class : ''} data-src={src} draggable="false">
       <source class={imgClass} srcset={src} draggable="false"/>
       <slot name="fallback">
-        <img class={imgClass} src="/images/default.svg" alt="" draggable="false"/>
+        <source class={imgClass} src="/images/broken-image.svg" type="image/svg+xml" draggable="false"/>
+        <img class={imgClass} src="/images/broken-image@2x.png" alt="" draggable="false"/>
       </slot>
     </picture>
   {:catch}

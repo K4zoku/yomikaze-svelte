@@ -32,7 +32,7 @@
           {/each}
         </span>
         <a
-          href="/search?publisher={comic.publisher.name}"
+          href="/profile/{comic.publisher.id}"
           class="flex gap-1 items-center min-w-[0] text-sm"
         >
           <Icon icon="lucide--user" class="shrink-0" />
@@ -75,7 +75,7 @@
     <div class="flex justify-between min-w-[0]">
       <div class="flex gap-2 mt-4 mb-3 min-w-[0] max-w-full overflow-x-scroll">
         {#each comic.tags as tag (tag.id)}
-          <a class="badge badge-outline text-nowrap" href="/search?includeTags={tag.id}">{tag.name}</a>
+          <a class="badge badge-outline text-nowrap" href="/search?includeTags={tag.id}" data-sveltekit-reload>{tag.name}</a>
         {/each}
       </div>
     </div>

@@ -134,9 +134,10 @@
 </script>
 
 {#if !isDeleted}
-  <div class="w-full flex items-start">
-    <div class="me-2 p-2 flex items-center justify-center">
-      <div
+  <div class="w-full flex items-start gap-2">
+    <div class="p-2 flex items-center justify-center">
+      <a
+        href="/profile/{comment.author.id}"
         class="avatar ring-2 ring-offset-2 rounded-full ring-neutral w-10 h-10 flex items-center justify-center"
       >
         {#if comment.author.avatar}
@@ -152,7 +153,7 @@
             <span class="iconify lucide--user text-3xl text-neutral-content w-full h-full"></span>
           </div>
         {/if}
-      </div>
+      </a>
     </div>
     <div class="flex flex-col w-full gap-4">
       <div
@@ -161,7 +162,7 @@
         <div class="flex items-center justify-between gap-2 p-2">
           <div class="flex flex-col">
             <span class="flex gap-4 items-center">
-              <span class="font-bold">{comment.author.name}</span>
+              <a href="/profile/{comment.author.id}" class="font-bold">{comment.author.name}</a>
               <span class="flex gap-1 items-center">
                 {#each comment.author.roles as role}
                   <span class="badge badge-sm badge-outline">{role}</span>

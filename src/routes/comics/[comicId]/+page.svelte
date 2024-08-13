@@ -395,7 +395,8 @@
             <div class="text-xl font-bold">{category.name}</div>
             <div class="flex flex-wrap gap-2">
               {#each comic.tags.filter((tag) => tag.category.id == category.id) as tag}
-                <span class="btn btn-xs no-animation font-medium text-nowrap w-fit">{tag.name}</span
+                <a href="/search?includeTags={tag.id}"
+                class="btn btn-xs no-animation font-medium text-nowrap w-fit">{tag.name}</a
                 >
               {/each}
             </div>
