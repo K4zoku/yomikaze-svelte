@@ -5,20 +5,25 @@
   import Picture from '$components/picture.svelte';
   import ChapterCommentList from '$components/yomikaze/comment/chapter/chapter-comment-list.svelte';
   import ChapterReport from '$components/yomikaze/report/chapter-report.svelte';
+  import type AuthDataStore from '$models/AuthDataStore.js';
   import type Profile from '$models/Profile';
   import { ChapterCommentManagement } from '$utils/chapter-comment-utils';
   import { delay } from '$utils/common';
   import http from '$utils/http';
-  import { onMount, tick } from 'svelte';
+  import { getContext, onMount, tick } from 'svelte';
 
   export let data;
   let { chapter, chapters, comic, comicId, number, token } = data;
   $: ({ chapter, chapters, comic, comicId, number, token } = data);
   $: http.defaults.headers.common.Authorization = `Bearer ${token}`;
-
-  let currentUser: Profile;
+  const { user } = getContext<AuthDataStore>('auth');
+  const addSuccessToast: (message: string, duration?: number) => void =
+    getContext('addSuccessToast');
+  const addErrorToast: (message: string, duration?: number) => void = getContext('addErrorToast');
+  let currentUser: Profile | null = $user;
   let commentManager = new ChapterCommentManagement(token as string);
   onMount(async () => {
+    if (currentUser) return;
     currentUser = await http.get('/profile').then((response) => response.data);
   });
   let active = true;
@@ -59,25 +64,23 @@
 
   let unlockDialog: HTMLDialogElement;
   async function handleUnlockClose() {
-    chapter = await http
-      .get(`/comics/${comicId}/chapters/${number}`)
-      .then((response) => response.data)
-      .catch((error) => {
-        goto(`/comics/${comicId}`);
-        return false;
-      });
+    await tick();
   }
 
   function handleUnlock() {
     http
       .put(`/comics/${comicId}/chapters/${number}/unlock`)
-      .then(() => {
+      .then(async () => {
+        addSuccessToast('Chapter unlocked successfully');
         unlockDialog.close();
+        await goto(`/comics/${comicId}/chapters/${number}`, { invalidateAll: true });
       })
       .catch((error) => {
         if (error.response.status === 402) {
+          addErrorToast('Insufficient balance. Please buy more coins.');
           goto('/shop');
         }
+        addErrorToast('Failed to unlock chapter, please try again later');
         console.error('Failed to unlock chapter:', error);
       });
   }
@@ -238,10 +241,7 @@
                 class="w-full h-fit select-none"
                 imgClass="w-full h-full object-contain"
               >
-                <div
-                  class="flex justify-center items-center w-full aspect-cover"
-                  slot="loading"
-                >
+                <div class="flex justify-center items-center w-full aspect-cover" slot="loading">
                   <span class="loading loading-lg"></span>
                 </div>
               </Picture>
@@ -276,7 +276,7 @@
         </div>
       </div>
     </div>
-  {:else if chapter && chapter.price}
+  {:else if chapter && chapter.hasLock && !chapter.isUnlocked && currentUser}
     <dialog
       id="unlock_chapter"
       class="modal"
@@ -291,15 +291,21 @@
         </form>
         <p class="mt-4">This <strong>chapter</strong> is locked. Please unlock it to read.</p>
         <p><strong>Unlock</strong> this chapter for <strong>{chapter.price}</strong> coins.</p>
-        <div class="mt-4">
-          <button class="btn btn-accent" on:click={handleUnlock}>Unlock</button>
+        <p>Your balance: <strong>{currentUser.balance}</strong></p>
+        <div class="modal-action">
+          <a class="btn btn-warning" href="/shop">Purchase more coins</a>
+          <button
+            class="btn btn-accent"
+            on:click={handleUnlock}
+            disabled={currentUser.balance < chapter.price}>Unlock</button
+          >
         </div>
       </div>
     </dialog>
   {/if}
 </div>
 <!-- Chapter comment modal -->
-
+{#if currentUser}
 <dialog class="modal" bind:this={commentsModal}>
   <div class="modal-box w-11/12 max-w-5xl">
     <!-- X -->
@@ -313,3 +319,4 @@
     <button>Close</button>
   </form>
 </dialog>
+{/if}

@@ -12,15 +12,15 @@
     + [x] Chapters navigation
     + [x] Pages navigation
   + [x] Unlock modal
-    + [ ] Toast
-    + [ ] View current balance
-    + [ ] Submodal ask user to purchase coin or not
+    + [x] Toast
+    + [x] View current balance
+    + [x] ~~Submodal~~ ask user to purchase coin or not
 + [x] Create chapter
   + [x] Edit chapter
 + [ ] Guest should not see the report & translate button
-+ [ ] Href to user profile in comment
-+ [ ] Tag edit bug
-+ [ ] Delete comic modal
++ [x] Href to user profile in comment
++ [x] Tag edit bug
++ [x] Delete comic modal
 + [ ] Sidebar dashboard navigation
 + [ ] Reports chart with multi color
 + [ ] ~~Website management~~ 

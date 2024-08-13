@@ -33,7 +33,12 @@ export async function load({ params, cookies }) {
             }
             throw error(err.response.status, err.response.statusText)
         });
-    if (chapter) chapter.pages = chapter.pages.map(trySetBaseUrl)
+    if (chapter) {
+        if (chapter.hasLock && !token) {
+            throw error(401, 'This chapter is locked, you must be logged in to unlock it');
+        }
+        chapter.pages = chapter.pages.map(trySetBaseUrl)
+    }
     return {
         chapter,
         chapters,
