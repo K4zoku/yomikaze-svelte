@@ -1,12 +1,15 @@
 <script lang="ts">
   import http from '$lib/utils/http';
   import { goto } from '$app/navigation';
-  import { onMount } from 'svelte';
+  import { getContext, onMount } from 'svelte';
   import type Comic from '$models/Comic';
   import type { AxiosError } from 'axios';
   import Sublayout from '$components/yomikaze/sublayout.svelte';
   import ComicCardDetails from '$components/yomikaze/common/comic/comic-card-details.svelte';
   import Icon from '$components/icon.svelte';
+  import Picture from '$components/picture.svelte';
+    import type { Writable } from 'svelte/store';
+    import type { ToastProps } from '~/routes/+layout.svelte';
 
   export let data;
   let { token } = data;
@@ -15,6 +18,9 @@
   let comics: Comic[] = [];
   let comicToDelete: Comic | null = null;
   let comicName = '';
+  let comicCover: string = '';
+  let comicAuthor: string = '';
+  let comicDescription: string = '';
   let totals = 0;
   let deleteModal: any;
 
@@ -39,7 +45,7 @@
         };
       }
     } catch (error) {
-      console.log(error)
+      console.log(error);
       return {
         results: [],
         totals: 0
@@ -49,17 +55,17 @@
 
   const deleteComic = async (key: string) => {
     try {
-      const response = await http.delete(`/comics/${key}`);
+      await http.delete(`/comics/${key}`);
       comics = comics.filter((comic) => comic.id !== key);
+      addToast('Delete Comic Successfull.')
     } catch (error) {
-      if (error.response) {
-        console.error('API error:', error.response.data);
-      } else {
-        console.error('Error:', error.message);
-      }
+      console.log(error);
     } finally {
       comicToDelete = null;
       comicName = '';
+      comicCover = '';
+      comicAuthor = '';
+      comicDescription = '';
       deleteModal.close();
     }
   };
@@ -74,10 +80,21 @@
     fetchComics();
   });
 
-  function openDeleteModal(comic) {
+  function openDeleteModal(comic: Comic) {
     comicToDelete = comic;
     comicName = comic.name;
+    comicAuthor = comic.authors;
+    comicDescription = comic.description;
+    comicCover = comic.cover;
     deleteModal.showModal();
+  }
+
+  const toasts = getContext<Writable<ToastProps[]>>('toasts');
+  function addToast(message: string) {
+    toasts.update((toasts) => [
+      ...toasts,
+      { message, color: 'alert-success', icon: 'lucide--circle-check-big' }
+    ]);
   }
 </script>
 
@@ -121,10 +138,26 @@
   </div>
 </Sublayout>
 
-<dialog id="delete_modal" bind:this={deleteModal} class="modal">
+<dialog id="delete_modal" class="modal" bind:this={deleteModal}>
   <div class="modal-box">
     <h3 class="text-xl font-bold">Are you sure you want to delete this comic?</h3>
-    <p class="py-4">Comic: <strong>{comicName}</strong></p>
+    <div class="flex gap-2 pt-3">
+      <Picture
+        src={comicCover}
+        class="w-fit h-40 aspect-cover shrink-0"
+        imgClass="w-fit h-40 aspect-cover boject-cover rounded-lg"
+        useCdn={true}
+      ></Picture>
+      <div>
+        <p>Comic: <strong>{comicName}</strong></p>
+        <p>Author: {comicAuthor}</p>
+        <p>Description:</p>
+        <div class="h-20 max-h-20 overflow-auto">
+          <p>{comicDescription}</p>
+        </div>
+      </div>
+    </div>
+
     <div class="modal-action">
       <button
         class="btn btn-error btn-sm"
