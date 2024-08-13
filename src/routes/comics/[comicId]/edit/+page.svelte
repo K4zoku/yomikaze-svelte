@@ -222,8 +222,11 @@
   let chapterDeleteModal: HTMLDialogElement;
   async function deleteChapter(chapter: Chapter | null) {
     if (!chapter) return;
-    chaptersCopy = chaptersCopy.filter((c) => c.id !== chapter.id);
-    chaptersDeletePatch.push({ op: 'remove', path: `/chapters/${chapter.number}` });
+    const index = chaptersCopy.findIndex((c) => c.id === chapter.id);
+    chaptersCopy.splice(index, 1);
+    chaptersCopy = chaptersCopy;
+    // chaptersCopy = chaptersCopy.filter((c) => c.id !== chapter.id);
+    chaptersDeletePatch.push({ op: 'remove', path: `/chapters/${index}` });
     chapterDeleteModal.close();
   }
 
