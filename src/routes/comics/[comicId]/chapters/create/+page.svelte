@@ -9,7 +9,7 @@
   import { uploadImage } from '$utils/image-utils';
   import { SortableList } from '@jhubbardsf/svelte-sortablejs';
   import type { SortableEvent } from 'sortablejs';
-  import { getContext } from 'svelte';
+  import { getContext, tick } from 'svelte';
   import type { PageData } from './$types';
 
   export let data: PageData;
@@ -46,17 +46,19 @@
     const files = input.files;
     if (!files || files.length === 0) return;
     const existing = [...pages];
-    const promises: Promise<string>[] = [];
+    const promises: Promise<string | boolean>[] = [];
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const url = URL.createObjectURL(file);
       pages.push({ url, uploading: true } as any);
-      const promise = uploadImage(file);
+      const promise = uploadImage(file).catch(() => false);
       promises.push(promise);
     }
-    const result = await Promise.all(promises); // wait for all uploads to finish
+    pages = pages; // trigger reactivity before upload completes
+    await tick();
+    const result = (await Promise.all(promises)).filter(x => !!x); // wait for all uploads to finish
     // append to pages array, update existing uploading & url properties
-    pages = [...existing, ...result.map((url, index) => ({ url, uploading: false } as any))];
+    pages = [...existing, ...result.map((url, index) => ({ url, uploading: false } as any))]; // update upload status and url, trigger reactivity
   }
 
   function onSortEnd(event: SortableEvent) {
@@ -83,6 +85,10 @@
   }
 
   async function handleSubmit() {
+    if (pages.some((page) => page.uploading)) {
+      addErrorToast('Please wait for all pages to finish uploading');
+      return;
+    }
     const createdChapter = await createChapter();
     if (!createdChapter) return;
     if (!continueAdding) {
