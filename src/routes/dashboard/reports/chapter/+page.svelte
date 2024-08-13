@@ -94,6 +94,7 @@
 
         const updatedReports = await reportManagement.getChapterReportsWithReasons();
         reports = updatedReports.results;
+        totals--;
         addToast('Chapter deleted successfully.');
       } catch (err) {
         console.error('Error deleting report:', err);

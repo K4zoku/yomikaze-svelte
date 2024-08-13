@@ -90,6 +90,7 @@
       try {
         await commentReportService.deleteCommentReport(commentToDelete.id);
         reports.results = reports.results.filter((r) => r.id !== commentToDelete.id);
+        reports.totals--;
         addToast('Delete comment successfull');
         deleteModal.close();
       } catch (error) {
@@ -234,7 +235,7 @@
 <!--! Dismissal Reason Modal -->
 <dialog bind:this={dismissalModal} id="dismissal-modal" class="modal">
   <div class="modal-box">
-    <h3 class="text-lg font-bold">Enter dismissal reason for this comic report</h3>
+    <h3 class="text-lg font-bold">Enter dismissal reason for this comment report</h3>
     <textarea bind:value={dismissalReason} class="textarea textarea-bordered w-full resize-none" rows='4'></textarea>
     <div class="modal-action">
       <button class="btn btn-warning btn-sm" on:click={dismissReport}>Dismiss</button>
