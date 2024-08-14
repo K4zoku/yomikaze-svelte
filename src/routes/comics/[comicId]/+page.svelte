@@ -6,6 +6,7 @@
   import CommentList from '$components/yomikaze/comment/comment-list.svelte';
   import ComicStatus from '$components/yomikaze/common/comic/comic-status.svelte';
   import ComicReport from '$components/yomikaze/report/comic-report.svelte';
+    import type Comic from '$models/Comic.js';
   import type LibraryEntry from '$models/LibraryEntry';
   import type Profile from '$models/Profile';
   import { rateComic } from '$utils/comic-utils';
@@ -34,6 +35,12 @@
     });
   }
 
+  let comicToDelete: Comic | null = null;
+  let comicName = '';
+  let comicCover: string = '';
+  let comicAuthor: string = '';
+  let comicDescription: string = '';
+  let deleteModal: HTMLDialogElement;
   let ratingAwait: Promise<void> = Promise.resolve();
   let totalRatings = 0;
   let averageRating = 0;
@@ -126,6 +133,32 @@
       commentManager = new ComicCommentManagement(token);
     }
   });
+
+  const deleteComic = async (key: string) => {
+    try {
+      await http.delete(`/comics/${key}`);
+      addSuccessToast('Delete Comic Successfull.');
+      goto('/');
+    } catch (error) {
+      console.log(error);
+    } finally {
+      comicToDelete = null;
+      comicName = '';
+      comicCover = '';
+      comicAuthor = '';
+      comicDescription = '';
+      deleteModal.close();
+    }
+  };
+
+  function openDeleteModal(comic: Comic) {
+    comicToDelete = comic;
+    comicName = comic.name;
+    comicAuthor = comic.authors.join(', ');
+    comicDescription = comic.description ?? '';
+    comicCover = comic.cover ?? '';
+    deleteModal.showModal();
+  }
 </script>
 
 <div class="w-full relative h-96 bg-base-100">
@@ -247,7 +280,7 @@
                     </a>
                   </li>
                   <li>
-                    <button>
+                    <button on:click={() => openDeleteModal(comic)}>
                       <Icon icon="lucide--trash" class="text-xl" />
                       Delete Comic
                     </button>
@@ -487,3 +520,38 @@
     </div>
   </div>
 </div>
+
+
+<dialog id="delete_modal" class="modal" bind:this={deleteModal}>
+  <div class="modal-box">
+    <h3 class="text-xl font-bold">Are you sure you want to delete this comic?</h3>
+    <div class="flex gap-2 pt-3">
+      <Picture
+        src={comicCover}
+        class="w-fit h-40 aspect-cover shrink-0"
+        imgClass="w-fit h-40 aspect-cover boject-cover rounded-lg"
+        useCdn={true}
+      ></Picture>
+      <div>
+        <p>Comic: <strong>{comicName}</strong></p>
+        <p>Author: {comicAuthor}</p>
+        <p>Description:</p>
+        <div class="h-20 max-h-20 overflow-auto">
+          <p>{comicDescription}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-action">
+      <button
+        class="btn btn-error btn-sm"
+        on:click={() => {
+          if (comicToDelete) deleteComic(comicToDelete.id);
+        }}>Confirm</button
+      >
+      <form method="dialog">
+        <button class="btn btn-sm">Cancel</button>
+      </form>
+    </div>
+  </div>
+</dialog>
