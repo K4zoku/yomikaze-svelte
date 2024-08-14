@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { goto } from '$app/navigation';
+  import { page } from '$app/stores';
   import Icon from '$components/icon.svelte';
   import Sublayout from '$components/yomikaze/sublayout.svelte';
   import { PUBLIC_STRIPE_KEY } from '$env/static/public';
@@ -6,7 +8,7 @@
   import { getCoin } from '$utils/coin-utils';
   import http from '$utils/http';
   import { loadStripe, type Stripe } from '@stripe/stripe-js';
-  import { onMount, tick } from 'svelte';
+  import { getContext, onMount, tick } from 'svelte';
   import { EmbeddedCheckout } from 'svelte-stripe';
   let pageName = 'Coin Shop';
   async function getCoins(): Promise<CoinPricing[]> {
@@ -18,6 +20,25 @@
 
   const { token } = data;
   http.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  let session_id: string | null = null;
+  $: session_id = $page.url.searchParams.get('session_id');
+  const addSuccessToast: (message: string, duration?: number) => void =
+    getContext('addSuccessToast');
+  const addErrorToast: (message: string, duration?: number) => void = getContext('addErrorToast');
+  onMount(async () => {
+    if (!session_id) return;
+    const sid = session_id;
+    await goto('/shop', { replaceState: true, keepFocus: true });
+    const session = await http
+      .get(`/stripe/checkout/${sid}`)
+      .then((res) => res.data)
+      .catch((err) => false);
+    if (!session) return;
+    if (session.status === 'complete') {
+      if (session.payment_status === 'unpaid') addErrorToast('Payment Failed');
+      else addSuccessToast('Payment Successful');
+    }
+  });
 
   let stripe: Stripe;
 

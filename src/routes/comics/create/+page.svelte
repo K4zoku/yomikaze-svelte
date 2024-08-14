@@ -140,6 +140,13 @@
             <span class="loading loading-lg bg-base-100"></span>
           </div>
         {/await}
+        {#if bannerUrl}
+          <div class="indicator-item indicator-top indicator-end">
+            <button class="btn btn-error btn-circle btn-sm" on:click={() => (bannerUrl = null, comic ? comic.banner = undefined : null)}>
+              <Icon icon="lucide--trash" class="text-lg" />
+            </button>
+          </div>
+        {/if}
         <label
           class="w-full h-80 flex justify-center cursor-pointer
           border-2 border-dashed hover:border-accent 
@@ -335,7 +342,7 @@
                 </div>
               </summary>
               <div
-                class="dropdown-content bg-base-100 rounded shadow w-full mt-2 flex flex-col gap-2 max-h-40 overflow-y-scroll p-2"
+                class="dropdown-content bg-base-100 rounded shadow w-full mt-2 flex flex-col gap-2 max-h-40 overflow-y-scroll p-2 z-20"
               >
                 {#each authors as _, index}
                   <div class="flex gap-2 w-full">

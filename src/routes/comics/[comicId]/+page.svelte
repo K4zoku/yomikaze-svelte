@@ -6,7 +6,7 @@
   import CommentList from '$components/yomikaze/comment/comment-list.svelte';
   import ComicStatus from '$components/yomikaze/common/comic/comic-status.svelte';
   import ComicReport from '$components/yomikaze/report/comic-report.svelte';
-    import type Comic from '$models/Comic.js';
+  import type Comic from '$models/Comic.js';
   import type LibraryEntry from '$models/LibraryEntry';
   import type Profile from '$models/Profile';
   import { rateComic } from '$utils/comic-utils';
@@ -267,12 +267,14 @@
                   Manage
                 </summary>
                 <ul class="dropdown-content z-[1] menu menu-sm p-2 shadow bg-base-100 rounded w-52">
-                  <li>
-                    <a href="/comics/{comicId}/chapters/create">
-                      <Icon icon="lucide--file-plus" class="text-xl" />
-                      Create Chapter
-                    </a>
-                  </li>
+                  {#if currentUser.id === comic.publisher.id}
+                    <li>
+                      <a href="/comics/{comicId}/chapters/create">
+                        <Icon icon="lucide--file-plus" class="text-xl" />
+                        Create Chapter
+                      </a>
+                    </li>
+                  {/if}
                   <li>
                     <a href="/comics/{comicId}/edit">
                       <Icon icon="lucide--edit" class="text-xl" />
@@ -409,7 +411,10 @@
           <div class="text-xl font-bold">Authors</div>
           <div class="flex flex-wrap gap-2">
             {#each comic.authors as author (author)}
-              <a href="/search?authors={author}" class="btn btn-xs no-animation font-medium text-nowrap w-fit">{author}</a>
+              <a
+                href="/search?authors={author}"
+                class="btn btn-xs no-animation font-medium text-nowrap w-fit">{author}</a
+              >
             {/each}
           </div>
         </div>
@@ -428,8 +433,9 @@
             <div class="text-xl font-bold">{category.name}</div>
             <div class="flex flex-wrap gap-2">
               {#each comic.tags.filter((tag) => tag.category.id == category.id) as tag}
-                <a href="/search?includeTags={tag.id}"
-                class="btn btn-xs no-animation font-medium text-nowrap w-fit">{tag.name}</a
+                <a
+                  href="/search?includeTags={tag.id}"
+                  class="btn btn-xs no-animation font-medium text-nowrap w-fit">{tag.name}</a
                 >
               {/each}
             </div>
@@ -521,7 +527,6 @@
     </div>
   </div>
 </div>
-
 
 <dialog id="delete_modal" class="modal" bind:this={deleteModal}>
   <div class="modal-box">

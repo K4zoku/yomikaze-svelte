@@ -16,7 +16,7 @@
   import Sortable, { type SortableEvent } from 'sortablejs';
   import { getContext, onDestroy, onMount, tick } from 'svelte';
   import type { PageData } from './$types';
-    import { slide } from 'svelte/transition';
+  import { slide } from 'svelte/transition';
 
   export let data: PageData;
   let { token, categorizedTags, chapters } = data;
@@ -244,9 +244,16 @@
             <span class="loading loading-lg bg-base-100"></span>
           </div>
         {/await}
+        {#if bannerUrl}
+          <div class="indicator-item indicator-top indicator-end">
+            <button class="btn btn-error btn-circle btn-sm" on:click={() => (bannerUrl = null, comic ? comic.banner = undefined : null)}>
+              <Icon icon="lucide--trash" class="text-lg" />
+            </button>
+          </div>
+        {/if}
         <label
           class="w-full h-80 flex justify-center cursor-pointer
-          border-2 border-dashed hover:border-accent 
+          border-2 border-dashed hover:border-accent
           bg-base-200 hover:bg-base-300
           rounded transition-colors duration-500"
         >
@@ -292,7 +299,7 @@
           {/await}
           <label
             class="w-48 h-fit aspect-cover flex justify-center cursor-pointer
-            border-2 border-dashed hover:border-accent 
+            border-2 border-dashed hover:border-accent
             bg-base-200 hover:bg-base-300
             rounded transition-colors duration-500"
           >
@@ -580,16 +587,32 @@
           <!-- Status -->
           <div class="flex flex-col gap-2 basis-1/4 min-w-[0]">
             <label for="status" class="font-medium">Status</label>
-            <select
-              id="status"
-              class="select select-bordered focus:select-accent"
-              bind:value={comic.status}
-            >
-              <option value={ComicStatus.OnGoing}>On Going</option>
-              <option value={ComicStatus.Completed}>Completed</option>
-              <option value={ComicStatus.Hiatus}>Hiatus</option>
-              <option value={ComicStatus.Cancelled}>Cancelled</option>
-            </select>
+            {#if comic.status === ComicStatus.Pending}
+              <div
+                class="w-full tooltip"
+                data-tip="You need to wait for approval to change the status"
+              >
+                <select
+                  id="status"
+                  class="select select-bordered focus:select-accent w-full"
+                  bind:value={comic.status}
+                  disabled={comic.status === ComicStatus.Pending}
+                >
+                  <option disabled value={ComicStatus.Pending}>Pending</option>
+                </select>
+              </div>
+            {:else}
+              <select
+                id="status"
+                class="select select-bordered focus:select-accent"
+                bind:value={comic.status}
+              >
+                <option value={ComicStatus.OnGoing}>On Going</option>
+                <option value={ComicStatus.Completed}>Completed</option>
+                <option value={ComicStatus.Hiatus}>Hiatus</option>
+                <option value={ComicStatus.Cancelled}>Cancelled</option>
+              </select>
+            {/if}
           </div>
           <!-- Publication Date -->
           <div class="flex flex-col gap-2 basis-1/4 min-w-[0]">
@@ -623,37 +646,37 @@
         <Icon icon="lucide--plus-square" class="text-xl" />
         Add new chapter
       </a>
-      <button type="button" class="btn" on:click={() => showChapters = !showChapters}>
+      <button type="button" class="btn" on:click={() => (showChapters = !showChapters)}>
         {showChapters ? 'Hide' : 'Show'} chapters
       </button>
       {#if showChapters}
-      <div in:slide out:slide use:initChapterList class="flex flex-col gap-2 w-full items-center">
-        {#each chaptersCopy as chapter (chapter.id)}
-          <div
-            class="flex items-center justify-between w-full btn-ghost p-2 rounded bg-base-200"
-            data-id={chapter.id}
-            data-number={chapter.number}
-          >
-            <div class="flex gap-2">
-              <Icon icon="lucide--menu" class="handle flex text-2xl cursor-grab" />
-              <span class="justify-center items-center">
-                #{chapter.number + 1} - {chapter.name}
-              </span>
+        <div in:slide out:slide use:initChapterList class="flex flex-col gap-2 w-full items-center">
+          {#each chaptersCopy as chapter (chapter.id)}
+            <div
+              class="flex items-center justify-between w-full btn-ghost p-2 rounded bg-base-200"
+              data-id={chapter.id}
+              data-number={chapter.number}
+            >
+              <div class="flex gap-2">
+                <Icon icon="lucide--menu" class="handle flex text-2xl cursor-grab" />
+                <span class="justify-center items-center">
+                  #{chapter.number + 1} - {chapter.name}
+                </span>
+              </div>
+              <div class="flex gap-2">
+                <button
+                  class="btn btn-sm btn-circle btn-ghost hover:text-error transition-colors duration-100"
+                  on:click={() => {
+                    chapterToDelete = chapter;
+                    chapterDeleteModal.showModal();
+                  }}
+                >
+                  <Icon icon="lucide--trash" class="text-xl" />
+                </button>
+              </div>
             </div>
-            <div class="flex gap-2">
-              <button
-                class="btn btn-sm btn-circle btn-ghost hover:text-error transition-colors duration-100"
-                on:click={() => {
-                  chapterToDelete = chapter;
-                  chapterDeleteModal.showModal();
-                }}
-              >
-                <Icon icon="lucide--trash" class="text-xl" />
-              </button>
-            </div>
-          </div>
-        {/each}
-      </div>
+          {/each}
+        </div>
       {/if}
     </div>
 
@@ -685,7 +708,7 @@
       <strong>#{chapterToDelete?.number} - {chapterToDelete?.name}</strong>
     </p>
     <p class="italic text-sm">
-      This action <b>can</b> be undone as long as you  not press the <b>Save</b> button, you can still
+      This action <b>can</b> be undone as long as you not press the <b>Save</b> button, you can still
       undo this action by press the Reset button.
     </p>
     <div class="modal-action">

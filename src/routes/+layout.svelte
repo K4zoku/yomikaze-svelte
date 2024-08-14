@@ -255,6 +255,13 @@
                 Comics
               </summary>
               <ul class="menu">
+                {#if $user && $user.roles.includes('Publisher')}
+                  <li>
+                    <a href="/comics/create" class:active={path === '/comics/create'}>
+                      Create New Comic
+                    </a>
+                  </li>
+                {/if}
                 <li>
                   <a href="/search" class:active={path === '/search'}> Advanced Search </a>
                 </li>
@@ -271,28 +278,69 @@
             </details>
           </li>
           <li>
-            <details id="transactions" open>
-              <summary class="group font-bold">
-                <Icon icon="lucide--wallet" class="text-xl" />
-                Transactions
-              </summary>
-              <ul class="menu">
-                <li>
-                  <a href="/shop" class:active={path === '/shop'}> Coins Shop </a>
-                </li>
-                <li>
-                  <a href="/dashboard/withdrawals" class:active={path === '/dashboard/withdrawals'}>
-                    Withdrawal
-                  </a>
-                </li>
-                <li>
-                  <a href="/dashboard/coin" class:active={path === '/dashboard/coin'}>
-                    Coin Pricing Management
-                  </a>
-                </li>
-              </ul>
-            </details>
+            <a href="/shop" class:active={path === '/shop'}>
+              <Icon icon="la--coins" class="text-xl" />
+              Coins Shop
+            </a>
           </li>
+          {#if $user && $user.roles.some( (role) => ['Super', 'Administrator', 'Publisher'].includes(role) )}
+            <li>
+              <details id="management" open>
+                <summary class="group font-bold">
+                  <Icon icon="lucide--layout-dashboard" class="text-xl" />
+                  Management
+                </summary>
+                <ul class="menu">
+                  <li>
+                    <a href="/dashboard" class:active={path === '/dashboard'}> Dashboard </a>
+                  </li>
+                  <li>
+                    <a href="/dashboard/comics" class:active={path === '/dashboard/comics'}>
+                      Comics
+                    </a>
+                  </li>
+                  {#if $user.roles.some((role) => ['Super', 'Administrator'].includes(role))}
+                    <li>
+                      <a href="/dashboard/reports" class:active={path === '/dashboard/reports'}>
+                        Reports
+                      </a>
+                    </li>
+                    <li>
+                      <a href="/dashboard/users" class:active={path === '/dashboard/users'}>
+                        Users
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        href="/dashboard/role-requests"
+                        class:active={path === '/dashboard/role-requests'}
+                      >
+                        Role Requests
+                      </a>
+                    </li>
+                  {/if}
+                  {#if $user.roles.includes('Super')}
+                    <li>
+                      <a href="/dashboard/tags" class:active={path === '/dashboard/tags'}> Tags </a>
+                    </li>
+                    <li>
+                      <a
+                        href="/dashboard/withdrawals"
+                        class:active={path === '/dashboard/withdrawals'}
+                      >
+                        Withdrawal requests
+                      </a>
+                    </li>
+                    <li>
+                      <a href="/dashboard/coin" class:active={path === '/dashboard/coin'}>
+                        Coin Pricing
+                      </a>
+                    </li>
+                  {/if}
+                </ul>
+              </details>
+            </li>
+          {/if}
           <li>
             <details id="yomikaze" open>
               <summary class="group font-bold">
@@ -531,7 +579,10 @@
                         class:active:shadow-inner={!notification.read}
                         class:bg-base-300={!notification.read}
                         disabled={notification.read}
-                        on:click={() => notification.read ? undefined : readNotification(notification.id).then(() => loadNotifications())}
+                        on:click={() =>
+                          notification.read
+                            ? undefined
+                            : readNotification(notification.id).then(() => loadNotifications())}
                       >
                         <div class="text-sm font-medium">
                           {notification.title}
@@ -632,14 +683,6 @@
                     <a href="/dashboard">
                       <Icon icon="lucide--layout-dashboard" class="text-xl" />
                       Dashboard
-                    </a>
-                  </li>
-                {/if}
-                {#if $user && $user.roles.some( (role) => ['Super', 'Administrator', 'Publisher'].includes(role) )}
-                  <li>
-                    <a href="/withdrawal">
-                      <Icon icon="lucide--receipt" class="text-xl" />
-                      Withdrawal
                     </a>
                   </li>
                 {/if}

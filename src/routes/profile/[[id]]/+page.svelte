@@ -114,8 +114,6 @@
         amount: amount,
         paymentInformation: payInfo
       });
-
-      console.log(response);
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError;
@@ -448,7 +446,7 @@
             </button>
           {/if}
         {/if}
-      {:else}
+      {:else if $currentUser}
         <button class="btn w-full" on:click={() => reportModal.showModal()}>
           <Icon icon="lucide--flag" class="text-xl" />
           Report User

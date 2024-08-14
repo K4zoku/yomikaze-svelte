@@ -1,8 +1,7 @@
 ## TODO
 
-
 +  [x] Coin shop
-   +  [ ] Payment success toast
+   +  [x] Payment success toast
 + [x] View Chapter
   + [x] Comments modal
   + [x] Report modal
@@ -17,12 +16,18 @@
     + [x] ~~Submodal~~ ask user to purchase coin or not
 + [x] Create chapter
   + [x] Edit chapter
-+ [ ] Guest should not see the report & translate button
++ [x] Guest should not see the report & translate button
 + [x] Href to user profile in comment
 + [x] Tag edit bug
 + [x] Delete comic modal
-+ [ ] Sidebar dashboard navigation
-+ [ ] Reports chart with multi color
++ [x] Sidebar dashboard navigation
++ [ ] Dashboard
+  + [ ] Publisher dashboard
+    + [ ] Add comic views chart
+  + [ ] Admin dashboard
+    + [ ] Remove outcome card
+    + [ ] Update income card
++ [ ] ~~Reports chart with multi color~~
 + [ ] ~~Website management~~ 
   + [ ] ~~Edit About Us~~
   + [ ] ~~Edit ToS~~

@@ -218,17 +218,28 @@
           </button>
         </div>
         <div class="flex flex-col gap-5 mt-5">
-          <a
-            href="/comics/{comic.id}/chapters/{chapter.number}/translations"
-            class="btn btn-block btn-primary"
+          <div class="w-full tooltip"
+            data-tip={currentUser ? undefined : 'Login to use translation editor'}>
+            <a
+              href="/comics/{comic.id}/chapters/{chapter.number}/translations"
+              class="btn btn-block btn-primary"
+              class:btn-disabled={!currentUser}
+            >
+              <Icon icon="lucide--languages" class="text-2xl" />
+              Translation Editor
+            </a>
+          </div>
+          <div class="w-full tooltip"
+            data-tip={currentUser ? undefined : 'Login to use comments'}
           >
-            <Icon icon="lucide--languages" class="text-2xl" />
-            Translation Editor
-          </a>
-          <button class="btn btn-accent btn-block" on:click={() => commentsModal.showModal()}>
-            <Icon icon="lucide--messages-square" class="text-2xl" />
-            View Comments
-          </button>
+            <button 
+              class="btn btn-accent btn-block" on:click={() => commentsModal.showModal()}
+              class:btn-disabled={!currentUser}
+            >
+              <Icon icon="lucide--messages-square" class="text-2xl" />
+              View Comments
+            </button>
+          </div>
         </div>
       </aside>
       <div class="min-h-screen h-fit pb-1 transition-margin duration-150 px-2" class:mr-96={active}>
