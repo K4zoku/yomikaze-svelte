@@ -133,8 +133,6 @@
         </a>
       </div>
 
-     
-
       <div
         class="rounded-md border-2 p-2 w-60 border-accent-content shadow-lg hover:shadow-2xl transition duration-300"
       >
@@ -186,19 +184,17 @@
     <div
       class="rounded-md border-2 p-2 w-60 border-accent-content shadow-lg hover:shadow-2xl transition duration-300"
     >
-      <a href="/dashboard/reports/comics" class="">
-        <div class="flex justify-between items-center">
-          <div class="flex flex-col">
-            <span>Revenue</span>
-            <span class="text-xl font-semibold" class:text-success={statistics.revenue > 0}
-              >{statistics.revenue > 0 ? '+' : ''}{statistics.revenue.toFixed(2)}$</span
-            >
-          </div>
-          <div class="rounded flex items-center aspect-square h-full p-1 bg-accent shadow">
-            <Icon icon="lucide--diamond-plus" class="text-3xl text-accent-content" />
-          </div>
+      <div class="flex justify-between items-center">
+        <div class="flex flex-col">
+          <span>Revenue</span>
+          <span class="text-xl font-semibold" class:text-success={statistics.revenue > 0}
+            >{statistics.revenue > 0 ? '+' : ''}{statistics.revenue.toFixed(2)}$</span
+          >
         </div>
-      </a>
+        <div class="rounded flex items-center aspect-square h-full p-1 bg-accent shadow">
+          <Icon icon="lucide--diamond-plus" class="text-3xl text-accent-content" />
+        </div>
+      </div>
     </div>
   </div>
   <div class="w-full flex flex-col gap-2 mt-8">
