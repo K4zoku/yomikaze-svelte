@@ -104,7 +104,7 @@
             <InlineProfile profile={withdrawal.profile} />
           </td>
           <td>{withdrawal.amount} coins</td>
-          <td>{(withdrawal.amount * 0.009).toFixed(2)}$</td>
+          <td>{(withdrawal.amount * 0.00798).toFixed(2)}$</td>
           <td>{withdrawal.paymentInformation}</td>
           <td><Time timestamp={withdrawal.creationTime} relative /> </td>
           <td
