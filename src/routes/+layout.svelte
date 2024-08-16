@@ -714,12 +714,9 @@
                   </li>{/if}
                 <li></li>
                 <li>
-                  <div class="grid grid-cols-2 gap-2 !bg-transparent">
-                    <a href="/profile/settings" class="btn btn-ghost btn-sm btn-block">
-                      <Icon icon="lucide--settings" class="text-xl" />
-                      Settings
-                    </a>
-                    <details class="dropdown dropdown-end">
+                  <div class="flex items-center !bg-transparent">
+                   
+                    <details class="dropdown dropdown-end w-full">
                       <summary class="btn btn-ghost btn-sm btn-block">
                         <Icon icon="lucide--droplet" class="text-xl" />
                         Theme
