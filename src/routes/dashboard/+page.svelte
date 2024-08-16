@@ -1,14 +1,17 @@
 <script lang="ts">
   import Icon from '$components/icon.svelte';
   import Sublayout from '$components/yomikaze/sublayout.svelte';
+  import type AuthDataStore from '$models/AuthDataStore';
   import http from '$utils/http';
   import 'chart.js/auto';
   import type { ChartData } from 'chart.js/auto';
-  import { onMount } from 'svelte';
+  import { getContext, onMount } from 'svelte';
   import { Line } from 'svelte-chartjs';
 
   export let data;
   const { token } = data;
+  const authStore = getContext<AuthDataStore>('auth');
+  const currentUser = authStore?.user;
 
   interface Statistics {
     comics: number;
@@ -21,8 +24,7 @@
     withdrawals: number;
     reports: number;
     comments: number;
-    income: number;
-    outcome: number;
+    revenue: number;
   }
 
   let statistics: Statistics = {
@@ -36,11 +38,10 @@
     withdrawals: 0,
     reports: 0,
     comments: 0,
-    income: 0,
-    outcome: 0
+    revenue: 0
   };
 
-  let comicChart: ChartData<"line", number[]> | undefined;
+  let comicChart: ChartData<'line', number[]> | undefined;
   onMount(async () => {
     http.defaults.headers.common.Authorization = `Bearer ${token}`;
     const response = await http.get('/statistics');
@@ -92,17 +93,15 @@
     <div
       class="rounded-md border-2 p-2 w-60 border-accent-content shadow-lg hover:shadow-2xl transition duration-300"
     >
-      <a href="/dashboard/users">
-        <div class="flex justify-between items-center">
-          <div class="flex flex-col">
-            <span>Users</span>
-            <span class="text-xl font-semibold">{statistics.users}</span>
-          </div>
-          <div class="rounded flex items-center aspect-square h-full p-1 bg-accent shadow">
-            <Icon icon="iconify lucide--users-round" class="text-3xl text-accent-content" />
-          </div>
+      <div class="flex justify-between items-center">
+        <div class="flex flex-col">
+          <span>Chapters</span>
+          <span class="text-xl font-semibold">{statistics.chapters}</span>
         </div>
-      </a>
+        <div class="rounded flex items-center aspect-square h-full p-1 bg-accent shadow">
+          <Icon icon="lucide--files" class="text-3xl text-accent-content" />
+        </div>
+      </div>
     </div>
 
     <div class="rounded-md border-2 p-2 w-60 border-accent-content shadow-lg">
@@ -117,79 +116,86 @@
       </div>
     </div>
 
-    <div
-      class="rounded-md border-2 p-2 w-60 border-accent-content shadow-lg hover:shadow-2xl transition duration-300"
-    >
-      <a href="/dashboard/tags">
-        <div class="flex justify-between items-center">
-          <div class="flex flex-col">
-            <span>Tags</span>
-            <span class="text-xl font-semibold">{statistics.tags}</span>
+    {#if $currentUser.roles.includes('Administrator')}
+      <div
+        class="rounded-md border-2 p-2 w-60 border-accent-content shadow-lg hover:shadow-2xl transition duration-300"
+      >
+        <a href="/dashboard/users">
+          <div class="flex justify-between items-center">
+            <div class="flex flex-col">
+              <span>Users</span>
+              <span class="text-xl font-semibold">{statistics.users}</span>
+            </div>
+            <div class="rounded flex items-center aspect-square h-full p-1 bg-accent shadow">
+              <Icon icon="iconify lucide--users-round" class="text-3xl text-accent-content" />
+            </div>
           </div>
-          <div class="rounded flex items-center aspect-square h-full p-1 bg-accent shadow">
-            <Icon icon="lucide--tags" class="text-3xl text-accent-content" />
-          </div>
-        </div>
-      </a>
-    </div>
+        </a>
+      </div>
 
-    <div
-      class="rounded-md border-2 p-2 w-60 border-accent-content shadow-lg hover:shadow-2xl transition duration-300"
-    >
-      <a href="/dashboard/role-requests">
-        <div class="flex justify-between items-center">
-          <div class="flex flex-col">
-            <span>Role Requests</span>
-            <span class="text-xl font-semibold">{statistics.roleRequests}</span>
-          </div>
-          <div class="rounded flex items-center aspect-square h-full p-1 bg-accent shadow">
-            <Icon icon="lucide--file-pen-line" class="text-3xl text-accent-content" />
-          </div>
-        </div>
-      </a>
-    </div>
+     
 
-    <div
-      class="rounded-md border-2 p-2 w-60 border-accent-content shadow-lg hover:shadow-2xl transition duration-300"
-    >
-      <a href="/dashboard/reports" class="">
-        <div class="flex justify-between items-center">
-          <div class="flex flex-col">
-            <span>Reports</span>
-            <span class="text-xl font-semibold">{statistics.reports}</span>
+      <div
+        class="rounded-md border-2 p-2 w-60 border-accent-content shadow-lg hover:shadow-2xl transition duration-300"
+      >
+        <a href="/dashboard/tags">
+          <div class="flex justify-between items-center">
+            <div class="flex flex-col">
+              <span>Tags</span>
+              <span class="text-xl font-semibold">{statistics.tags}</span>
+            </div>
+            <div class="rounded flex items-center aspect-square h-full p-1 bg-accent shadow">
+              <Icon icon="lucide--tags" class="text-3xl text-accent-content" />
+            </div>
           </div>
-          <div class="rounded flex items-center aspect-square h-full p-1 bg-accent shadow">
-            <Icon icon="iconify lucide--flag" class="text-3xl text-accent-content" />
+        </a>
+      </div>
+
+      <div
+        class="rounded-md border-2 p-2 w-60 border-accent-content shadow-lg hover:shadow-2xl transition duration-300"
+      >
+        <a href="/dashboard/role-requests">
+          <div class="flex justify-between items-center">
+            <div class="flex flex-col">
+              <span>Role Requests</span>
+              <span class="text-xl font-semibold">{statistics.roleRequests}</span>
+            </div>
+            <div class="rounded flex items-center aspect-square h-full p-1 bg-accent shadow">
+              <Icon icon="lucide--file-pen-line" class="text-3xl text-accent-content" />
+            </div>
           </div>
-        </div>
-      </a>
-    </div>
+        </a>
+      </div>
+
+      <div
+        class="rounded-md border-2 p-2 w-60 border-accent-content shadow-lg hover:shadow-2xl transition duration-300"
+      >
+        <a href="/dashboard/reports" class="">
+          <div class="flex justify-between items-center">
+            <div class="flex flex-col">
+              <span>Reports</span>
+              <span class="text-xl font-semibold">{statistics.reports}</span>
+            </div>
+            <div class="rounded flex items-center aspect-square h-full p-1 bg-accent shadow">
+              <Icon icon="iconify lucide--flag" class="text-3xl text-accent-content" />
+            </div>
+          </div>
+        </a>
+      </div>
+    {/if}
     <div
       class="rounded-md border-2 p-2 w-60 border-accent-content shadow-lg hover:shadow-2xl transition duration-300"
     >
       <a href="/dashboard/reports/comics" class="">
         <div class="flex justify-between items-center">
           <div class="flex flex-col">
-            <span>Income</span>
-            <span class="text-xl font-semibold" class:text-success={statistics.income > 0}>{statistics.income > 0 ? '+' : ''}{statistics.income}$</span>
+            <span>Revenue</span>
+            <span class="text-xl font-semibold" class:text-success={statistics.revenue > 0}
+              >{statistics.revenue > 0 ? '+' : ''}{statistics.revenue.toFixed(2)}$</span
+            >
           </div>
           <div class="rounded flex items-center aspect-square h-full p-1 bg-accent shadow">
             <Icon icon="lucide--diamond-plus" class="text-3xl text-accent-content" />
-          </div>
-        </div>
-      </a>
-    </div>
-    <div
-      class="rounded-md border-2 p-2 w-60 border-accent-content shadow-lg hover:shadow-2xl transition duration-300"
-    >
-      <a href="/dashboard/reports/comics" class="">
-        <div class="flex justify-between items-center">
-          <div class="flex flex-col">
-            <span>Outcome</span>
-            <span class="text-xl font-semibold" class:text-error={statistics.outcome < 0}>{statistics.outcome}$</span>
-          </div>
-          <div class="rounded flex items-center aspect-square h-full p-1 bg-accent shadow">
-            <Icon icon="lucide--diamond-minus" class="text-3xl text-accent-content" />
           </div>
         </div>
       </a>

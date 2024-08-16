@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { goto } from '$app/navigation';
+  import { goto } from '$app/navigation';
   import { page } from '$app/stores';
   import Icon from '$components/icon.svelte';
   import Sublayout from '$components/yomikaze/sublayout.svelte';
@@ -13,6 +13,7 @@
   let pageName = 'Coin Shop';
   async function getCoins(): Promise<CoinPricing[]> {
     const response = await getCoin({ size: 1000 });
+    response.results = response.results.sort((a, b) => a.amount - b.amount);
     return response.results;
   }
 

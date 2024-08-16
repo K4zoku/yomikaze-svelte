@@ -8,7 +8,7 @@ export const load : PageServerLoad = (async ({ cookies }) => {
    const token: string = await getAndVerifyToken(cookies);
    if (!await hasRoles(token, ALLOWED_ROLES)) {
       throw error(403, 'You do not have permission to access this page');
-   }
+   } 
    return {
       token,
    };
