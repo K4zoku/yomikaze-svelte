@@ -25,6 +25,7 @@
     reports: number;
     comments: number;
     revenue: number;
+    publicationRequests: number;
   }
 
   let statistics: Statistics = {
@@ -38,7 +39,8 @@
     withdrawals: 0,
     reports: 0,
     comments: 0,
-    revenue: 0
+    revenue: 0,
+    publicationRequests: 0
   };
 
   let comicChart: ChartData<'line', number[]> | undefined;
@@ -74,6 +76,24 @@
 <Sublayout pageName="Dashboard">
   <h3 class="text-xl font-bold">General Statistics</h3>
   <div class="grid grid-cols-4 gap-4 mt-3">
+    {#if $currentUser.roles.includes('Administrator')}
+      <div
+        class="rounded-md border-2 p-2 w-60 border-accent-content shadow-lg hover:shadow-2xl transition duration-300"
+      >
+        <a href="/dashboard/comics/publication-requests">
+          <div class="flex justify-between items-center">
+            <div class="flex flex-col">
+              <span>Publication Requests</span>
+              <span class="text-xl font-semibold">{statistics.publicationRequests}</span>
+            </div>
+            <div class="rounded flex items-center aspect-square h-full p-1 bg-accent shadow">
+              <Icon icon="lucide--files" class="text-3xl text-accent-content" />
+            </div>
+          </div>
+        </a>
+      </div>
+    {/if}
+
     <div
       class="rounded-md border-2 p-2 w-60 border-accent-content shadow-lg hover:shadow-2xl transition duration-300"
     >

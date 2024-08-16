@@ -121,7 +121,7 @@
   }
 </script>
 
-<Sublayout pageName="Comic publication resquest">
+<Sublayout pageName="Comic publication requests">
   <span class="text-xl ml-6">Totals: {totals}</span>
   <table class="table">
     <thead>
