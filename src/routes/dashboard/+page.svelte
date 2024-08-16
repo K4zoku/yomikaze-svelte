@@ -136,7 +136,7 @@
     <div
       class="rounded-md border-2 p-2 w-60 border-accent-content shadow-lg hover:shadow-2xl transition duration-300"
     >
-      <a href="/dashboard/role-request">
+      <a href="/dashboard/role-requests">
         <div class="flex justify-between items-center">
           <div class="flex flex-col">
             <span>Role Requests</span>
