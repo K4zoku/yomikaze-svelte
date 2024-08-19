@@ -886,7 +886,7 @@
             </div>
             <input
               type="text"
-              value="{(withdrawalAmount * 0.009).toFixed(2)}$"
+              value="{(withdrawalAmount * 0.00798).toFixed(2)}$"
               min="0"
               class="input input-bordered w-full"
               disabled
