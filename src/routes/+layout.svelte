@@ -411,7 +411,7 @@
         </div>
         <div class="w-full flex flex-col justify-center items-center py-2">
           <div class="text-xs">v{version}</div>
-          <div class="text-xs">Experimental version for the project.</div>
+          <div class="text-xs">This is demo version for the final thesis.</div>
           <div class="text-xs">&copy; YomiKaze {new Date().getFullYear()}</div>
         </div>
       </footer>
