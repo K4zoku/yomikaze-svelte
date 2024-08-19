@@ -377,21 +377,21 @@
         </ul>
         <div class="flex justify-center items-center gap-4 py-2">
           <a
-            href="https://facebook.com"
+            href="https://www.facebook.com/yomicomic"
             class="btn btn-sm btn-circle btn-ghost"
             aria-label="Facebook"
             target="_blank"
           >
             <Icon icon="hugeicons--facebook-02" class="text-lg" />
           </a>
-          <a
+          <!-- <a
             href="https://x.com"
             class="btn btn-sm btn-circle btn-ghost"
             aria-label="X"
             target="_blank"
           >
             <Icon icon="hugeicons--new-twitter" class="text-lg" />
-          </a>
+          </a> -->
           <a
             href="mailto:contact@yomikaze.org"
             class="btn btn-sm btn-circle btn-ghost"
