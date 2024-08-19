@@ -116,7 +116,7 @@
       </div>
     </div>
 
-    {#if $currentUser.roles.includes('Administrator')}
+    {#if $currentUser && $currentUser.roles.includes('Administrator')}
       <div
         class="rounded-md border-2 p-2 w-60 border-accent-content shadow-lg hover:shadow-2xl transition duration-300"
       >
