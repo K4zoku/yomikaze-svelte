@@ -52,7 +52,7 @@
     "@types/service_worker_api": "^0.0.9",
     "@types/sortablejs": "^1.15.8",
     "autoprefixer": "^10.4.19",
-    "axios": "^1.7.2",
+    "axios": "^1.7.4",
     "chart.js": "^4.4.3",
     "dotenv": "^16.4.5",
     "insane": "^2.6.2",
