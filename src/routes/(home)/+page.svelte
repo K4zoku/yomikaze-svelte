@@ -33,7 +33,7 @@
               <div
                 class="hidden sm:flex grow md:grow-0 gap-2 py-2 max-w-screen-lg overflow-x-hidden shrink-0"
               >
-                {#each { length: 4 } as _, i}
+                {#each { length: 4 } as _}
                   <span class="flex-shrink-0 h-4 w-16 skeleton"></span>
                 {/each}
               </div>
@@ -149,7 +149,10 @@
                             {/each}
                           </span>
                         </span>
-                        <span class="inline-flex gap-1 items-center flex-none" data-last-modified={comic.lastModified}>
+                        <span
+                          class="inline-flex gap-1 items-center flex-none"
+                          data-last-modified={comic.lastModified}
+                        >
                           <Icon icon="lucide--clock" />
                           <Time timestamp={comic.lastModified ?? comic.creationTime} relative />
                         </span>

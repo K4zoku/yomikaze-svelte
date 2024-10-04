@@ -1,10 +1,13 @@
 export async function delay(ms: number): Promise<void> {
-  return await new Promise<void>(resolve => setTimeout(resolve, ms));
+  return await new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
 
-export function debounce<A = unknown, R = void>(fn: (args?: A) => R, ms: number = 300): [(args: A) => Promise<R>, () => void] {
+export function debounce<A = unknown, R = void>(
+  fn: (args: A) => R,
+  ms: number = 300
+): [(args: A) => Promise<R>, () => void] {
   let timer: NodeJS.Timeout;
-  const debouncedFn = (args?: A): Promise<R> =>
+  const debouncedFn = (args: A): Promise<R> =>
     new Promise((resolve) => {
       if (timer) {
         clearTimeout(timer);
@@ -20,7 +23,11 @@ export function debounce<A = unknown, R = void>(fn: (args?: A) => R, ms: number 
   return [debouncedFn, teardown];
 }
 
-export function appendQueryParams(searchParams: URLSearchParams, params?: { [key: string]: any }, autoRemoveNull: boolean = false): URLSearchParams {
+export function appendQueryParams(
+  searchParams: URLSearchParams,
+  params?: { [key: string]: any },
+  autoRemoveNull: boolean = false
+): URLSearchParams {
   if (!params) {
     return searchParams;
   }
@@ -40,13 +47,13 @@ export function appendQueryParams(searchParams: URLSearchParams, params?: { [key
   return searchParams;
 }
 
-export default function formatNumber(num: number, precision:number = 2) {
+export default function formatNumber(num: number, precision: number = 2) {
   const map = [
     { suffix: 't', threshold: 1e12 },
     { suffix: 'b', threshold: 1e9 },
     { suffix: 'm', threshold: 1e6 },
     { suffix: 'k', threshold: 1e3 },
-    { suffix: '', threshold: 1 },
+    { suffix: '', threshold: 1 }
   ];
 
   const found = map.find((x) => Math.abs(num) >= x.threshold);

@@ -1,4 +1,4 @@
-import adapter from '@sveltejs/adapter-auto';
+import adapter from 'svelte-adapter-bun';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import path from 'path';
 import { readFileSync } from 'fs';
@@ -18,12 +18,24 @@ const config = {
     // adapter-auto only supports some environments, see https://kit.svelte.dev/docs/adapter-auto for a list.
     // If your environment is not supported, or you settled on a specific environment, switch out the adapter.
     // See https://kit.svelte.dev/docs/adapters for more information about adapters.
-    adapter: adapter(),
+    adapter: adapter({
+      out: 'build',
+      assets: true,
+      development: false,
+      // precompress: true,
+      precompress: {
+        brotli: true,
+        gzip: true,
+        files: ['htm', 'html']
+      },
+      dynamic_origin: true,
+      xff_depth: 1
+    }),
     alias: {
       $components: path.resolve('./src/lib/components'),
       $models: path.resolve('./src/lib/models'),
       $utils: path.resolve('./src/lib/utils'),
-      '~': path.resolve('./src'),
+      '~': path.resolve('./src')
     },
     version: {
       name: pkg.version
