@@ -95,7 +95,8 @@
   });
 
   function listFontFamilies() {
-    const fontFaces = [...document.fonts.values()];
+    const fontFaces: FontFace[] = [];
+    document.fonts.forEach((font) => fontFaces.push(font));
     const families = fontFaces.map((font) => font.family).filter((family) => family !== 'Lexend'); // remove Lexend as it's a website display font
     // converted to set then to array to remove duplicates
     return [...new Set(families)];
