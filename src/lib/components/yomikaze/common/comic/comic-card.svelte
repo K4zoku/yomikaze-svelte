@@ -13,7 +13,7 @@
   };
 </script>
 
-<a href="/comics/{comic.id}" class="flex flex-col items-center gap-2 snap-start relative h-fit" title={comic.name}>
+<a href="/comics/{comic.id}" class="flex flex-col items-center gap-2 snap-start relative h-fit" title={comic.name} role="listitem">
   <Picture
     src={comic.cover}
     class="{sizes[size]} aspect-cover rounded-md shadow-md"

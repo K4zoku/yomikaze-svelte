@@ -199,7 +199,10 @@
 </script>
 
 <svelte:window bind:scrollY on:keydown={onKeyDown} on:mousedown={handleOnClickOutside} />
-
+<svelte:head>
+  <link rel="preconnect" href="https://api.yomikaze.org">
+  <link rel="preconnect" href="https://i.yomikaze.org">
+</svelte:head>
 <div
   data-theme={$preferences.theme}
   class="drawer xl:drawer-open"
