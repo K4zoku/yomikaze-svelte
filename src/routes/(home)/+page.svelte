@@ -12,6 +12,7 @@
 
 <svelte:head>
   <title>Yomikaze</title>
+  <meta name="description" content="Yomikaze is a free webtoon reader" />
 </svelte:head>
 
 <section id="popular">
@@ -59,7 +60,7 @@
     <div class="flex justify-between items-center">
       <h2 class="font-bold text-2xl">Latest Updates</h2>
       <div class="tooltip" data-tip="View all">
-        <a href="/updates" class="btn btn-circle btn-ghost">
+        <a href="/updates" class="btn btn-circle btn-ghost" aria-label="View all updates">
           <Icon icon="lucide--arrow-right" class="text-2xl" />
         </a>
       </div>
@@ -171,7 +172,7 @@
     <div class="flex justify-between items-center">
       <h2 class="font-bold text-2xl">Recently Added</h2>
       <div class="tooltip" data-tip="View all">
-        <a href="/recents" class="btn btn-circle btn-ghost">
+        <a href="/recents" class="btn btn-circle btn-ghost" aria-label="View all recents">
           <Icon icon="lucide--arrow-right" class="text-2xl" />
         </a>
       </div>

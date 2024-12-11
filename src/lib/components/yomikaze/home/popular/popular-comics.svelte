@@ -60,10 +60,10 @@
           >No.{currentPageIndex + 1}</span
         >
         <div class="flex gap-2">
-          <button class="btn btn-circle btn-sm btn-ghost" on:click={() => carousel.goToPrev()}>
+          <button class="btn btn-circle btn-sm btn-ghost" on:click={() => carousel.goToPrev()} aria-label="Previous">
             <span class="iconify lucide--chevron-left font-extrabold text-2xl"></span>
           </button>
-          <button class="btn btn-circle btn-sm btn-ghost" on:click={() => carousel.goToNext()}>
+          <button class="btn btn-circle btn-sm btn-ghost" on:click={() => carousel.goToNext()} aria-label="Next">
             <span class="iconify lucide--chevron-right font-extrabold text-2xl"></span>
           </button>
         </div>
