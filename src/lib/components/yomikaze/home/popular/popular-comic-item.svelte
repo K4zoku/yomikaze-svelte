@@ -33,6 +33,7 @@
     src={[comic.banner, comic.cover]}
     class="w-full h-112 min-h-112 max-h-112 object-cover object-top"
     imgClass="w-full h-full object-cover object-top"
+    fetchpriority="high"
   />
   <div class="absolute w-full h-full top-0 left-0 bg-gradient-to-b from-base-100/60 to-base-100">
     <div class="w-full max-w-screen-xl mx-auto mt-28">
@@ -42,6 +43,7 @@
             src={comic.cover}
             class="h-full w-full"
             imgClass="w-full h-full rounded-lg shadow-md object-cover object-center shadow hover:shadow-lg hover:scale-105 transition duration-300"
+            fetchpriority="high"
           />
         </figure>
         <div class="flex flex-col grow w-full gap-2 max-h-full h-full min-w-[0]">

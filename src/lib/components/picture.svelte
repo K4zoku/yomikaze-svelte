@@ -4,6 +4,7 @@
   export let src: string | Array<string | undefined> | undefined;
 
   export let useCdn = false;
+  export let fetchpriority: string | undefined;
   const cdn = PUBLIC_CDN_BASE_URL ?? 'https://i.yomikaze.org';
 
   function mayAppendCdn(src: string | undefined): string {
@@ -44,6 +45,9 @@
 </script>
 
 {#key src}
+  {#each (Array.isArray(src) ? src : [src]) as s}
+    <link rel="preload" fetchpriority={fetchpriority} as="image" href={s} />
+  {/each}
   {#await loadImage(src)}
     <slot name="loading">
       <div class={$$props.class ? $$props.class : ''}>
@@ -54,7 +58,7 @@
     </slot>
   {:then src}
     <picture class={$$props.class ? $$props.class : ''} data-src={src} draggable="false">
-      <source class={imgClass} srcset={src} draggable="false"/>
+      <source class={imgClass} srcset={src} draggable="false" />
       <slot name="fallback">
         <source class={imgClass} src="/images/broken-image.svg" type="image/svg+xml" draggable="false"/>
         <img class={imgClass} src="/images/broken-image@2x.png" alt="" draggable="false"/>
