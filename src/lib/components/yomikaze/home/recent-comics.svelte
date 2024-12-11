@@ -69,7 +69,6 @@
 
 <div
   class="overflow-x-scroll max-w-full w-full flex gap-6 pb-6 h-fit rounded shadow-inner bg-base-200 px-3 pt-3"
-  role="list"
   bind:this={container}
   on:wheel={handleOnWheel}
   on:mouseenter={() => (hovering = true)}
