@@ -92,11 +92,21 @@
   let inputting: boolean = false;
   function handleScroll() {
     if (inputting) return; // ignore scroll event when user is inputting
-    const index = elements.findLastIndex((element) => {
-      let box = element.getBoundingClientRect();
-      return box.top <= 16 * 16;
-    });
-    currentPage = index;
+    const limit = Math.max(
+      document.body.scrollHeight,
+      document.body.offsetHeight,
+      document.documentElement.clientHeight,
+      document.documentElement.scrollHeight,
+      document.documentElement.offsetHeight
+    );
+    if (document.documentElement.scrollTop >= limit - 96) {
+      currentPage = elements.length - 1;
+    } else {
+      currentPage = elements.findLastIndex((element) => {
+        const { top } = element.getBoundingClientRect();
+        return top <= 64;
+      });
+    }
   }
 
   async function handleChange() {
@@ -218,8 +228,10 @@
           </button>
         </div>
         <div class="flex flex-col gap-5 mt-5">
-          <div class="w-full tooltip"
-            data-tip={currentUser ? undefined : 'Login to use translation editor'}>
+          <div
+            class="w-full tooltip"
+            data-tip={currentUser ? undefined : 'Login to use translation editor'}
+          >
             <a
               href="/comics/{comic.id}/chapters/{chapter.number}/translations"
               class="btn btn-block btn-primary"
@@ -229,11 +241,10 @@
               Translation Editor
             </a>
           </div>
-          <div class="w-full tooltip"
-            data-tip={currentUser ? undefined : 'Login to use comments'}
-          >
-            <button 
-              class="btn btn-accent btn-block" on:click={() => commentsModal.showModal()}
+          <div class="w-full tooltip" data-tip={currentUser ? undefined : 'Login to use comments'}>
+            <button
+              class="btn btn-accent btn-block"
+              on:click={() => commentsModal.showModal()}
               class:btn-disabled={!currentUser}
             >
               <Icon icon="lucide--messages-square" class="text-2xl" />
@@ -317,17 +328,17 @@
 </div>
 <!-- Chapter comment modal -->
 {#if currentUser}
-<dialog class="modal" bind:this={commentsModal}>
-  <div class="modal-box w-11/12 max-w-5xl">
-    <!-- X -->
-    <form method="dialog">
-      <button class="btn btn-circle btn-ghost absolute right-2 top-2 text-xl">✕</button>
+  <dialog class="modal" bind:this={commentsModal}>
+    <div class="modal-box w-11/12 max-w-5xl">
+      <!-- X -->
+      <form method="dialog">
+        <button class="btn btn-circle btn-ghost absolute right-2 top-2 text-xl">✕</button>
+      </form>
+      <h2 class="text-lg font-bold">Comments</h2>
+      <ChapterCommentList {comicId} chapterNumber={number} {currentUser} {commentManager} />
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>Close</button>
     </form>
-    <h2 class="text-lg font-bold">Comments</h2>
-    <ChapterCommentList {comicId} chapterNumber={number} {currentUser} {commentManager} />
-  </div>
-  <form method="dialog" class="modal-backdrop">
-    <button>Close</button>
-  </form>
-</dialog>
+  </dialog>
 {/if}
