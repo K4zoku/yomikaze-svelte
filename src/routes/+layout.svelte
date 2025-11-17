@@ -414,8 +414,8 @@
         </div>
         <div class="w-full flex flex-col justify-center items-center py-2">
           <div class="text-xs">v{version}</div>
-          <div class="text-xs">This is demo version for the final thesis.</div>
-          <div class="text-xs">&copy; YomiKaze {new Date().getFullYear()}</div>
+          <div class="text-xs">This is demo version for the capstone project.</div>
+          <div class="text-xs">&copy; YomiKaze 2024-{new Date().getFullYear()}</div>
         </div>
       </footer>
     </aside>
@@ -719,7 +719,7 @@
                 <li></li>
                 <li>
                   <div class="flex items-center !bg-transparent">
-                   
+
                     <details class="dropdown dropdown-end w-full">
                       <summary class="btn btn-ghost btn-sm btn-block">
                         <Icon icon="lucide--droplet" class="text-xl" />

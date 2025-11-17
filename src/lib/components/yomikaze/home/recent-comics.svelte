@@ -67,6 +67,7 @@
   });
 </script>
 
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
   class="overflow-x-scroll max-w-full w-full flex gap-6 pb-6 h-fit rounded shadow-inner bg-base-200 px-3 pt-3"
   bind:this={container}
