@@ -1,7 +1,13 @@
 name = "yomikaze"
 main = ".svelte-kit/cloudflare/_worker.js"
 compatibility_date = "2025-01-01"
-route = { pattern = "yomikaze.org/*", zone_name = "yomikaze.org" }
+
+[[routes]]
+pattern = "yomikaze.org"
+custom_domain = true
+
+[build]
+command = "npm run build"
 
 [assets]
 binding = "ASSETS"
