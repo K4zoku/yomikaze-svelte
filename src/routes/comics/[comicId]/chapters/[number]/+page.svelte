@@ -8,7 +8,7 @@
   import type AuthDataStore from '$models/AuthDataStore.js';
   import type Profile from '$models/Profile';
   import { ChapterCommentManagement } from '$utils/chapter-comment-utils';
-  import { delay } from '$utils/common';
+  import { debounce, delay } from '$utils/common';
   import http from '$utils/http';
   import { getContext, onMount, tick } from 'svelte';
 
@@ -90,30 +90,47 @@
 
   let elements: Array<HTMLElement> = Array(chapter ? chapter.pages.length : 0);
   let inputting: boolean = false;
-  function handleScroll() {
+
+  const TOP_OFFSET =
+    (document.querySelector('nav.navbar')?.getBoundingClientRect()?.height ?? 64) + 8;
+  const BOTTOM_OFFSET = 96;
+
+  const [debouncedUpdate] = debounce<number, void>((page: number) => {
+    currentPage = page;
+  }, 500);
+
+  async function handleScroll() {
+    await tick();
     if (inputting) return; // ignore scroll event when user is inputting
-    const limit = Math.max(
-      document.body.scrollHeight,
-      document.body.offsetHeight,
-      document.documentElement.clientHeight,
-      document.documentElement.scrollHeight,
-      document.documentElement.offsetHeight
-    );
-    if (document.documentElement.scrollTop >= limit - 96) {
+    const scrollTopMax =
+      Math.max(
+        document.body.scrollHeight,
+        document.body.offsetHeight,
+        document.documentElement.clientHeight,
+        document.documentElement.scrollHeight,
+        document.documentElement.offsetHeight
+      ) - document.documentElement.clientHeight;
+    if (document.documentElement.scrollTop >= scrollTopMax - BOTTOM_OFFSET) {
+      // if scroll to bottom
       currentPage = elements.length - 1;
     } else {
-      currentPage = elements.findLastIndex((element) => {
+      let index = elements.findLastIndex((element) => {
         const { top } = element.getBoundingClientRect();
-        return top <= 64;
+        return top <= TOP_OFFSET;
       });
+      index = index === -1 ? 0 : index;
+      await tick();
+      if (!inputting) currentPage = index;
     }
   }
 
   async function handleChange() {
     await tick();
+    if (inputting) return;
     inputting = true;
     const element = elements[currentPage];
-    element.scrollIntoView();
+    const { top } = element.getBoundingClientRect();
+    window.scrollBy({ top: top - TOP_OFFSET, behavior: 'instant' });
     element.focus({ preventScroll: true });
     await delay(500);
     inputting = false;
@@ -334,7 +351,6 @@
       <form method="dialog">
         <button class="btn btn-circle btn-ghost absolute right-2 top-2 text-xl">✕</button>
       </form>
-      <h2 class="text-lg font-bold">Comments</h2>
       <ChapterCommentList {comicId} chapterNumber={number} {currentUser} {commentManager} />
     </div>
     <form method="dialog" class="modal-backdrop">

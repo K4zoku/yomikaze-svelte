@@ -115,7 +115,7 @@
                     </div>
                     <div class="flex flex-col h-full max-w-full w-full gap-1 min-w-[0]">
                       <h3
-                        class="font-semibold overflow-hidden line-clamp-2 text-lg grow max-w-full w-full"
+                        class="font-semibold overflow-hidden line-clamp-2 leading-tight text-lg grow max-w-full w-full"
                       >
                         {comic.name}
                       </h3>

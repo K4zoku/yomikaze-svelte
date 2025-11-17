@@ -50,7 +50,10 @@
     bind:this={carousel}
     on:pageChange={(event) => (currentPageIndex = event.detail)}
   >
-    {#each comics as comic (comic.id)}
+    {#each comics as comic (`${comic.id}-1`)}
+      <PopularComicItem {comic} />
+    {/each}
+    {#each comics as comic (`${comic.id}-2`)}
       <PopularComicItem {comic} />
     {/each}
     <div slot="prev"></div>

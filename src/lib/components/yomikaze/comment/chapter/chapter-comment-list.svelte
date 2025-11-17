@@ -7,6 +7,7 @@
   import { createEventDispatcher, tick } from 'svelte';
   import PaginationComponent from '$components/yomikaze/common/pagination.svelte';
   import CommentComponent from './comment.svelte';
+    import Icon from '$components/icon.svelte';
 
   const dispatch = createEventDispatcher();
 
@@ -62,6 +63,10 @@
   }
 </script>
 
+<h2 class="text-lg font-bold flex items-center gap-3">
+    <Icon icon="lucide--messages-square"></Icon>
+    Comments ({comments.length})
+</h2>
 <div class="w-full flex flex-col gap-6">
   <div class="w-full flex flex-col gap-4">
     <div class="p-2 flex flex-col gap-2">
