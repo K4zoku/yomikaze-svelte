@@ -15,7 +15,7 @@ directory = ".svelte-kit/cloudflare"
 
 [env.production.vars]
 PUBLIC_FIREBASE_VAPID_KEY = "BF5hvOgZKv26Q7BmwhPglOfYpIGcn1AY6WqD-gQsC8j-lfQaI6RgxnMxffEwnSoNpz7tFuK0O-wvKt_-endRW-g"
-PUBLIC_STRIPE_KEY = "pk_test_51PVnD301gWARzfGirRLzBjcBaaFLysfXNOlS5pTNtEmjq17GxJYs8KG5zioWx5a7RUQZ3s1ULLxucVa6taRNmqgj00AfQyUa84"
+PUBLIC_STRIPE_KEY = "pk_test_51SUOcGIwpzxm9SFD8pykd9URFwoKShKA4Ppl4Yzj8vwChTUQI6Nz0Lhtv00HY0I59uzFVXOHWAb47MZIz2HY9Xvt00f3Nr6UVO"
 PUBLIC_BASE_URL = "https://yomikaze.org"
 PUBLIC_API_BASE_URL = "https://api.yomikaze.org"
 PUBLIC_CDN_BASE_URL = "https://i.yomikaze.org"

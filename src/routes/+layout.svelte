@@ -304,7 +304,7 @@
                   </li>
                   {#if $user.roles.some((role) => ['Super', 'Administrator'].includes(role))}
                   <li>
-                    <a href="/dashboard/comics/publication-requests" class:active={path === '/dashboard/comics'}>
+                    <a href="/dashboard/comics/publication-requests" class:active={path === '/dashboard/comics/publication-requests'}>
                       Comics Publication Requests
                     </a>
                   </li>
